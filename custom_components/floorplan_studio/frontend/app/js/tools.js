@@ -2,7 +2,7 @@
 let tool = 'select', mode = 'edit', placeType = null, drawing = null, drag = null, hover = null, spaceDown = false;
 let calibPts = [];
 const pointers = new Map();
-let pinch = null;
+let pinch = null, orbitMode = false;
 
 const HINTS = {
   wall: 'Klicken setzt Punkte · Doppelklick/Enter beendet · Shift = gerade · Esc bricht ab',
@@ -110,7 +110,13 @@ function cancelDrag() {
   if (drag && drag.timer) clearTimeout(drag.timer);
   drag = null;
 }
-function startPan(e, clickDeselect) { drag = { t: 'pan', sx: e.clientX, sy: e.clientY, tx: V().tx, ty: V().ty, moved: false, clickDeselect }; }
+function startPan(e, clickDeselect) {
+  if (orbitMode) {
+    const r = svgEl.getBoundingClientRect(), v = V(), { w, h } = stageSize(), cx = r.left + w / 2, cy = r.top + h / 2;
+    drag = { t: 'orbit', sx: e.clientX, sy: e.clientY, ang0: Math.atan2(e.clientY - cy, e.clientX - cx), a0: v.a || 0, cx, cy, wp: s2w(v, w / 2, h / 2), moved: false, clickDeselect };
+    return;
+  }
+  drag = { t: 'pan', sx: e.clientX, sy: e.clientY, tx: V().tx, ty: V().ty, moved: false, clickDeselect }; }
 function startPinch() {
   const [a, b] = [...pointers.values()];
   pinch = { ang: Math.atan2(b.y - a.y, b.x - a.x), d: Math.hypot(a.x - b.x, a.y - b.y) || 1, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, v: { ...V() } };
@@ -287,6 +293,13 @@ function onMove(e) {
   const free = e.altKey, g = S().grid;
   switch (drag.t) {
     case 'rotview': { const v = V(); anchorView(v, v.k, normAngle(snapAngle(drag.a0 + dxs * 0.35)), drag.wp.x, drag.wp.y, drag.ax, drag.ay); syncViews(v); render(); break; }
+    case 'orbit': {
+      const v = V(), { w, h } = stageSize();
+      let da = (Math.atan2(e.clientY - drag.cy, e.clientX - drag.cx) - drag.ang0) * 180 / Math.PI;
+      v.touched = true;
+      anchorView(v, v.k, normAngle(snapAngle(normAngle(drag.a0 + da))), drag.wp.x, drag.wp.y, w / 2, h / 2);
+      syncViews(v); render(); return;
+    }
     case 'pan': { const v = V(); v.touched = true; v.tx = drag.tx + dxs; v.ty = drag.ty + dys; render(); break; }
     case 'live': case 'liveRoom':
       if (Math.hypot(dxs, dys) > 8) { clearTimeout(drag.timer); startPan({ clientX: e.clientX, clientY: e.clientY }, false); drag.moved = true; }
@@ -356,7 +369,7 @@ function onUp(e) {
   if (d.timer) clearTimeout(d.timer);
   drag = null;
   switch (d.t) {
-    case 'pan': if (!d.moved && d.clickDeselect && mode === 'edit' && sel) setSel(null); break;
+    case 'orbit': case 'pan': if (!d.moved && d.clickDeselect && mode === 'edit' && sel) setSel(null); break;
     case 'live': { const it = findItem(d.id); if (!d.moved && !d.long && it) onItemTap(it, false); break; }
     case 'liveRoom': { const r = findRoom(d.id); if (!d.moved && r) openDetails(r.entity); break; }
     case 'rect': {
@@ -480,6 +493,7 @@ function bindStage() {
   $('#zoomIn').onclick = () => { const r = stageSize(); zoomAt(r.w / 2, r.h / 2, 1.3); };
   $('#zoomOut').onclick = () => { const r = stageSize(); zoomAt(r.w / 2, r.h / 2, 1 / 1.3); };
   $('#zoomFit').onclick = fitView;
+  $('#orbit').onclick = () => { orbitMode = !orbitMode; $('#orbit').classList.toggle('on', orbitMode); toast(orbitMode ? 'Dreh-Modus: Mit einem Finger/der Maus ziehen dreht die Ansicht' : 'Dreh-Modus aus: Ziehen verschiebt die Ansicht'); };
   $('#rotL').onclick = () => rotateViewBy(-90);
   $('#rotR').onclick = () => rotateViewBy(90);
   $('#btnFinish').onclick = finishDrawing;

@@ -145,3 +145,5 @@ pre.code { background: var(--bg2, rgba(127,127,127,.12)); padding: 8px; border-r
 .eb-t i { font-style: normal; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .eb-s { color: var(--muted); font-size: 12px; white-space: nowrap; } .eb-q { width: 100%; box-sizing: border-box; }
 .colorrow input:not([type=color]) { flex: 1; min-width: 0; } .colorrow .mini { white-space: nowrap; flex: none; }
+
+.ibtn.on { background: var(--accent); color: #fff; border-color: var(--accent); }

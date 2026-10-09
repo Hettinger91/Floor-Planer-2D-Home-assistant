@@ -103,7 +103,7 @@ const ROOM_COLORS = ['#90caf9', '#a5d6a7', '#ffcc80', '#ce93d8', '#80cbc4', '#ef
 
 const DEFAULT_SETTINGS = {
   grid: 25, snap: true, showGrid: true, showDims: true, showArea: true, showRoomNames: true,
-  labelSize: 20, wallThickness: 15, wallColor: '', roomOpacity: 0.28, itemShadow: true, symStyle: 'b', viewRot: 0, theme: 'auto',
+  labelSize: 20, wallThickness: 15, wallColor: '', roomOpacity: 0.28, itemShadow: true, symStyle: 'b', viewRot: 0, unit: 'm', theme: 'auto',
   pollSec: 4, rectWalls: true, liveTap: 'toggle',
 };
 
@@ -974,6 +974,11 @@ ha-card { overflow: hidden; }
 .tabs button { border: 1px solid var(--divider-color); background: transparent; color: var(--primary-text-color); border-radius: 16px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
 .tabs button.on { background: var(--primary-color); color: var(--text-primary-color, #fff); border-color: var(--primary-color); }
 svg { width: 100%; height: auto; display: block; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+svg.gest { touch-action: none; cursor: grab; }
+svg.gest.grabbing { cursor: grabbing; }
+.wrap { position: relative; }
+.ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: .85; }
+.ctl button { width: 30px; height: 30px; border-radius: 15px; border: 1px solid var(--divider-color); background: var(--card-background-color, #fff); color: var(--primary-text-color); font: inherit; font-size: 15px; line-height: 1; padding: 0; cursor: pointer; }
 .item.act, [data-k="room"].act { cursor: pointer; }
 .msg { padding: 24px 16px; color: var(--secondary-text-color); text-align: center; }
 `;
@@ -983,7 +988,7 @@ class FloorplanStudioCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this._cfg = {}; this._plan = null; this._floor = null; this._sig = ''; this._unsub = null; this._err = '';
-    this._hass = null; this._loading = false; this._rev = null; this._drag = null;
+    this._hass = null; this._loading = false; this._rev = null; this._drag = null; this._v = null; this._pts = new Map(); this._g = null;
   }
   static getStubConfig() { return {}; }
   getCardSize() { return 6; }
@@ -1085,20 +1090,73 @@ class FloorplanStudioCard extends HTMLElement {
     const items = f.items.map(i => itemMarkup(i, ctx)).join('') + ctx.glowOut.join('');
     const defs = [...ctx.glows].map(([col, id]) =>
       `<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".5" stop-color="${col}" stop-opacity=".42"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`).join('');
+    const gest = this._cfg.gestures !== false;
+    this._C = { x: ccx, y: ccy };
     const empty = !f.walls.length && !f.rooms.length && !f.items.length && !(f.bg && f.bg.url);
     const tabs = !this._cfg.floor && this._plan.floors.length > 1
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const body = empty
       ? '<div class="msg">Der Grundriss ist noch leer. Öffne das Panel „Grundriss“ in der Seitenleiste, um ihn zu zeichnen.</div>'
-      : `<svg viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></svg>`;
+      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button></div>' : ''}</div>`;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}${body}</ha-card>`;
-    root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._sig = ''; this._draw(); }; });
+    root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._v = null; this._sig = ''; this._draw(); }; });
     const svg = root.querySelector('svg');
     if (svg) this._bind(svg);
   }
 
+  // ----- Ansicht (Drehen/Zoomen/Verschieben): Bild = T + C + k·R(a)·(p − C) -----
+  _vt(cx, cy) {
+    const v = this._v || { a: 0, k: 1, tx: 0, ty: 0 };
+    return `translate(${v.tx} ${v.ty}) translate(${cx} ${cy}) rotate(${v.a}) scale(${v.k}) translate(${-cx} ${-cy})`;
+  }
+  _apply() {
+    const g = this.shadowRoot.getElementById('vw');
+    if (g && this._C) g.setAttribute('transform', this._vt(this._C.x, this._C.y));
+  }
+  _view() { return this._v || (this._v = { a: 0, k: 1, tx: 0, ty: 0 }); }
+  _toV(svg, e) {
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const m = svg.getScreenCTM();
+    return m ? pt.matrixTransform(m.inverse()) : { x: e.clientX, y: e.clientY };
+  }
+  // Inhaltspunkt unter Bildpunkt P
+  _inv(P) {
+    const v = this._view(), C = this._C, r = -v.a * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    const dx = P.x - v.tx - C.x, dy = P.y - v.ty - C.y;
+    return { x: (c * dx - s * dy) / v.k + C.x, y: (s * dx + c * dy) / v.k + C.y };
+  }
+  // setzt T so, dass Inhaltspunkt p auf Bildpunkt P liegt
+  _anchor(p, P) {
+    const v = this._view(), C = this._C, r = v.a * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    const dx = p.x - C.x, dy = p.y - C.y;
+    v.tx = P.x - C.x - v.k * (c * dx - s * dy);
+    v.ty = P.y - C.y - v.k * (s * dx + c * dy);
+  }
+  _snapA(a) { a = ((a % 360) + 540) % 360 - 180; const n = Math.round(a / 90) * 90; return Math.abs(a - n) < 3.5 ? n : a; }
+  _zoomBy(f, P) {
+    const v = this._view(), svg = this.shadowRoot.querySelector('svg'), vb = svg.viewBox.baseVal;
+    P = P || { x: vb.x + vb.width / 2, y: vb.y + vb.height / 2 };
+    const p = this._inv(P); v.k = Math.min(8, Math.max(0.4, v.k * f)); this._anchor(p, P); this._apply();
+  }
+  _rotBy(da, P) {
+    const v = this._view(), svg = this.shadowRoot.querySelector('svg'), vb = svg.viewBox.baseVal;
+    P = P || { x: vb.x + vb.width / 2, y: vb.y + vb.height / 2 };
+    const p = this._inv(P); v.a = this._snapA(v.a + da); this._anchor(p, P); this._apply();
+  }
+
   _bind(svg) {
-    svg.addEventListener('pointerdown', e => {
+    const gest = this._cfg.gestures !== false;
+    const root = this.shadowRoot;
+    root.querySelectorAll('.ctl button').forEach(b => {
+      b.addEventListener('pointerdown', e => e.stopPropagation());
+      b.onclick = () => {
+        const k = b.dataset.v;
+        if (k === 'ccw') this._rotBy(-90); else if (k === 'cw') this._rotBy(90);
+        else if (k === 'in') this._zoomBy(1.3); else if (k === 'out') this._zoomBy(1 / 1.3);
+        else { this._v = null; this._apply(); }
+      };
+    });
+    const tapStart = e => {
       this._ctx();
       const itg = e.target.closest('[data-k="item"]'), rg = e.target.closest('[data-k="room"]');
       const it = itg && findItem(itg.dataset.id);
@@ -1109,12 +1167,69 @@ class FloorplanStudioCard extends HTMLElement {
       } else if (rg && findRoom(rg.dataset.id) && findRoom(rg.dataset.id).entity) {
         this._drag = { t: 'room', id: rg.dataset.id, sx: e.clientX, sy: e.clientY, moved: false };
       } else this._drag = null;
+    };
+    const pinchStart = () => {
+      const [a, b] = [...this._pts.values()], v = this._view();
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      this._g = { t: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, ang0: Math.atan2(b.y - a.y, b.x - a.x), a0: v.a, k0: v.k, p: this._inv(mid), rot: false };
+    };
+    svg.addEventListener('pointerdown', e => {
+      if (gest) {
+        try { svg.setPointerCapture(e.pointerId); } catch (_) { /* egal */ }
+        this._pts.set(e.pointerId, this._toV(svg, e));
+        if (this._pts.size === 2) {
+          if (this._drag) { clearTimeout(this._drag.timer); this._drag.moved = true; }
+          pinchStart(); return;
+        }
+        if (this._pts.size > 2) return;
+        const pan = e.pointerType === 'mouse' && (e.button === 1 || e.button === 2 || e.shiftKey);
+        const P = this._toV(svg, e), v = this._view();
+        const cen = { x: this._C.x + v.tx, y: this._C.y + v.ty };
+        this._g = { t: pan ? 'pan' : 'orbit', sx: e.clientX, sy: e.clientY, started: false, a0: v.a, ang0: Math.atan2(P.y - cen.y, P.x - cen.x), cen, p: this._inv(P), P0: P };
+      }
+      if (e.button === 0 || e.pointerType !== 'mouse') tapStart(e); else this._drag = null;
     });
     svg.addEventListener('pointermove', e => {
       const d = this._drag;
       if (d && !d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 8) { d.moved = true; clearTimeout(d.timer); }
+      if (!gest || !this._pts.has(e.pointerId)) return;
+      const P = this._toV(svg, e);
+      this._pts.set(e.pointerId, P);
+      const g = this._g, v = this._view();
+      if (!g) return;
+      if (g.t === 'pinch' && this._pts.size === 2) {
+        const [a, b] = [...this._pts.values()];
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        let da = (Math.atan2(b.y - a.y, b.x - a.x) - g.ang0) * 180 / Math.PI;
+        da = ((da + 540) % 360) - 180;
+        if (Math.abs(da) > 6) g.rot = true;
+        v.k = Math.min(8, Math.max(0.4, g.k0 * (Math.hypot(a.x - b.x, a.y - b.y) || 1) / g.d0));
+        v.a = g.rot ? this._snapA(g.a0 + da) : g.a0;
+        this._anchor(g.p, mid); this._apply(); return;
+      }
+      if (this._pts.size !== 1 || (g.t !== 'orbit' && g.t !== 'pan')) return;
+      if (!g.started) {
+        if (Math.hypot(e.clientX - g.sx, e.clientY - g.sy) < 8) return;
+        g.started = true; svg.classList.add('grabbing');
+        if (this._drag) { this._drag.moved = true; clearTimeout(this._drag.timer); }
+      }
+      if (g.t === 'orbit') {
+        const da = (Math.atan2(P.y - g.cen.y, P.x - g.cen.x) - g.ang0) * 180 / Math.PI;
+        v.a = this._snapA(g.a0 + da);
+        this._anchor(this._inv(g.cen), g.cen); // Mittelpunkt bleibt stehen
+        this._apply();
+      } else { this._anchor(g.p, P); this._apply(); }
     });
     const end = e => {
+      this._pts.delete(e.pointerId);
+      svg.classList.remove('grabbing');
+      if (this._pts.size === 1 && this._g && this._g.t === 'pinch') {
+        const [id, P] = [...this._pts.entries()][0], v = this._view();
+        const cen = { x: this._C.x + v.tx, y: this._C.y + v.ty };
+        this._g = { t: 'pan', sx: 0, sy: 0, started: true, p: this._inv(P), a0: v.a, id };
+        return;
+      }
+      if (this._pts.size === 0) this._g = null;
       const d = this._drag; this._drag = null;
       if (!d) return;
       clearTimeout(d.timer);
@@ -1125,7 +1240,18 @@ class FloorplanStudioCard extends HTMLElement {
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);
-    svg.addEventListener('contextmenu', e => { if (e.target.closest('[data-k="item"]')) e.preventDefault(); });
+    if (gest) {
+      svg.addEventListener('wheel', e => {
+        if (!e.ctrlKey && !e.metaKey && !e.shiftKey) return; // normales Scrollen der Seite nicht blockieren
+        e.preventDefault();
+        const P = this._toV(svg, e), dy = (e.deltaY || e.deltaX) * (e.deltaMode === 1 ? 16 : 1);
+        if (e.shiftKey) this._rotBy(-dy * 0.12, P); else this._zoomBy(Math.exp(-dy * 0.0025), P);
+      }, { passive: false });
+      svg.addEventListener('dblclick', () => { this._v = null; this._apply(); });
+      svg.addEventListener('contextmenu', e => e.preventDefault());
+    } else {
+      svg.addEventListener('contextmenu', e => { if (e.target.closest('[data-k="item"]')) e.preventDefault(); });
+    }
   }
 }
 

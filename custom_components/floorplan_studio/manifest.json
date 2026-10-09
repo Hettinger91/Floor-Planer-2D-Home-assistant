@@ -4,11 +4,11 @@
   "codeowners": [],
   "config_flow": true,
   "dependencies": ["frontend", "http", "panel_custom", "websocket_api"],
-  "documentation": "https://github.com/YOUR-GITHUB-NAME/floorplan-studio-hacs",
+  "documentation": "https://github.com/Hettinger91/Floor-Planer-2D-Home-assistant",
   "integration_type": "service",
   "iot_class": "calculated",
-  "issue_tracker": "https://github.com/YOUR-GITHUB-NAME/floorplan-studio-hacs/issues",
+  "issue_tracker": "https://github.com/Hettinger91/Floor-Planer-2D-Home-assistant/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

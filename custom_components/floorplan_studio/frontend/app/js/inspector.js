@@ -1,6 +1,13 @@
 'use strict';
 // ---------- Feld-Engine ----------
+// Einheit: Werte liegen intern in cm; Anzeige/Eingabe wahlweise in Metern (Standard) oder cm
+const unitM = () => !!(plan && plan.settings && plan.settings.unit !== 'cm');
+const isLen = s => s.t === 'num' && /\(cm\)/.test(s.l || '');
+const toUi = (s, v) => (isLen(s) && unitM() && v !== '' && v != null && !isNaN(v) ? Math.round(v * 10) / 1000 : v);
+const fromUi = (s, v) => (isLen(s) && unitM() ? Math.round(v * 1000) / 10 : v);
 function specHtml(s) {
+  const m = isLen(s) && unitM();
+  if (m) s = { ...s, l: s.l.replace('(cm)', '(m)'), step: 0.01, min: s.min != null ? s.min / 100 : s.min };
   const l = esc(s.l || '');
   switch (s.t) {
     case 'check': return `<label class="chk"><input type="checkbox" data-f="${s.k}"> ${l}</label>`;
@@ -24,11 +31,11 @@ function wire(root, obj, specs, hooks = {}) {
     const write = () => {
       if (el.type === 'checkbox') el.checked = !!get();
       else if (el.type === 'color') el.value = /^#[0-9a-f]{6}$/i.test(get() || '') ? get() : (s.def || '#888888');
-      else el.value = get() ?? '';
+      else el.value = toUi(s, get()) ?? '';
     };
     write();
     el._write = write;
-    const read = () => (el.type === 'checkbox' ? el.checked : (s.t === 'num' || s.t === 'range') ? num(el.value, get()) : el.value);
+    const read = () => (el.type === 'checkbox' ? el.checked : (s.t === 'num' || s.t === 'range') ? fromUi(s, num(el.value, toUi(s, get()))) : el.value);
     el.addEventListener('input', () => {
       if (el.type === 'number' && el.value === '') return;
       set(read()); if (hooks.onInput) hooks.onInput(s.k); render();
@@ -71,7 +78,7 @@ function renderInspector() {
   if (sel.k === 'bg') return renderFloorInspector(box);
 }
 
-function section(title, inner) { return `<section class="sec"><h4>${esc(title)}</h4>${inner}</section>`; }
+function section(title, inner) { if (unitM()) title = title.replace('(cm)', '(m)'); return `<section class="sec"><h4>${esc(title)}</h4>${inner}</section>`; }
 function actionsHtml(list) { return `<div class="actions">${list.map(([id, l, c]) => `<button type="button" class="btn ${c || ''}" data-act="${id}">${esc(l)}</button>`).join('')}</div>`; }
 function bindActs(root, map) { $$('[data-act]', root).forEach(b => { b.onclick = () => map[b.dataset.act] && map[b.dataset.act](); }); }
 function pair(a, b) { return `<div class="row2">${a}${b}</div>`; }
@@ -197,6 +204,7 @@ function renderFloorInspector(box) {
     { k: 'locked', t: 'check', l: 'Hintergrund fixieren' },
   ] : [];
   const ss = [
+    { k: 'unit', t: 'select', l: 'Einheit (Eingabefelder)', o: [['m', 'Meter'], ['cm', 'Zentimeter']] },
     { k: 'grid', t: 'select', l: 'Raster', o: [[5, '5 cm'], [10, '10 cm'], [25, '25 cm'], [50, '50 cm'], [100, '1 m']] },
     { k: 'snap', t: 'check', l: 'Am Raster einrasten (Alt = frei)' },
     { k: 'showGrid', t: 'check', l: 'Raster anzeigen' },
@@ -224,7 +232,7 @@ function renderFloorInspector(box) {
     actionsHtml([['fit', 'Alles anzeigen'], ['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]);
   wire(box, f, fs, { onInput: () => renderFloorTabs() });
   if (hasBg) wire(box, f.bg, bg);
-  wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
+  wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
   bindActs(box, {
     bgup: async () => {
       const file = await pickFile('image/*');
@@ -304,7 +312,7 @@ function renderLibrary() {
     list.map(t => {
       const thumb = symThumb(t);
       const ico = thumb || ((t.icon && t.icon.startsWith('img:')) ? `<img src="${esc(t.icon.slice(4))}" alt="">` : esc(t.icon || (t.shape === 'door' ? '🚪' : t.shape === 'window' ? '🪟' : '▫')));
-      return `<button class="lib" draggable="true" data-id="${esc(t.id)}" title="${esc(t.name)} (${t.w}×${t.h} cm)"><span class="ico" style="background:${thumb ? 'transparent' : esc(t.color || '#eceff1')}">${ico}</span><span class="nm">${esc(t.name)}</span><i class="ed" data-ed="${esc(t.id)}" title="Vorlage bearbeiten">✎</i></button>`;
+      return `<button class="lib" draggable="true" data-id="${esc(t.id)}" title="${esc(t.name)} (${fmtN(t.w / 100, 2)}×${fmtN(t.h / 100, 2)} m)"><span class="ico" style="background:${thumb ? 'transparent' : esc(t.color || '#eceff1')}">${ico}</span><span class="nm">${esc(t.name)}</span><i class="ed" data-ed="${esc(t.id)}" title="Vorlage bearbeiten">✎</i></button>`;
     }).join('') + '</div></details>').join('') || '<p class="hint">Nichts gefunden.</p>';
   $$('.lib', box).forEach(b => {
     const t = typeById(b.dataset.id);
@@ -444,7 +452,7 @@ function showHelp() {
     title: 'Hilfe', wide: true, body: `<div class="help">
 <p><b>Zeichnen:</b> Wand (W), Raum als Rechteck (R) oder Polygon (P). Klicken setzt Punkte, Doppelklick / Enter beendet, Shift hält die Linie gerade. Auf Touch-Geräten: „Fertig“-Knopf unten.</p>
 <p><b>Objekte:</b> In der Bibliothek anklicken und im Plan platzieren – oder per Drag &amp; Drop. Türen und Fenster rasten an Wänden ein. Eigene Objekte über „+ Eigenes“ oder ✎ an jeder Vorlage.</p>
-<p><b>Bearbeiten:</b> Auswahl zeigt Griffe zum Skalieren und Drehen; alle Werte stehen rechts auch als Zahlen (cm). Alt gedrückt = ohne Einrasten.</p>
+<p><b>Bearbeiten:</b> Auswahl zeigt Griffe zum Skalieren und Drehen; alle Werte stehen rechts auch als Zahlen (Meter oder cm, einstellbar). Alt gedrückt = ohne Einrasten.</p>
 <p><b>Live:</b> Objekte mit Home-Assistant-Entität zeigen Zustand, Lampen leuchten in ihrer Farbe. Tippen schaltet, langes Drücken öffnet Details (umstellbar).</p>
 <table><tr><td>V / W / R / P / H</td><td>Werkzeuge</td></tr><tr><td>Strg+Z / Strg+Y</td><td>Rückgängig / Wiederholen</td></tr><tr><td>Strg+D / C / V</td><td>Duplizieren / Kopieren / Einfügen</td></tr><tr><td>Entf</td><td>Löschen</td></tr><tr><td>Pfeiltasten</td><td>Verschieben (Shift = grob)</td></tr><tr><td>Leertaste + Ziehen</td><td>Ansicht verschieben</td></tr><tr><td>Mausrad / Pinch</td><td>Zoomen</td></tr><tr><td>Q / E · Shift+Mausrad · Rechtsklick ziehen · zwei Finger drehen</td><td>Ansicht drehen (⟲ ⟳ = 90°)</td></tr></table></div>`,
     actions: [{ label: 'Schließen', value: null }],
