@@ -122,3 +122,9 @@ async def test_unload(hass, setup):
     assert await hass.config_entries.async_unload(setup.entry_id)
     await hass.async_block_till_done()
     assert "floorplan-studio" not in hass.data["frontend_panels"]
+
+
+
+async def test_card_registered_as_extra_module(hass, setup):
+    from homeassistant.components.frontend import DATA_EXTRA_MODULE_URL
+    assert any("floorplan-card.js" in u for u in hass.data[DATA_EXTRA_MODULE_URL].urls)
