@@ -13,7 +13,7 @@ Zeichne deinen Grundriss direkt in Home Assistant – Wände, Räume, Türen, Fe
 ## Installation über HACS
 
 1. HACS → ⋮ (oben rechts) → **Benutzerdefinierte Repositories**
-2. Repository-URL: `https://github.com/YOUR-GITHUB-NAME/floorplan-studio-hacs`, Typ: **Integration** → Hinzufügen
+2. Repository-URL: `https://github.com/Hettinger91/Floor-Planer-2D-Home-assistant`, Typ: **Integration** → Hinzufügen
 3. „Floorplan Studio“ in HACS suchen → **Herunterladen**
 4. Home Assistant **neu starten**
 5. *Einstellungen → Geräte & Dienste → Integration hinzufügen → Floorplan Studio* (ein Klick, keine Einstellungen)
