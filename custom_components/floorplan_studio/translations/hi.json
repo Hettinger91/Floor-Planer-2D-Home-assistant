@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "अपना फ़्लोर प्लान बनाएँ और उसे लाइव डैशबोर्ड के रूप में उपयोग करें। किसी सेटिंग की आवश्यकता नहीं।"
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio पहले से सेट अप है।"
+    }
+  }
+}

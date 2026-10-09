@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Disegna la tua planimetria e usala come dashboard in tempo reale. Nessuna impostazione necessaria."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio è già configurato."
+    }
+  }
+}

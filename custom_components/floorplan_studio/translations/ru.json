@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Нарисуйте план этажей и используйте его как живую панель. Настройка не требуется."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio уже настроен."
+    }
+  }
+}

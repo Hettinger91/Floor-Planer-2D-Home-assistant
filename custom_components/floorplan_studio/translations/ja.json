@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "間取り図を描いて、ライブダッシュボードとして使えます。設定は不要です。"
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio はすでに設定済みです。"
+    }
+  }
+}

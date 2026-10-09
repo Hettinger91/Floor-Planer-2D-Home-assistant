@@ -253,6 +253,7 @@ function renderFloorInspector(box) {
     { k: 'locked', t: 'check', l: 'Hintergrund fixieren' },
   ] : [];
   const ss = [
+    { k: 'lang', t: 'select', l: 'Sprache', o: [['auto', 'Automatisch (Home-Assistant-Sprache)'], ...Object.keys(FPI.NAMES).map(k => [k, FPI.NAMES[k]])] },
     { k: 'unit', t: 'select', l: 'Einheit (Eingabefelder)', o: [['m', 'Meter'], ['cm', 'Zentimeter']] },
     { k: 'grid', t: 'select', l: 'Raster', o: [[5, '5 cm'], [10, '10 cm'], [25, '25 cm'], [50, '50 cm'], [100, '1 m']] },
     { k: 'snap', t: 'check', l: 'Am Raster einrasten (Alt = frei)' },
@@ -298,7 +299,7 @@ function renderFloorInspector(box) {
     actionsHtml([['fit', 'Alles anzeigen'], ['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]);
   wire(box, f, fs, { onInput: () => renderFloorTabs() });
   if (hasBg) wire(box, f.bg, bg);
-  wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
+  wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'lang') applyLang(); if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
   wire(box, st, s3, { onInput: () => render(), onChange: () => render() });
   bindPick(box);
   bindActs(box, {

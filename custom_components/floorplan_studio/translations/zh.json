@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "绘制您的平面图并将其用作实时仪表板。无需任何设置。"
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio 已经配置完成。"
+    }
+  }
+}

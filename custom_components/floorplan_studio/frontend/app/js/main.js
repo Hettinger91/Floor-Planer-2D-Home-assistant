@@ -50,7 +50,11 @@ function onHostEvent(kind) {
   else if (syncStates()) { render(); }
 }
 
+function applyLang() { const l = S().lang; return FPI.setLang(l && l !== 'auto' ? l : (haInfo.lang || navigator.language || 'de'), '../'); }
+
 async function boot() {
+  FPI.observe(document.body);
+  FPI.onChange(() => { try { if (typeof renderAll === 'function' && plan) renderAll(); } catch (_) { /* egal */ } });
   bindStage();
   bindUi();
   loadInfo();
@@ -70,6 +74,7 @@ async function boot() {
   histReset();
   $('#optRectWalls').checked = !!S().rectWalls;
   applyTheme();
+  await applyLang();
   syncStates();
   renderAll();
   fitView();

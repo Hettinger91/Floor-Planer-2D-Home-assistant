@@ -37,7 +37,7 @@ class FloorplanStudioCard extends HTMLElement {
   }
   static getStubConfig() { return {}; }
   getCardSize() { return 6; }
-  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._kill3(); this._pickFloor(); this._draw(); }
+  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._kill3(); this._pickFloor(); this._draw(); try { this._lang().catch(() => { }); } catch (_) { /* egal */ } }
   _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
@@ -57,6 +57,13 @@ class FloorplanStudioCard extends HTMLElement {
       if (ev && ev.rev !== this._rev) this._load();
     }, { type: 'floorplan_studio/subscribe' }).then(u => { this._unsub = u; }).catch(() => { this._unsub = null; });
   }
+  _lang() {
+    FPI.observe(this.shadowRoot);
+    const s = (this._plan && this._plan.settings) || {}, h = this._hass || {};
+    const l = this._cfg.language || (s.lang && s.lang !== 'auto' ? s.lang : '') || (h.locale && h.locale.language) || h.language || '';
+    return FPI.setLang(l, this._base3().replace(/vendor\/$/, '')).then(n => { if (this._shownLang !== n) { const first = this._shownLang === undefined; this._shownLang = n; if (!first && this._plan) { this._sig = ''; this._kill3(); this._draw(); } } return n; });
+  }
+
   async _load() {
     if (this._loading || !this._hass) return;
     this._loading = true;
@@ -69,6 +76,7 @@ class FloorplanStudioCard extends HTMLElement {
     } catch (e) { this._err = (e && e.message) || 'Plan konnte nicht geladen werden'; }
     this._loading = false;
     this._sig = '';
+    try { await this._lang(); } catch (_) { /* egal */ }
     this._draw();
   }
   _pickFloor() {

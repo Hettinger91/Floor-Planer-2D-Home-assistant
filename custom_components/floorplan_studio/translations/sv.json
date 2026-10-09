@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Rita din planlösning och använd den som live-dashboard. Inga inställningar krävs."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio är redan konfigurerat."
+    }
+  }
+}

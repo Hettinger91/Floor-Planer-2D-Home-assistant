@@ -141,6 +141,7 @@ const FP3D = (() => {
       return texCache.get(key);
     }
     function textTex(text, opt = {}) {
+      text = FPI.tr(String(text));
       const key = 't|' + text + '|' + (opt.bg || '') + '|' + (opt.fg || '') + '|' + (opt.dark ? 1 : 0);
       let c = texCache.get(key);
       if (!c) {

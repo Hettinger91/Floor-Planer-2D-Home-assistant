@@ -2,6 +2,7 @@
 const ROOM_COLORS = ['#90caf9', '#a5d6a7', '#ffcc80', '#ce93d8', '#80cbc4', '#ef9a9a', '#fff59d', '#b0bec5'];
 
 const DEFAULT_SETTINGS = {
+  lang: 'auto',
   grid: 25, snap: true, showGrid: true, showDims: true, showArea: true, showRoomNames: true,
   labelSize: 20, wallThickness: 15, wallColor: '', roomOpacity: 0.28, itemShadow: true, symStyle: 'b', viewRot: 0, unit: 'm', wallH3: 250, look3d: 'auto', walls3d: 'auto', all3d: false, theme: 'auto',
   pollSec: 4, rectWalls: true, liveTap: 'toggle',

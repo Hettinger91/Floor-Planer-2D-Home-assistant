@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Desenhe a sua planta e use-a como painel em tempo real. Não são necessárias definições."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "O Floorplan Studio já está configurado."
+    }
+  }
+}

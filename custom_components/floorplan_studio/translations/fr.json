@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Dessinez votre plan d'étage et utilisez-le comme tableau de bord en direct. Aucun réglage nécessaire."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio est déjà configuré."
+    }
+  }
+}

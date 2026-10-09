@@ -98,3 +98,7 @@ python3 tools/build_card.py
 
 * Neue Etagen übernehmen Wände und Räume der ersten Etage (deckungsgleich). Die Karte hat nur noch einen 2D/3D-Umschalter; in 3D dreht man 360° per Maus/Touch (Ziehen), Zoom per Pinch bzw. Strg+Mausrad.
 * Saugroboter fahren in Bahnen hin und her (Hindernisse werden umfahren); Mähroboter fahren nur auf Rasenflächen im Garten, nie ins Haus, auf Terrasse/Kies/Wasser oder über Objekte.
+
+## Sprachen
+
+Deutsch, English, Schwiizerdütsch, Français, 中文, 日本語, Nederlands, Dansk, Suomi, Polski, Русский, Italiano, Español, Português, Svenska, हिन्दी. Die Sprache folgt automatisch der Home-Assistant-Sprache; sie lässt sich im Editor (Inspektor „Ansicht & Raster“ → Sprache) oder in der Karte per `language: ja` (usw.) festlegen. Übersetzungen liegen in `frontend/i18n/<code>.json` (Schlüssel = deutscher Text).

@@ -59,7 +59,7 @@ class FloorplanStudioPanel extends HTMLElement {
     return {
       demo: false,
       toggleSidebar: () => self.dispatchEvent(new CustomEvent('hass-toggle-menu', { bubbles: true, composed: true })),
-      info: () => ({ ha: true, allowControl: true, narrow: !!self._narrow, admin: self._isAdmin(), dark: !!(self._hass.themes && self._hass.themes.darkMode) }),
+      info: () => ({ ha: true, allowControl: true, narrow: !!self._narrow, admin: self._isAdmin(), lang: (self._hass.locale && self._hass.locale.language) || self._hass.language || '', dark: !!(self._hass.themes && self._hass.themes.darkMode) }),
       getPlan: async () => { const r = await ws({ type: 'floorplan_studio/get' }); self._lastRev = r.rev; return r; },
       savePlan: async (rev, plan, force) => {
         try { const r = await ws({ type: 'floorplan_studio/save', rev, plan, force: !!force }); self._lastRev = r.rev; return r; }
