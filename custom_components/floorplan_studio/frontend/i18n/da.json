@@ -755,5 +755,8 @@
 "Pfeiltasten": "Piletaster",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Tilstand: {}"
+"Zustand: {}": "Tilstand: {}",
+"Kipp-Entität (optional, an = gekippt)": "Vippe-entitet (valgfri, tændt = vippet)",
+"Bereich (Home Assistant)": "Område (Home Assistant)",
+"– keiner –": "– ingen –"
 }

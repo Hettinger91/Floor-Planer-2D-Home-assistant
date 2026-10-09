@@ -115,6 +115,7 @@ function roomMarkup(r) {
   if (S().showRoomNames && r.name) lines.push({ t: r.name, s: fs, c: C.text, o: 1 });
   const val = r.entity ? valueText(r.entity) : '';
   if (val) lines.push({ t: val, s: fs * 0.95, c: C.accent, o: 1 });
+  if (r.area && mode === 'live') { const at = areaSummaryText(r.area); if (at) lines.push({ t: at, s: fs * 0.8, c: C.accent, o: 1 }); }
   if (S().showArea) lines.push({ t: fmtN(area, 1) + ' m²', s: fs * 0.72, c: C.text, o: 0.65 });
   const total = lines.reduce((a, l) => a + l.s * 1.25, 0);
   let y = cy - total / 2;
@@ -142,20 +143,35 @@ function wallMarkup(w, live, v) {
   return out;
 }
 
+const OPEN_COL = '#fb8c00';
 function doorSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6), sx = it.flipX ? -1 : 1, sy = it.flipY ? -1 : 1;
-  return `<g transform="scale(${sx} ${sy})"><rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
-    `<path d="M ${-w / 2} ${-w} A ${w} ${w} 0 0 1 ${w / 2} 0 L ${-w / 2} 0 Z" fill="${C.wall}" fill-opacity=".06" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    `<line x1="${-w / 2}" y1="0" x2="${-w / 2}" y2="${-w}" stroke="${C.wall}" stroke-width="3" ${NS}/></g>`;
+  const w = it.w, t = Math.max(it.h, 6), sx = it.flipX ? -1 : 1, sy = it.flipY ? -1 : 1, oi = openInfo(it);
+  const base = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>`;
+  if (it.type === 'door_sliding' || it.type === 'garage_door') {
+    const o = oi ? oi.o : 0, col = oi && o > 0.05 ? OPEN_COL : C.wall, sh = o * w * 0.85, g = it.type === 'garage_door';
+    return `<g transform="scale(${sx} 1)">${base}<rect x="${-w / 2 + sh}" y="${-t / 2}" width="${w}" height="${t}" fill="${g ? '#cfd8dc' : '#b3e5fc'}" fill-opacity=".7" stroke="${col}" stroke-width="1.6" ${NS} clip-path="none"/>` +
+      (g ? `<line x1="${-w / 2 + sh}" y1="0" x2="${w / 2 + sh}" y2="0" stroke="${col}" stroke-width="1" stroke-dasharray="6 4" ${NS}/>` : '') + '</g>';
+  }
+  const th = oi ? oi.o * Math.PI / 2 : Math.PI / 2, col = oi && oi.o > 0.05 ? OPEN_COL : C.wall;
+  const ex = -w / 2 + w * Math.cos(th), ey = -w * Math.sin(th);
+  const arc = !oi || oi.o > 0.05 ? `<path d="M ${-w / 2} ${-w} A ${w} ${w} 0 0 1 ${w / 2} 0 L ${-w / 2} 0 Z" fill="${col}" fill-opacity=".07" stroke="${col}" stroke-width="1.2" stroke-dasharray="${oi ? '5 3' : 'none'}" ${NS}/>` : '';
+  return `<g transform="scale(${sx} ${sy})">${base}${arc}<line x1="${-w / 2}" y1="0" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="3" ${NS}/></g>`;
 }
 function windowSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1;
-  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${C.wall}" stroke-width="1.2" ${NS} ${extra}/>`;
+  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1, oi = openInfo(it);
+  const st = oi ? (oi.tilt ? 'tilt' : oi.o > 0.05 ? 'open' : 'closed') : null, hot = st === 'open' || st === 'tilt', col = hot ? OPEN_COL : C.wall;
+  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col}" stroke-width="1.2" ${NS} ${extra}/>`;
   // Öffnungsdreieck: Spitze am Scharnier, offene Seite am freien Flügelrand
-  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${C.wall}" stroke-width="1" stroke-dasharray="4 3" ${NS}/>`;
+  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${col}" stroke-width="${st === 'tilt' ? 1.8 : 1}" stroke-dasharray="${st === 'tilt' ? 'none' : '4 3'}" ${NS}/>`;
+  const sash = (hx, dir, lw) => { const th = oi.o * Math.PI / 2; return `<line x1="${hx}" y1="0" x2="${hx + dir * lw * Math.cos(th)}" y2="${-lw * Math.sin(th)}" stroke="${OPEN_COL}" stroke-width="3" ${NS}/>`; };
   let o = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
-    `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="#b3e5fc" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    ln(-w / 2, 0, w / 2, 0);
+    `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="${hot ? '#ffe0b2' : '#b3e5fc'}" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
+    (st === 'open' ? '' : ln(-w / 2, 0, w / 2, 0));
+  if (st === 'closed') return o;
+  if (st === 'open') {
+    o += two ? sash(-w / 2, 1, w / 2) + sash(w / 2, -1, w / 2) : `<g transform="scale(${sx} 1)">${sash(-w / 2, 1, w)}</g>`;
+    return o;
+  }
   if (two) o += ln(0, -t / 2, 0, t / 2).replace('stroke-width="1.2"', 'stroke-width="2.4"') + swing(-w / 2, -2) + swing(w / 2, 2);
   else o += `<g transform="scale(${sx} 1)">${swing(-w / 2, w / 2 - 2)}</g>`;
   return o;

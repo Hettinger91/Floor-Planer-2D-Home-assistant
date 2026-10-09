@@ -755,5 +755,8 @@
 "Pfeiltasten": "Arrow keys",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "State: {}"
+"Zustand: {}": "State: {}",
+"Kipp-Entität (optional, an = gekippt)": "Tilt entity (optional, on = tilted)",
+"Bereich (Home Assistant)": "Area (Home Assistant)",
+"– keiner –": "– none –"
 }

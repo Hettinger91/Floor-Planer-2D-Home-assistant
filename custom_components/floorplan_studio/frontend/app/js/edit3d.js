@@ -49,6 +49,8 @@ async function set3D(on) {
         look: S().look3d || 'auto', walls: S().walls3d || 'auto', allFloors: !!S().all3d, dark: v3Dark, wheel: 'always',
         onTap: (id, long) => { const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (!it) return; if (mode === 'live') onItemTap(it, long); else setSel('item', id); },
         getSel: () => (sel && sel.k === 'item' ? sel.id : null),
+        canCover: () => mode === 'live' && haInfo.allowControl !== false,
+        onCover: (it, v) => coverCommand(it, v),
         canDrag: id => mode === 'edit' && tool === 'select' && !!sel && sel.k === 'item' && sel.id === id,
         snap: v => (S().snap ? Math.round(v / S().grid) * S().grid : v),
         placing: () => mode === 'edit' && tool === 'place' && !!placeType,

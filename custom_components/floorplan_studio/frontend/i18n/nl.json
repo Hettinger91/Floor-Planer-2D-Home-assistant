@@ -755,5 +755,8 @@
 "Pfeiltasten": "Pijltjestoetsen",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Status: {}"
+"Zustand: {}": "Status: {}",
+"Kipp-Entität (optional, an = gekippt)": "Kiep-entiteit (optioneel, aan = gekanteld)",
+"Bereich (Home Assistant)": "Gebied (Home Assistant)",
+"– keiner –": "– geen –"
 }

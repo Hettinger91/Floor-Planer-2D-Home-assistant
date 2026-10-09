@@ -755,5 +755,8 @@
 "Pfeiltasten": "方向键",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "状态：{}"
+"Zustand: {}": "状态：{}",
+"Kipp-Entität (optional, an = gekippt)": "倾斜实体（可选，开 = 倾斜）",
+"Bereich (Home Assistant)": "区域（Home Assistant）",
+"– keiner –": "– 无 –"
 }

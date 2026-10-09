@@ -176,7 +176,7 @@ function downLive(e) {
   }
   const rt = e.target.closest ? e.target.closest('[data-k="room"]') : null;
   const room = rt && findRoom(rt.dataset.id);
-  if (room && room.entity) { drag = { t: 'liveRoom', id: room.id, sx: e.clientX, sy: e.clientY, moved: false }; return; }
+  if (room && (room.entity || room.area)) { drag = { t: 'liveRoom', id: room.id, sx: e.clientX, sy: e.clientY, moved: false }; return; }
   startPan(e, false);
 }
 
@@ -387,7 +387,7 @@ function onUp(e) {
   switch (d.t) {
     case 'orbit': case 'pan': if (!d.moved && d.clickDeselect && mode === 'edit' && sel) setSel(null); break;
     case 'live': { const it = findItem(d.id); if (!d.moved && !d.long && it) onItemTap(it, false); break; }
-    case 'liveRoom': { const r = findRoom(d.id); if (!d.moved && r) openDetails(r.entity); break; }
+    case 'liveRoom': { const r = findRoom(d.id); if (!d.moved && r) onRoomTap(r, false); break; }
     case 'rect': {
       const a = d.a, b = snapPt(toWorld(e), { free: e.altKey });
       if (Math.abs(a.x - b.x) > 20 && Math.abs(a.y - b.y) > 20) createRectRoom(a, b); else { hover = null; render(); }

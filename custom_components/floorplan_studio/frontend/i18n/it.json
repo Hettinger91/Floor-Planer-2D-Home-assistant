@@ -755,5 +755,8 @@
 "Pfeiltasten": "Tasti freccia",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Stato: {}"
+"Zustand: {}": "Stato: {}",
+"Kipp-Entität (optional, an = gekippt)": "Entità ribalta (opzionale, acceso = ribaltata)",
+"Bereich (Home Assistant)": "Area (Home Assistant)",
+"– keiner –": "– nessuna –"
 }

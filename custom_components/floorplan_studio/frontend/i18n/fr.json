@@ -755,5 +755,8 @@
 "Pfeiltasten": "Touches fléchées",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "État : {}"
+"Zustand: {}": "État : {}",
+"Kipp-Entität (optional, an = gekippt)": "Entité d'inclinaison (optionnel, activé = basculé)",
+"Bereich (Home Assistant)": "Zone (Home Assistant)",
+"– keiner –": "– aucune –"
 }

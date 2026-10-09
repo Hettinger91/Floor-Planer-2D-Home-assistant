@@ -755,5 +755,8 @@
 "Pfeiltasten": "Klawisze strzałek",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Stan: {}"
+"Zustand: {}": "Stan: {}",
+"Kipp-Entität (optional, an = gekippt)": "Encja uchyłu (opcjonalnie, włączona = uchylone)",
+"Bereich (Home Assistant)": "Obszar (Home Assistant)",
+"– keiner –": "– brak –"
 }

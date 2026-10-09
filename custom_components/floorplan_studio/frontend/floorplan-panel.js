@@ -70,11 +70,12 @@ class FloorplanStudioPanel extends HTMLElement {
         const h = self._hass, areas = h.areas || {}, devs = h.devices || {}, ents = h.entities || {};
         return Object.keys(h.states).map(id => {
           const s = h.states[id], reg = ents[id];
-          let area = '';
-          if (reg) { const aid = reg.area_id || (reg.device_id && devs[reg.device_id] && devs[reg.device_id].area_id); if (aid && areas[aid]) area = areas[aid].name; }
-          return { id, name: (s.attributes && s.attributes.friendly_name) || '', state: s.state, area, dc: (s.attributes && s.attributes.device_class) || '' };
+          let area = '', areaId = '';
+          if (reg) { const aid = reg.area_id || (reg.device_id && devs[reg.device_id] && devs[reg.device_id].area_id); if (aid && areas[aid]) { area = areas[aid].name; areaId = aid; } }
+          return { id, name: (s.attributes && s.attributes.friendly_name) || '', state: s.state, area, areaId, dc: (s.attributes && s.attributes.device_class) || '' };
         });
       },
+      areas: () => Object.values(self._hass.areas || {}).map(a => ({ id: a.area_id, name: a.name })).sort((a, b) => a.name.localeCompare(b.name)),
       callService: (d, s, data) => self._hass.callService(d, s, data),
       moreInfo: entityId => self.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
       upload: async file => {

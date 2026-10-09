@@ -104,6 +104,7 @@ function renderItemInspector(box, it) {
   ];
   const ha = [
     { k: 'entity', t: 'entity', l: 'Home-Assistant-Entität' },
+    ...(it.shape === 'window' || it.shape === 'door' ? [{ k: 'entity2', t: 'entity', l: 'Kipp-Entität (optional, an = gekippt)' }] : []),
     { k: 'tap', t: 'select', l: 'Aktion beim Tippen (Live)', o: [['auto', 'Automatisch'], ['toggle', 'Umschalten'], ['details', 'Details öffnen'], ['service', 'Eigener Dienst'], ['none', 'Keine']] },
     { k: 'svc', t: 'text', l: 'Dienst (domain.service)', ph: 'light.turn_on' },
     { k: 'svcData', t: 'area', l: 'Dienst-Daten (JSON)', ph: '{"brightness_pct": 40}', rows: 2 },
@@ -225,6 +226,7 @@ function renderRoomInspector(box, r) {
     { k: 'floorScale', t: 'range', l: 'Muster-Größe', min: 0.4, max: 3, step: 0.1 },
     { k: 'floorRot', t: 'range', l: 'Muster-Drehung (°)', min: 0, max: 90, step: 15 },
     { k: 'entity', t: 'entity', l: 'Entität im Raum anzeigen (z. B. Temperatur)' },
+    ...(areaList().length ? [{ k: 'area', t: 'select', l: 'Bereich (Home Assistant)', o: [['', '– keiner –'], ...areaList().map(a => [a.id, a.name])] }] : []),
   ];
   const bb = () => { const xs = r.pts.map(p => p[0]), ys = r.pts.map(p => p[1]); return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }; };
   const dims = [
@@ -237,7 +239,7 @@ function renderRoomInspector(box, r) {
     section('Maße (Umriss)', pair(specHtml(dims[0]), specHtml(dims[1])) + pair(specHtml(dims[2]), specHtml(dims[3])) + '<div class="hint">Wände, deren Enden auf den Raumecken liegen, wandern mit. Türen/Fenster ggf. nachziehen.</div>') +
     section('Raum', specs.map(specHtml).join('') + `<div class="hint">Fläche: ${fmtN(polyArea(r.pts) / 10000, 2)} m² · ${r.pts.length} Ecken<br>Tipp: Ecken ziehen, kleine Punkte auf den Kanten ziehen fügt Ecken hinzu.</div>`) +
     actionsHtml([['walls', 'Wände entlang des Raums'], ['dup', 'Duplizieren'], ['del', 'Löschen', 'danger']]);
-  wire(box, r, [...specs, ...dims], { onChange: k => { if (k === 'floor') renderInspector(); }, onInput: k => { if (k === 'entity') { r.entity = r.entity.trim(); pollStates(); } } });
+  wire(box, r, [...specs, ...dims], { onChange: k => { if (k === 'floor') renderInspector(); if (k === 'area') { const al = areaList(), nm = (al.find(a => a.id === r.area) || {}).name; if (nm && (!r.name || al.some(a => a.name === r.name))) r.name = nm; renderInspector(); render(); pollStates(); } }, onInput: k => { if (k === 'entity') { r.entity = r.entity.trim(); pollStates(); } } });
   const entInp = $('[data-f="entity"]', box);
   if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); bindPick(box); }
   updateEntInfo();

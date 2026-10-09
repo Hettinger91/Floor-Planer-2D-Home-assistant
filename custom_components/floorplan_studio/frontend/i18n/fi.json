@@ -755,5 +755,8 @@
 "Pfeiltasten": "Nuolinäppäimet",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Tila: {}"
+"Zustand: {}": "Tila: {}",
+"Kipp-Entität (optional, an = gekippt)": "Kallistusentiteetti (valinnainen, päällä = kallistettu)",
+"Bereich (Home Assistant)": "Alue (Home Assistant)",
+"– keiner –": "– ei mitään –"
 }

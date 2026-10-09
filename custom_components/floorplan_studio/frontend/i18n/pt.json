@@ -755,5 +755,8 @@
 "Pfeiltasten": "Teclas de seta",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Estado: {}"
+"Zustand: {}": "Estado: {}",
+"Kipp-Entität (optional, an = gekippt)": "Entidade de basculante (opcional, ligado = inclinada)",
+"Bereich (Home Assistant)": "Área (Home Assistant)",
+"– keiner –": "– nenhuma –"
 }

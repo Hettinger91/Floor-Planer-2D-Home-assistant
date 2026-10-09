@@ -755,5 +755,8 @@
 "Pfeiltasten": "Pfiltaschte",
 "Strg+D / C / V": "Strg+D / C / V",
 "Strg+Z / Strg+Y": "Strg+Z / Strg+Y",
-"Zustand: {}": "Zuestand: {}"
+"Zustand: {}": "Zuestand: {}",
+"Kipp-Entität (optional, an = gekippt)": "Chipp-Entität (optional, a = gchippt)",
+"Bereich (Home Assistant)": "Bereich (Home Assistant)",
+"– keiner –": "– keine –"
 }

@@ -5,6 +5,16 @@ const HOST = {
   demo: false,
   info: () => ({ ha: true, allowControl: true, admin: false }),
   states: () => (ACTIVE && ACTIVE._hass ? ACTIVE._hass.states : {}),
+  areas: () => (ACTIVE && ACTIVE._hass ? Object.values(ACTIVE._hass.areas || {}).map(a => ({ id: a.area_id, name: a.name })) : []),
+  entities: () => {
+    const h = ACTIVE && ACTIVE._hass; if (!h) return [];
+    const areas = h.areas || {}, devs = h.devices || {}, ents = h.entities || {};
+    return Object.keys(h.states).map(id => {
+      const reg = ents[id]; let areaId = '';
+      if (reg) { const aid = reg.area_id || (reg.device_id && devs[reg.device_id] && devs[reg.device_id].area_id); if (aid && areas[aid]) areaId = aid; }
+      return { id, areaId };
+    });
+  },
   callService: (d, s, data) => ACTIVE._hass.callService(d, s, data),
   moreInfo: entityId => ACTIVE && ACTIVE.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
 };
@@ -148,7 +158,7 @@ class FloorplanStudioCard extends HTMLElement {
     const ctx = { glows: new Map(), glowOut: [] };
     const rooms = gardenBaseMarkup(f) + f.rooms.map(r => {
       let m = roomMarkup(r);
-      if (r.entity) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
+      if (r.entity || r.area) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
       return m;
     }).join('');
     const walls = f.walls.map(wl => wallMarkup(wl, true, { k: 1 })).join('');
@@ -192,7 +202,7 @@ class FloorplanStudioCard extends HTMLElement {
       this._v3 = FP3D.create(st, {
         getFloor: () => this._floor,
         look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
-        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
+        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update();
@@ -269,7 +279,7 @@ class FloorplanStudioCard extends HTMLElement {
       if (it && (it.entity || it.tap === 'service')) {
         const d = this._drag = { t: 'item', id: it.id, sx: e.clientX, sy: e.clientY, moved: false, long: false };
         d.timer = setTimeout(() => { if (this._drag === d && !d.moved) { d.long = true; this._ctx(); const cur = findItem(d.id); if (cur) onItemTap(cur, true); } }, 550);
-      } else if (rg && findRoom(rg.dataset.id) && findRoom(rg.dataset.id).entity) {
+      } else if (rg && findRoom(rg.dataset.id) && (findRoom(rg.dataset.id).entity || findRoom(rg.dataset.id).area)) {
         this._drag = { t: 'room', id: rg.dataset.id, sx: e.clientX, sy: e.clientY, moved: false };
       } else this._drag = null;
     };
@@ -341,7 +351,7 @@ class FloorplanStudioCard extends HTMLElement {
       if (e.type === 'pointercancel' || d.moved || d.long) return;
       this._ctx();
       if (d.t === 'item') { const it = findItem(d.id); if (it) onItemTap(it, false); }
-      else { const r = findRoom(d.id); if (r && r.entity) openDetails(r.entity); }
+      else { const r = findRoom(d.id); if (r) onRoomTap(r, false); }
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);

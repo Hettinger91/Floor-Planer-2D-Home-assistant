@@ -755,5 +755,8 @@
 "Pfeiltasten": "Teclas de flecha",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "Estado: {}"
+"Zustand: {}": "Estado: {}",
+"Kipp-Entität (optional, an = gekippt)": "Entidad de oscilobatiente (opcional, encendido = inclinada)",
+"Bereich (Home Assistant)": "Área (Home Assistant)",
+"– keiner –": "– ninguna –"
 }

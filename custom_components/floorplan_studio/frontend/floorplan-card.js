@@ -964,11 +964,47 @@ const STATE_DE = {
 };
 const domainOf = e => String(e || '').split('.')[0];
 
+// ---------- Räume ↔ Home-Assistant-Bereiche ----------
+function areaList() { try { return (HOST.areas ? HOST.areas() : []) || []; } catch (_) { return []; } }
+let _am = null, _amN = -1;
+function areaMembers() {
+  const n = Object.keys(states).length;
+  if (_am && _amN === n) return _am;
+  _am = new Map(); _amN = n;
+  try { (HOST.entities ? HOST.entities() : []).forEach(e => { if (e.areaId) { if (!_am.has(e.areaId)) _am.set(e.areaId, []); _am.get(e.areaId).push(e.id); } }); } catch (_) { /* egal */ }
+  return _am;
+}
+function areaSummary(areaId) {
+  const r = { temp: null, hum: null, lights: 0, on: 0, open: 0 };
+  (areaMembers().get(areaId) || []).forEach(id => {
+    const s = states[id]; if (!s) return;
+    const d = domainOf(id), a = s.attributes || {}, dc = a.device_class, v = parseFloat(s.state);
+    if (d === 'sensor' && dc === 'temperature' && r.temp == null && isFinite(v)) r.temp = v;
+    else if (d === 'sensor' && dc === 'humidity' && r.hum == null && isFinite(v)) r.hum = v;
+    else if (d === 'light') { r.lights++; if (s.state === 'on') r.on++; }
+    else if (d === 'binary_sensor' && ['window', 'door', 'opening', 'garage_door'].includes(dc) && s.state === 'on') r.open++;
+    else if (d === 'cover' && ['window', 'door', 'garage', 'gate'].includes(dc) && (s.state === 'open' || s.state === 'opening')) r.open++;
+  });
+  return r;
+}
+function areaSummaryText(areaId) {
+  const r = areaSummary(areaId), p = [];
+  if (r.temp != null) p.push(fmtN(r.temp, 1) + '°');
+  if (r.hum != null) p.push(Math.round(r.hum) + '%');
+  if (r.lights) p.push('💡 ' + r.on + '/' + r.lights);
+  if (r.open) p.push('🪟 ' + r.open);
+  return p.join(' · ');
+}
+function onRoomTap(room, wantDetails) {
+  if (room.entity) { openDetails(room.entity); return; }
+  if (room.area && !wantDetails) callService('light', 'toggle', { area_id: room.area });
+}
+
 function linkedEntities() {
   const set = new Set();
   plan.floors.forEach(f => {
-    f.items.forEach(i => i.entity && set.add(i.entity));
-    f.rooms.forEach(r => r.entity && set.add(r.entity));
+    f.items.forEach(i => { if (i.entity) set.add(i.entity); if (i.entity2) set.add(i.entity2); });
+    f.rooms.forEach(r => { if (r.entity) set.add(r.entity); if (r.area) (areaMembers().get(r.area) || []).forEach(id => { if (/^(light|sensor|binary_sensor|cover)\./.test(id)) set.add(id); }); });
   });
   return [...set];
 }
@@ -1005,6 +1041,24 @@ async function loadEntities() {
   entities = Object.keys(all).sort().map(id => ({ e: id, n: (all[id].attributes && all[id].attributes.friendly_name) || '', s: all[id].state }));
   try { if (HOST.entities) { const m = new Map(HOST.entities().map(x => [x.id, x])); entities.forEach(x => { const r = m.get(x.e); if (r) { x.a = r.area; x.dc = r.dc; } }); } } catch (_) { /* egal */ }
   $('#entlist').innerHTML = entities.map(e => `<option value="${esc(e.e)}">${esc(e.n)}</option>`).join('');
+}
+
+// Öffnungszustand von Fenster/Tür/Tor/Rollladen: { o: 0..1 offen, tilt: gekippt } oder null (keine Daten)
+function openInfo(it) {
+  const rd = x => {
+    if (!x) return null; const st = String(x.state).toLowerCase(), a = x.attributes || {};
+    if (st === 'unavailable' || st === 'unknown') return null;
+    if (/^(tilt|kipp|gekippt)/.test(st)) return 'tilt';
+    if (a.current_position != null && isFinite(a.current_position)) return Math.max(0, Math.min(1, a.current_position / 100));
+    if (['open', 'opening', 'on', 'true', 'unlocked'].includes(st)) return 1;
+    if (['closed', 'closing', 'off', 'false', 'locked'].includes(st)) return 0;
+    return null;
+  };
+  const v = it.entity ? rd(states[it.entity]) : null, t = it.entity2 ? rd(states[it.entity2]) : null;
+  if (v == null && t == null) return null;
+  let o = typeof v === 'number' ? v : 0, tilt = v === 'tilt' || (t === 1 || t === 'tilt') && o === 0;
+  if (v === 'tilt') o = 0;
+  return { o, tilt };
 }
 
 function isActive(s) {
@@ -1048,6 +1102,13 @@ function glowColor(it, s) {
 async function callService(domain, service, data = {}) {
   try { await HOST.callService(domain, service, data); return true; }
   catch (e) { toast('Fehler: ' + ((e && e.message) || e)); return false; }
+}
+// Rollladen/Tor per Ziehen: Position setzen (oder öffnen/schließen, wenn keine Position unterstützt wird)
+function coverCommand(it, v) {
+  if (!it.entity) return;
+  const s = states[it.entity], a = (s && s.attributes) || {}, pos = Math.round(Math.max(0, Math.min(1, v)) * 100);
+  if (a.current_position != null || ((a.supported_features | 0) & 4)) return callService('cover', 'set_cover_position', { entity_id: it.entity, position: pos });
+  return callService('cover', v > 0.5 ? 'open_cover' : 'close_cover', { entity_id: it.entity });
 }
 function openDetails(entity) { if (entity) HOST.moreInfo(entity); }
 
@@ -1210,6 +1271,7 @@ function roomMarkup(r) {
   if (S().showRoomNames && r.name) lines.push({ t: r.name, s: fs, c: C.text, o: 1 });
   const val = r.entity ? valueText(r.entity) : '';
   if (val) lines.push({ t: val, s: fs * 0.95, c: C.accent, o: 1 });
+  if (r.area && mode === 'live') { const at = areaSummaryText(r.area); if (at) lines.push({ t: at, s: fs * 0.8, c: C.accent, o: 1 }); }
   if (S().showArea) lines.push({ t: fmtN(area, 1) + ' m²', s: fs * 0.72, c: C.text, o: 0.65 });
   const total = lines.reduce((a, l) => a + l.s * 1.25, 0);
   let y = cy - total / 2;
@@ -1237,20 +1299,35 @@ function wallMarkup(w, live, v) {
   return out;
 }
 
+const OPEN_COL = '#fb8c00';
 function doorSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6), sx = it.flipX ? -1 : 1, sy = it.flipY ? -1 : 1;
-  return `<g transform="scale(${sx} ${sy})"><rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
-    `<path d="M ${-w / 2} ${-w} A ${w} ${w} 0 0 1 ${w / 2} 0 L ${-w / 2} 0 Z" fill="${C.wall}" fill-opacity=".06" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    `<line x1="${-w / 2}" y1="0" x2="${-w / 2}" y2="${-w}" stroke="${C.wall}" stroke-width="3" ${NS}/></g>`;
+  const w = it.w, t = Math.max(it.h, 6), sx = it.flipX ? -1 : 1, sy = it.flipY ? -1 : 1, oi = openInfo(it);
+  const base = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>`;
+  if (it.type === 'door_sliding' || it.type === 'garage_door') {
+    const o = oi ? oi.o : 0, col = oi && o > 0.05 ? OPEN_COL : C.wall, sh = o * w * 0.85, g = it.type === 'garage_door';
+    return `<g transform="scale(${sx} 1)">${base}<rect x="${-w / 2 + sh}" y="${-t / 2}" width="${w}" height="${t}" fill="${g ? '#cfd8dc' : '#b3e5fc'}" fill-opacity=".7" stroke="${col}" stroke-width="1.6" ${NS} clip-path="none"/>` +
+      (g ? `<line x1="${-w / 2 + sh}" y1="0" x2="${w / 2 + sh}" y2="0" stroke="${col}" stroke-width="1" stroke-dasharray="6 4" ${NS}/>` : '') + '</g>';
+  }
+  const th = oi ? oi.o * Math.PI / 2 : Math.PI / 2, col = oi && oi.o > 0.05 ? OPEN_COL : C.wall;
+  const ex = -w / 2 + w * Math.cos(th), ey = -w * Math.sin(th);
+  const arc = !oi || oi.o > 0.05 ? `<path d="M ${-w / 2} ${-w} A ${w} ${w} 0 0 1 ${w / 2} 0 L ${-w / 2} 0 Z" fill="${col}" fill-opacity=".07" stroke="${col}" stroke-width="1.2" stroke-dasharray="${oi ? '5 3' : 'none'}" ${NS}/>` : '';
+  return `<g transform="scale(${sx} ${sy})">${base}${arc}<line x1="${-w / 2}" y1="0" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="3" ${NS}/></g>`;
 }
 function windowSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1;
-  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${C.wall}" stroke-width="1.2" ${NS} ${extra}/>`;
+  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1, oi = openInfo(it);
+  const st = oi ? (oi.tilt ? 'tilt' : oi.o > 0.05 ? 'open' : 'closed') : null, hot = st === 'open' || st === 'tilt', col = hot ? OPEN_COL : C.wall;
+  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${col}" stroke-width="1.2" ${NS} ${extra}/>`;
   // Öffnungsdreieck: Spitze am Scharnier, offene Seite am freien Flügelrand
-  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${C.wall}" stroke-width="1" stroke-dasharray="4 3" ${NS}/>`;
+  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${col}" stroke-width="${st === 'tilt' ? 1.8 : 1}" stroke-dasharray="${st === 'tilt' ? 'none' : '4 3'}" ${NS}/>`;
+  const sash = (hx, dir, lw) => { const th = oi.o * Math.PI / 2; return `<line x1="${hx}" y1="0" x2="${hx + dir * lw * Math.cos(th)}" y2="${-lw * Math.sin(th)}" stroke="${OPEN_COL}" stroke-width="3" ${NS}/>`; };
   let o = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
-    `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="#b3e5fc" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    ln(-w / 2, 0, w / 2, 0);
+    `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="${hot ? '#ffe0b2' : '#b3e5fc'}" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
+    (st === 'open' ? '' : ln(-w / 2, 0, w / 2, 0));
+  if (st === 'closed') return o;
+  if (st === 'open') {
+    o += two ? sash(-w / 2, 1, w / 2) + sash(w / 2, -1, w / 2) : `<g transform="scale(${sx} 1)">${sash(-w / 2, 1, w)}</g>`;
+    return o;
+  }
   if (two) o += ln(0, -t / 2, 0, t / 2).replace('stroke-width="1.2"', 'stroke-width="2.4"') + swing(-w / 2, -2) + swing(w / 2, 2);
   else o += `<g transform="scale(${sx} 1)">${swing(-w / 2, w / 2 - 2)}</g>`;
   return o;
@@ -2267,13 +2344,95 @@ const FP3D = (() => {
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = []; robots = []; solar = null; selBox = null;
+      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null;
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
       const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat);
       m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true;
       return m;
+    }
+
+    // ---------- Öffnungen (Fenster/Türen/Tore) mit Zustand: offen, gekippt, geschlossen ----------
+    let opens = [];
+    const openCache = new Map();
+    function sectionTex() {
+      if (!texCache.has('sect')) texCache.set('sect', canvasTex(64, 256, (g, w, h) => { g.fillStyle = '#e8ebee'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(70,80,95,.55)'; g.lineWidth = 3; for (let i = 0; i <= 5; i++) { g.beginPath(); g.moveTo(0, i * h / 5); g.lineTo(w, i * h / 5); g.stroke(); } g.strokeStyle = 'rgba(70,80,95,.25)'; g.lineWidth = 1; for (let i = 1; i < 5; i++) { g.beginPath(); g.moveTo(0, i * h / 5 + h / 10); g.lineTo(w, i * h / 5 + h / 10); g.stroke(); } }));
+      return texCache.get('sect');
+    }
+    function buildOpening(op, c) {
+      const { wl, ux, uy, ry, cx, cz, sill, top, win, wg, Hw, frameMat, doorMat, glassMat } = c, it = op.it, dw = op.b - op.a, inz = wg.userData.inz || 1;
+      const pick3 = m => { m.userData.itemId = it.id; pickables.push(m); return m; };
+      const at = s2 => [wl.x1 + ux * s2, wl.y1 + uy * s2];
+      const rec = { it, o: 0, t: 0, def: 0, speed: 0.6, set: null, cover: false };
+      if (win) {
+        const gh = Math.min(top, Hw) - sill, flip = !!it.flipX, two = Number(it.leaves) === 2;
+        [[op.a + 2], [op.b - 2]].forEach(([s2]) => { const [px, pz] = at(s2); wg.add(box(4, gh, 6, frameMat, px, sill + gh / 2, pz, ry)); });
+        wg.add(box(dw, 4, 6, frameMat, cx, sill + 2, cz, ry)); wg.add(box(dw, 4, 6, frameMat, cx, sill + gh - 2, cz, ry));
+        const leaves = two ? [{ hinge: op.a + 2, dir: 1, lw: dw / 2 - 2 }, { hinge: op.b - 2, dir: -1, lw: dw / 2 - 2 }] : [{ hinge: flip ? op.b - 2 : op.a + 2, dir: flip ? -1 : 1, lw: dw - 4 }];
+        const sashes = leaves.map(L => {
+          const hg = new T.Group(), sg = new T.Group(), [hx, hz] = at(L.hinge);
+          hg.position.set(hx, sill + 3, hz); hg.add(sg); sg.position.set(L.lw / 2, 0, 0);
+          const sh = gh - 6;
+          const gl = box(L.lw - 5, sh - 5, 1.6, glassMat, 0, sh / 2, 0, 0); gl.castShadow = false; sg.add(gl); pick3(gl);
+          [[L.lw, 2.6, 0, sh - 1.3], [L.lw, 2.6, 0, 1.3]].forEach(([w2, h2, x2, y2]) => sg.add(box(w2, h2, 3.5, frameMat, x2, y2, 0, 0)));
+          [-L.lw / 2 + 1.3, L.lw / 2 - 1.3].forEach(x2 => sg.add(box(2.6, sh, 3.5, frameMat, x2, sh / 2, 0, 0)));
+          wg.add(hg); return { hg, sg, dir: L.dir };
+        });
+        rec.kind = 'window'; rec.speed = 0.55;
+        rec.set = (o, t) => sashes.forEach(S => {
+          S.hg.rotation.y = ry + (S.dir < 0 ? Math.PI : 0) + (S.dir > 0 ? -inz : inz) * o * 1.35;
+          S.sg.rotation.x = (S.dir > 0 ? inz : -inz) * t * 0.2;
+        });
+      } else {
+        const dh = Math.min(top, Hw) - 4, typ = it.type;
+        wg.add(box(dw, 4, 8, frameMat, cx, Math.min(top, Hw) - 2, cz, ry));
+        if (typ === 'garage_door') {
+          const g = new T.Group(); const [gx, gz] = at((op.a + op.b) / 2); g.position.set(gx, dh, gz); g.rotation.y = ry; wg.add(g);
+          const m = new T.Mesh(new T.BoxGeometry(dw - 4, dh, 6), new T.MeshStandardMaterial({ map: sectionTex(), roughness: 0.6, metalness: 0.2 })); m.position.y = -dh / 2; m.castShadow = true; g.add(m); pick3(m);
+          rec.kind = 'garage'; rec.speed = 0.22; rec.cover = true; rec.anchor = g; rec.hh = dh;
+          rec.set = o => { g.scale.y = Math.max(0.02, 1 - o); };
+        } else if (typ === 'door_sliding' || typ === 'door_terrace' && false) {
+          const g = new T.Group(); g.rotation.y = ry; const [gx, gz] = at((op.a + op.b) / 2); g.position.set(gx, 0, gz); wg.add(g);
+          const gl = box(dw * 0.52, dh, 2.2, glassMat, 0, dh / 2, 3, 0); gl.castShadow = false; g.add(gl); pick3(gl);
+          [[dw * 0.52, 3, 0, dh - 1.5], [dw * 0.52, 3, 0, 1.5]].forEach(([w2, h2, x2, y2]) => g.add(box(w2, h2, 4, frameMat, x2, y2, 3, 0)));
+          [-dw * 0.26 + 1.5, dw * 0.26 - 1.5].forEach(x2 => g.add(box(3, dh, 4, frameMat, x2, dh / 2, 3, 0)));
+          const sgn = it.flipX ? -1 : 1, base = -sgn * dw * 0.24;
+          rec.kind = 'slide'; rec.speed = 0.4;
+          rec.set = o => { g.position.set(gx + ux * (base + sgn * o * dw * 0.46) - ux * 0, 0, gz + uy * (base + sgn * o * dw * 0.46)); };
+          rec.base = [gx, gz];
+          rec.set = o => { const k = base + sgn * o * dw * 0.46; g.position.set(gx + ux * k, 0, gz + uy * k); };
+        } else {
+          const two = typ === 'door_double' || Number(it.leaves) === 2, flip = !!it.flipX, sw = it.flipY ? -1 : 1;
+          const leaves = two ? [{ hinge: op.a, dir: 0, lw: dw / 2 }, { hinge: op.b, dir: 1, lw: dw / 2 }] : [{ hinge: flip ? op.b : op.a, dir: flip ? 1 : 0, lw: dw }];
+          const ps = leaves.map(L => {
+            const pv = new T.Group(), [hx, hz] = at(L.hinge); pv.position.set(hx, 0, hz);
+            const leaf = box(L.lw - 1, dh, 4, doorMat, L.lw / 2, dh / 2, 0, 0); pv.add(leaf); pick3(leaf);
+            wg.add(pv); return { pv, dir: L.dir };
+          });
+          rec.kind = 'door'; rec.def = 0.8; rec.speed = 0.7;
+          rec.set = o => ps.forEach(S => { S.pv.rotation.y = ry + (S.dir ? Math.PI : 0) + (S.dir ? -1 : 1) * sw * o * 1.5; });
+        }
+      }
+      // Startwert: zuletzt gezeigter Zustand, sonst Ziel
+      const tg = openTarget(rec), cc = openCache.get(it.id);
+      rec.o = cc ? cc.o : tg.o; rec.t = cc ? cc.t : tg.t; rec.set(rec.o, rec.t); opens.push(rec);
+    }
+    function openTarget(rec) {
+      if (rec.hold && performance.now() < rec.hold.until) return { o: rec.hold.v, t: 0 };
+      const oi = openInfo(rec.it);
+      return oi ? { o: oi.o, t: oi.tilt ? 1 : 0 } : { o: rec.def, t: 0 };
+    }
+    function animateOpens(dt) {
+      let busy = false;
+      opens.forEach(r => {
+        const tg = openTarget(r), step = r.speed * dt, so = r.o, st = r.t;
+        const mv = (v, g, k) => Math.abs(g - v) <= k ? g : v + Math.sign(g - v) * k;
+        if (!r.dragging) { r.o = mv(r.o, tg.o, step); r.t = mv(r.t, tg.t, step * 1.2); }
+        if (r.o !== so || r.t !== st) { r.set(r.o, r.t); busy = true; }
+        openCache.set(r.it.id, { o: r.o, t: r.t });
+      });
+      return busy;
     }
 
     function openingsFor(wl, f) {
@@ -2333,7 +2492,7 @@ const FP3D = (() => {
         if (L < 1) return;
         const ux = dx / L, uy = dy / L, t = wl.t || S().wallThickness || 15, ry = -Math.atan2(dy, dx), ext = t / 2;
         wg = new T.Group(); g.add(wg);
-        if (!garden) { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
+        if (!garden) { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wg.userData.inz = Math.abs(nx + uy) < 1e-6 && Math.abs(nz - ux) < 1e-6 ? -1 : 1; wallGroups.push(wg); }
         const ops = garden ? [] : openingsFor(wl, f);
         const seg = (a, b, h, y) => { // Teilstück [a,b] entlang der Wand
           const len = b - a; if (len < 0.5) return;
@@ -2348,23 +2507,7 @@ const FP3D = (() => {
           if (win) seg(op.a, op.b, sill, 0);
           if (Hw > top) seg(op.a, op.b, Hw - top, top);
           const mid = (op.a + op.b) / 2, cx = wl.x1 + ux * mid, cz = wl.y1 + uy * mid;
-          if (win && Hw > sill + 20) {
-            const gh = Math.min(top, Hw) - sill;
-            const gl = box(op.b - op.a, gh, 2.5, glassMat, cx, sill + gh / 2, cz, ry); gl.castShadow = false; wg.add(gl);
-            const fr = (w2, h2, d2, x2, y2) => wg.add(box(w2, h2, d2, frameMat, x2, y2, cz, ry));
-            const along = (s2) => [wl.x1 + ux * s2, wl.y1 + uy * s2];
-            [[op.a + 2, 0], [op.b - 2, 0]].forEach(([s2]) => { const [px, pz] = along(s2); wg.add(box(4, gh, 6, frameMat, px, sill + gh / 2, pz, ry)); });
-            wg.add(box(op.b - op.a, 4, 6, frameMat, cx, sill + 2, cz, ry)); wg.add(box(op.b - op.a, 4, 6, frameMat, cx, sill + gh - 2, cz, ry));
-            if (Number(op.it.leaves) === 2) wg.add(box(4, gh, 6, frameMat, cx, sill + gh / 2, cz, ry));
-            void fr;
-          } else if (!win) {
-            // Tür: Blatt halb geöffnet (Scharnier an a oder b)
-            const dw = op.b - op.a, dh = Math.min(top, Hw) - 4, hinge = op.it.flipX ? op.b : op.a;
-            const pivot = new T.Group(); pivot.position.set(wl.x1 + ux * hinge, 0, wl.y1 + uy * hinge);
-            pivot.rotation.y = ry + (op.it.flipX ? Math.PI : 0) + (op.it.flipY ? -1.2 : 1.2);
-            const leaf = box(dw, dh, 4, doorMat, dw / 2, dh / 2, 0, 0); pivot.add(leaf); wg.add(pivot);
-            wg.add(box(dw, 4, 8, frameMat, cx, Math.min(top, Hw) - 2, cz, ry));
-          }
+          buildOpening(op, { wl, ux, uy, ry, cx, cz, sill, top, win, wg, Hw, frameMat, doorMat, glassMat });
           cur = op.b;
         });
         seg(cur, L + ext, solidH, 0);
@@ -2552,7 +2695,7 @@ const FP3D = (() => {
       items.forEach(rec => {
         const a = rec.anim; if (!a) return; const it = rec.it, s = it.entity ? states[it.entity] : null;
         if (a.type === 'cover') {
-          const tg = coverTarget(s); if (tg == null) return;
+          let tg = coverTarget(s); if (rec.hold && performance.now() < rec.hold.until) tg = rec.hold.v; if (tg == null) return;
           let cv = rec.cv != null ? rec.cv : (coverCache.has(it.id) ? coverCache.get(it.id) : tg);
           const d = tg - cv; if (Math.abs(d) > 0.002) { cv += Math.sign(d) * Math.min(Math.abs(d), dt * 0.3); busy = true; } else cv = tg;
           rec.cv = cv; coverCache.set(it.id, cv); a.set(cv);
@@ -2562,7 +2705,7 @@ const FP3D = (() => {
       });
       return busy;
     }
-    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; return b; }
+    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (opens.length && animateOpens(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; return b; }
 
     // ---------- Auswahl-Rahmen ----------
     function applySel() {
@@ -2646,7 +2789,7 @@ const FP3D = (() => {
     // ---------- Live-Zustände ----------
     function stateSig() {
       let s = '';
-      plan.floors.forEach(f => f.items.forEach(it => { if (it.entity) { const st = states[it.entity]; if (st) s += it.entity + st.state + (st.attributes && st.attributes.brightness != null ? st.attributes.brightness : '') + (st.attributes && st.attributes.rgb_color ? st.attributes.rgb_color.join('') : '') + '|'; } }));
+      plan.floors.forEach(f => f.items.forEach(it => { [it.entity, it.entity2].forEach(en => { if (en) { const st = states[en]; if (st) s += en + st.state + (st.attributes && st.attributes.brightness != null ? st.attributes.brightness : '') + (st.attributes && st.attributes.current_position != null ? 'p' + st.attributes.current_position : '') + (st.attributes && st.attributes.rgb_color ? st.attributes.rgb_color.join('') : '') + '|'; } }); }));
       return s;
     }
     function applyLive(force) {
@@ -2712,11 +2855,34 @@ const FP3D = (() => {
     }
     const ptrs = new Map(); let gesture = null, tap = null, tapTimer = 0;
     const ray = new T.Raycaster(), v2 = new T.Vector2();
+    // ---------- Rollladen/Garagentore per Ziehen öffnen und schließen ----------
+    function coverRec(id) {
+      const a = items.find(r => r.it.id === id && r.anim && r.anim.type === 'cover'), b = opens.find(r => r.cover && r.it.id === id);
+      const rec = a || b; if (!rec || !/^cover\./.test(rec.it.entity || '')) return null;
+      return rec;
+    }
+    function coverVal(rec) { return rec.anim ? (rec.cv != null ? rec.cv : (coverCache.has(rec.it.id) ? coverCache.get(rec.it.id) : 0)) : rec.o; }
+    const _p0 = new T.Vector3(), _p1 = new T.Vector3();
+    function coverPx(rec) {
+      let x, z, yb, yt;
+      if (rec.anim) { rec.group.getWorldPosition(_p0); x = _p0.x; z = _p0.z; yb = _p0.y; yt = yb + (rec.h || 100); }
+      else { rec.anchor.getWorldPosition(_p0); x = _p0.x; z = _p0.z; yt = _p0.y; yb = yt - rec.hh; }
+      _p0.set(x, yb, z).project(camera); _p1.set(x, yt, z).project(camera);
+      const r = cv.getBoundingClientRect();
+      return Math.max(30, Math.abs(_p1.y - _p0.y) * r.height / 2);
+    }
+    function coverSet(rec, v) {
+      v = Math.max(0, Math.min(1, v));
+      if (rec.anim) { rec.cv = v; coverCache.set(rec.it.id, v); rec.anim.set(v); rec.hold = { v, until: performance.now() + 4500 }; }
+      else { rec.o = v; rec.t = 0; rec.set(v, 0); rec.hold = { v, until: performance.now() + 4500 }; openCache.set(rec.it.id, { o: v, t: 0 }); }
+      dirty = true; return v;
+    }
     function pick(e) {
       const r = cv.getBoundingClientRect();
       v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(v2, camera);
-      const hit = ray.intersectObjects(pickables, false)[0];
+      const vis = ob => { for (let n = ob; n; n = n.parent) if (n.visible === false) return false; return true; };
+      const hit = ray.intersectObjects(pickables, false).find(h => vis(h.object));
       return hit ? hit.object.userData.itemId : null;
     }
     function groundPoint(e, gy) {
@@ -2742,6 +2908,7 @@ const FP3D = (() => {
         const placing = !!(o.placing && o.placing());
         tap = { x: e.clientX, y: e.clientY, id: !placing && (e.button === 0 || e.pointerType !== 'mouse') ? pick(e) : null, moved: false, long: false, time: Date.now() };
         if (tap.id && o.canDrag && o.canDrag(tap.id)) { const rec = items.find(r => r.it.id === tap.id), gp = rec && groundPoint(e, rec.floorY); if (rec && gp) gesture = { t: 'drag', rec, off: { x: gp.x - rec.group.position.x, z: gp.z - rec.group.position.z }, dragging: false }; }
+        else if (tap.id && o.canCover && o.canCover()) { const cr = coverRec(tap.id); if (cr) gesture = { t: 'cover', rec: cr, y0: e.clientY, v0: coverVal(cr), px: coverPx(cr), v: null }; }
         clearTimeout(tapTimer);
         if (tap.id) tapTimer = setTimeout(() => { if (tap && !tap.moved) { tap.long = true; o.onTap && o.onTap(tap.id, true); } }, 550);
       } else if (ptrs.size === 2) {
@@ -2757,6 +2924,10 @@ const FP3D = (() => {
       p.x = e.clientX; p.y = e.clientY;
       if (tap && !tap.moved && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) { tap.moved = true; clearTimeout(tapTimer); }
       if (!gesture) return;
+      if (gesture.t === 'cover') {
+        if (ptrs.size === 1 && tap && tap.moved) { gesture.v = coverSet(gesture.rec, gesture.v0 - (e.clientY - gesture.y0) / gesture.px); gesture.rec.dragging = true; }
+        return;
+      }
       if (gesture.t === 'drag') {
         if (ptrs.size === 1 && tap && tap.moved) {
           const gp = groundPoint(e, gesture.rec.floorY);
@@ -2777,6 +2948,7 @@ const FP3D = (() => {
       ptrs.delete(e.pointerId); cv.style.cursor = 'grab';
       if (ptrs.size === 0) {
         clearTimeout(tapTimer);
+        if (gesture && gesture.t === 'cover') { const g2 = gesture; g2.rec.dragging = false; if (g2.v != null) { tap = null; gesture = null; if (o.onCover) o.onCover(g2.rec.it, g2.v); return; } }
         if (gesture && gesture.t === 'drag' && gesture.dragging) { const rc = gesture.rec; rc.dragging = false; tap = null; gesture = null; if (o.onDragEnd) o.onDragEnd(rc.it.id, rc.nx, rc.nz); return; }
         if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(groundPoint(e, groundY)); }
         tap = null; gesture = null;
@@ -2815,7 +2987,7 @@ const FP3D = (() => {
       raf = 0; if (destroyed) return;
       if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
       if (animateWalls()) dirty = true;
-      if (solar || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
+      if (solar || opens.length || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
       raf = requestAnimationFrame(frame);
     }
@@ -2842,7 +3014,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };
@@ -2856,6 +3028,16 @@ const HOST = {
   demo: false,
   info: () => ({ ha: true, allowControl: true, admin: false }),
   states: () => (ACTIVE && ACTIVE._hass ? ACTIVE._hass.states : {}),
+  areas: () => (ACTIVE && ACTIVE._hass ? Object.values(ACTIVE._hass.areas || {}).map(a => ({ id: a.area_id, name: a.name })) : []),
+  entities: () => {
+    const h = ACTIVE && ACTIVE._hass; if (!h) return [];
+    const areas = h.areas || {}, devs = h.devices || {}, ents = h.entities || {};
+    return Object.keys(h.states).map(id => {
+      const reg = ents[id]; let areaId = '';
+      if (reg) { const aid = reg.area_id || (reg.device_id && devs[reg.device_id] && devs[reg.device_id].area_id); if (aid && areas[aid]) areaId = aid; }
+      return { id, areaId };
+    });
+  },
   callService: (d, s, data) => ACTIVE._hass.callService(d, s, data),
   moreInfo: entityId => ACTIVE && ACTIVE.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
 };
@@ -2999,7 +3181,7 @@ class FloorplanStudioCard extends HTMLElement {
     const ctx = { glows: new Map(), glowOut: [] };
     const rooms = gardenBaseMarkup(f) + f.rooms.map(r => {
       let m = roomMarkup(r);
-      if (r.entity) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
+      if (r.entity || r.area) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
       return m;
     }).join('');
     const walls = f.walls.map(wl => wallMarkup(wl, true, { k: 1 })).join('');
@@ -3043,7 +3225,7 @@ class FloorplanStudioCard extends HTMLElement {
       this._v3 = FP3D.create(st, {
         getFloor: () => this._floor,
         look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
-        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
+        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update();
@@ -3120,7 +3302,7 @@ class FloorplanStudioCard extends HTMLElement {
       if (it && (it.entity || it.tap === 'service')) {
         const d = this._drag = { t: 'item', id: it.id, sx: e.clientX, sy: e.clientY, moved: false, long: false };
         d.timer = setTimeout(() => { if (this._drag === d && !d.moved) { d.long = true; this._ctx(); const cur = findItem(d.id); if (cur) onItemTap(cur, true); } }, 550);
-      } else if (rg && findRoom(rg.dataset.id) && findRoom(rg.dataset.id).entity) {
+      } else if (rg && findRoom(rg.dataset.id) && (findRoom(rg.dataset.id).entity || findRoom(rg.dataset.id).area)) {
         this._drag = { t: 'room', id: rg.dataset.id, sx: e.clientX, sy: e.clientY, moved: false };
       } else this._drag = null;
     };
@@ -3192,7 +3374,7 @@ class FloorplanStudioCard extends HTMLElement {
       if (e.type === 'pointercancel' || d.moved || d.long) return;
       this._ctx();
       if (d.t === 'item') { const it = findItem(d.id); if (it) onItemTap(it, false); }
-      else { const r = findRoom(d.id); if (r && r.entity) openDetails(r.entity); }
+      else { const r = findRoom(d.id); if (r) onRoomTap(r, false); }
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);

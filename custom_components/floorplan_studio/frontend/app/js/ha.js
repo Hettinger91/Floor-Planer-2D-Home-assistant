@@ -13,11 +13,47 @@ const STATE_DE = {
 };
 const domainOf = e => String(e || '').split('.')[0];
 
+// ---------- Räume ↔ Home-Assistant-Bereiche ----------
+function areaList() { try { return (HOST.areas ? HOST.areas() : []) || []; } catch (_) { return []; } }
+let _am = null, _amN = -1;
+function areaMembers() {
+  const n = Object.keys(states).length;
+  if (_am && _amN === n) return _am;
+  _am = new Map(); _amN = n;
+  try { (HOST.entities ? HOST.entities() : []).forEach(e => { if (e.areaId) { if (!_am.has(e.areaId)) _am.set(e.areaId, []); _am.get(e.areaId).push(e.id); } }); } catch (_) { /* egal */ }
+  return _am;
+}
+function areaSummary(areaId) {
+  const r = { temp: null, hum: null, lights: 0, on: 0, open: 0 };
+  (areaMembers().get(areaId) || []).forEach(id => {
+    const s = states[id]; if (!s) return;
+    const d = domainOf(id), a = s.attributes || {}, dc = a.device_class, v = parseFloat(s.state);
+    if (d === 'sensor' && dc === 'temperature' && r.temp == null && isFinite(v)) r.temp = v;
+    else if (d === 'sensor' && dc === 'humidity' && r.hum == null && isFinite(v)) r.hum = v;
+    else if (d === 'light') { r.lights++; if (s.state === 'on') r.on++; }
+    else if (d === 'binary_sensor' && ['window', 'door', 'opening', 'garage_door'].includes(dc) && s.state === 'on') r.open++;
+    else if (d === 'cover' && ['window', 'door', 'garage', 'gate'].includes(dc) && (s.state === 'open' || s.state === 'opening')) r.open++;
+  });
+  return r;
+}
+function areaSummaryText(areaId) {
+  const r = areaSummary(areaId), p = [];
+  if (r.temp != null) p.push(fmtN(r.temp, 1) + '°');
+  if (r.hum != null) p.push(Math.round(r.hum) + '%');
+  if (r.lights) p.push('💡 ' + r.on + '/' + r.lights);
+  if (r.open) p.push('🪟 ' + r.open);
+  return p.join(' · ');
+}
+function onRoomTap(room, wantDetails) {
+  if (room.entity) { openDetails(room.entity); return; }
+  if (room.area && !wantDetails) callService('light', 'toggle', { area_id: room.area });
+}
+
 function linkedEntities() {
   const set = new Set();
   plan.floors.forEach(f => {
-    f.items.forEach(i => i.entity && set.add(i.entity));
-    f.rooms.forEach(r => r.entity && set.add(r.entity));
+    f.items.forEach(i => { if (i.entity) set.add(i.entity); if (i.entity2) set.add(i.entity2); });
+    f.rooms.forEach(r => { if (r.entity) set.add(r.entity); if (r.area) (areaMembers().get(r.area) || []).forEach(id => { if (/^(light|sensor|binary_sensor|cover)\./.test(id)) set.add(id); }); });
   });
   return [...set];
 }
@@ -54,6 +90,24 @@ async function loadEntities() {
   entities = Object.keys(all).sort().map(id => ({ e: id, n: (all[id].attributes && all[id].attributes.friendly_name) || '', s: all[id].state }));
   try { if (HOST.entities) { const m = new Map(HOST.entities().map(x => [x.id, x])); entities.forEach(x => { const r = m.get(x.e); if (r) { x.a = r.area; x.dc = r.dc; } }); } } catch (_) { /* egal */ }
   $('#entlist').innerHTML = entities.map(e => `<option value="${esc(e.e)}">${esc(e.n)}</option>`).join('');
+}
+
+// Öffnungszustand von Fenster/Tür/Tor/Rollladen: { o: 0..1 offen, tilt: gekippt } oder null (keine Daten)
+function openInfo(it) {
+  const rd = x => {
+    if (!x) return null; const st = String(x.state).toLowerCase(), a = x.attributes || {};
+    if (st === 'unavailable' || st === 'unknown') return null;
+    if (/^(tilt|kipp|gekippt)/.test(st)) return 'tilt';
+    if (a.current_position != null && isFinite(a.current_position)) return Math.max(0, Math.min(1, a.current_position / 100));
+    if (['open', 'opening', 'on', 'true', 'unlocked'].includes(st)) return 1;
+    if (['closed', 'closing', 'off', 'false', 'locked'].includes(st)) return 0;
+    return null;
+  };
+  const v = it.entity ? rd(states[it.entity]) : null, t = it.entity2 ? rd(states[it.entity2]) : null;
+  if (v == null && t == null) return null;
+  let o = typeof v === 'number' ? v : 0, tilt = v === 'tilt' || (t === 1 || t === 'tilt') && o === 0;
+  if (v === 'tilt') o = 0;
+  return { o, tilt };
 }
 
 function isActive(s) {
@@ -97,6 +151,13 @@ function glowColor(it, s) {
 async function callService(domain, service, data = {}) {
   try { await HOST.callService(domain, service, data); return true; }
   catch (e) { toast('Fehler: ' + ((e && e.message) || e)); return false; }
+}
+// Rollladen/Tor per Ziehen: Position setzen (oder öffnen/schließen, wenn keine Position unterstützt wird)
+function coverCommand(it, v) {
+  if (!it.entity) return;
+  const s = states[it.entity], a = (s && s.attributes) || {}, pos = Math.round(Math.max(0, Math.min(1, v)) * 100);
+  if (a.current_position != null || ((a.supported_features | 0) & 4)) return callService('cover', 'set_cover_position', { entity_id: it.entity, position: pos });
+  return callService('cover', v > 0.5 ? 'open_cover' : 'close_cover', { entity_id: it.entity });
 }
 function openDetails(entity) { if (entity) HOST.moreInfo(entity); }
 

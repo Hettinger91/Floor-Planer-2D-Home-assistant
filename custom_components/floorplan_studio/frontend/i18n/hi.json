@@ -755,5 +755,8 @@
 "Pfeiltasten": "तीर कुंजियाँ",
 "Strg+D / C / V": "Ctrl+D / C / V",
 "Strg+Z / Strg+Y": "Ctrl+Z / Ctrl+Y",
-"Zustand: {}": "स्थिति: {}"
+"Zustand: {}": "स्थिति: {}",
+"Kipp-Entität (optional, an = gekippt)": "झुकाव एंटिटी (वैकल्पिक, चालू = झुकी हुई)",
+"Bereich (Home Assistant)": "क्षेत्र (Home Assistant)",
+"– keiner –": "– कोई नहीं –"
 }

@@ -102,3 +102,9 @@ python3 tools/build_card.py
 ## Sprachen
 
 Deutsch, English, Schwiizerdütsch, Français, 中文, 日本語, Nederlands, Dansk, Suomi, Polski, Русский, Italiano, Español, Português, Svenska, हिन्दी. Die Sprache folgt automatisch der Home-Assistant-Sprache; sie lässt sich im Editor (Inspektor „Ansicht & Raster“ → Sprache) oder in der Karte per `language: ja` (usw.) festlegen. Übersetzungen liegen in `frontend/i18n/<code>.json` (Schlüssel = deutscher Text).
+
+## Öffnungen, Tore und Bereiche
+
+* Fenster, Türen, Schiebetüren und Garagentore zeigen in 2D und 3D ihren Zustand: geschlossen, offen oder (Fenster) gekippt – abhängig von der Entität (`binary_sensor`, `cover`; Position `current_position` wird übernommen). Optional gibt es pro Fenster/Tür eine zweite „Kipp-Entität“ (an = gekippt).
+* Rollläden, Raffstores, Markisen, Vorhänge und Garagentore (Cover-Entitäten) lassen sich in der 3D-Ansicht (Live) anklicken und nach oben/unten ziehen: Position wird gesetzt, bei Toren ohne Positionsunterstützung wird geöffnet bzw. geschlossen.
+* Räume können einem Home-Assistant-Bereich zugewiesen werden (Inspektor → Raum → „Bereich“): der Name wird übernommen, im Live-Plan zeigt der Raum Temperatur, Luftfeuchte, Lichter an/gesamt und offene Fenster/Türen des Bereichs; Tippen auf den Raum schaltet die Lichter des Bereichs.
