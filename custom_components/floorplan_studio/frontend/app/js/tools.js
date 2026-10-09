@@ -211,6 +211,8 @@ function downSelect(e, p, tgt, k) {
 function downHandle(e, p, tgt) {
   const t = tgt.dataset.t, i = parseInt(tgt.dataset.i, 10), c = parseInt(tgt.dataset.c, 10);
   const snap = JSON.stringify(plan), base = { moved: false, sx: e.clientX, sy: e.clientY, snap };
+  if (t === 'vrot') { drag = { ...base, t: 'vrot', id: sel.id }; return; }
+  if (t === 'lrot') { drag = { ...base, t: 'lrot', id: sel.id }; return; }
   if (t === 'rot') { drag = { ...base, t: 'rot', id: sel.id }; return; }
   if (t === 'size') {
     const it = selObj(), hw = it.w / 2, hh = it.h / 2, cs = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]], o = cs[(c + 2) % 4];
@@ -306,6 +308,20 @@ function onMove(e) {
       break;
     case 'rect': hover = snapPt(p, { free }); render(); break;
     case 'move': doMove(p, free, g); break;
+    case 'vrot': {
+      const it = findItem(drag.id), L = valuePos(it);
+      let ang = Math.atan2(p.y - L.y, p.x - L.x) * 180 / Math.PI + 90;
+      if (!free) ang = Math.round(ang / 15) * 15;
+      it.valueRot = r1(((ang + 540) % 360) - 180);
+      render(); refreshInspectorValues(); break;
+    }
+    case 'lrot': {
+      const it = findItem(drag.id), L = labelPos(it);
+      let ang = Math.atan2(p.y - L.y, p.x - L.x) * 180 / Math.PI + 90;
+      if (!free) ang = Math.round(ang / 15) * 15;
+      it.labelRot = r1(((ang + 540) % 360) - 180);
+      render(); refreshInspectorValues(); break;
+    }
     case 'rot': {
       const it = findItem(drag.id);
       let ang = Math.atan2(p.y - it.y, p.x - it.x) * 180 / Math.PI + 90;

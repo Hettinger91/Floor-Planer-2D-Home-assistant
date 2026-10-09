@@ -17,6 +17,7 @@ function specHtml(s) {
     case 'color': return `<label class="fld"><span>${l}</span><span class="colorrow"><input type="color" data-f="${s.k}"><button type="button" class="mini" data-clear="${s.k}">Standard</button></span></label>`;
     case 'area': return `<label class="fld"><span>${l}</span><textarea rows="${s.rows || 3}" data-f="${s.k}" placeholder="${esc(s.ph || '')}"></textarea></label>`;
     case 'entity': return `<label class="fld"><span>${l}</span><span class="colorrow"><input list="entlist" data-f="${s.k}" placeholder="z. B. light.wohnzimmer" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="mini" data-pick="${s.k}">Auswählen …</button></span></label><div class="hint" id="entinfo"></div>`;
+    case 'image': return `<label class="fld"><span>${l}</span><span class="colorrow"><input type="text" data-f="${s.k}" placeholder="Bild-URL oder hochladen"><button type="button" class="mini" data-upicon="${s.k}">Bild …</button></span></label>`;
     case 'icon': return `<label class="fld"><span>${l}</span><span class="colorrow"><input type="text" data-f="${s.k}" placeholder="Emoji oder leer"><button type="button" class="mini" data-upicon="${s.k}">Bild …</button></span></label>`;
     default: return `<label class="fld"><span>${l}</span><input type="text" data-f="${s.k}" placeholder="${esc(s.ph || '')}"></label>`;
   }
@@ -88,56 +89,72 @@ function renderItemInspector(box, it) {
   const g = [
     { k: 'label', t: isText ? 'area' : 'text', l: isText ? 'Text' : 'Bezeichnung' },
     { k: 'showLabel', t: 'check', l: 'Bezeichnung im Plan anzeigen' },
+    { k: 'labelEnt', t: 'check', l: 'Bezeichnung = Name der Entität (automatisch aus Home Assistant)' },
+    { k: 'showValue', t: 'check', l: 'Wert/Zustand als Etikett anzeigen (braucht Entität)' },
+    { k: 'valueRot', t: 'num', l: 'Wert/Zustand drehen (°)', step: 15 },
     { k: 'fs', t: 'num', l: 'Schriftgröße (cm)', min: 4 },
-  ].filter(s => (isText ? s.k !== 'showLabel' : s.k !== 'fs'));
+    { k: 'labelRot', t: 'num', l: 'Bezeichnung drehen (°)', step: 15 },
+  ].filter(s => (isText ? !['showLabel', 'labelEnt', 'labelRot', 'showValue', 'valueRot'].includes(s.k) : s.k !== 'fs'));
+  const glowSpecs = [
+    { k: 'glow', t: 'check', l: 'Leuchten, wenn aktiv (Glow)' },
+    { k: 'glowStyle', t: 'select', l: 'Leucht-Effekt', o: [['soft', 'Weich'], ['strong', 'Stark'], ['ring', 'Ring'], ['pulse', 'Pulsierend']] },
+    { k: 'glowR', t: 'num', l: 'Leuchtradius (cm) · 0 = auto', min: 0, step: 10 },
+    { k: 'glowStr', t: 'range', l: 'Leucht-Intensität', min: 0.2, max: 1.5, step: 0.05 },
+    { k: 'onColor', t: 'color', l: 'Farbe im aktiven Zustand', def: '#ffc94d' },
+  ];
   const ha = [
     { k: 'entity', t: 'entity', l: 'Home-Assistant-Entität' },
-    { k: 'showValue', t: 'check', l: 'Wert/Zustand als Etikett anzeigen' },
-    { k: 'glow', t: 'check', l: 'Leuchten, wenn aktiv' },
-    { k: 'onColor', t: 'color', l: 'Farbe im aktiven Zustand', def: '#ffc94d' },
     { k: 'tap', t: 'select', l: 'Aktion beim Tippen (Live)', o: [['auto', 'Automatisch'], ['toggle', 'Umschalten'], ['details', 'Details öffnen'], ['service', 'Eigener Dienst'], ['none', 'Keine']] },
     { k: 'svc', t: 'text', l: 'Dienst (domain.service)', ph: 'light.turn_on' },
     { k: 'svcData', t: 'area', l: 'Dienst-Daten (JSON)', ph: '{"brightness_pct": 40}', rows: 2 },
   ];
   const look = [
-    { k: 'icon', t: 'icon', l: 'Icon' },
+    { k: 'icon', t: 'icon', l: 'Icon (Emoji) – optional' },
+    { k: 'image', t: 'image', l: 'Bild – optional' },
+    { k: 'imgMode', t: 'select', l: 'Bild-Darstellung', o: [['contain', 'Eingepasst'], ['stretch', 'Ganze Fläche (gestreckt)'], ['bare', 'Nur Bild (ohne Fläche)']] },
     { k: 'iconScale', t: 'range', l: 'Icon-Größe', min: 0.3, max: 2, step: 0.05 },
     { k: 'color', t: 'color', l: 'Farbe', def: '#cfd8dc' },
     { k: 'shape', t: 'select', l: 'Form', o: [['rect', 'Rechteck'], ['ellipse', 'Kreis / Ellipse'], ['none', 'Nur Icon'], ['door', 'Tür'], ['window', 'Fenster'], ['text', 'Text']] },
+    { k: 'leaves', t: 'select', l: 'Flügel', o: [[1, 'Einflügelig'], [2, 'Doppelflügelig']] },
     { k: 'flipX', t: 'check', l: 'Anschlag spiegeln' },
     { k: 'flipY', t: 'check', l: 'Öffnungsrichtung spiegeln' },
-  ].filter(s => (isText ? ['color', 'shape'].includes(s.k) : isWin ? s.k !== 'iconScale' && s.k !== 'icon' : !s.k.startsWith('flip')));
+  ].filter(s => (isText ? ['color', 'shape'].includes(s.k) : isWin ? !['iconScale', 'icon', 'image', 'imgMode'].includes(s.k) : !s.k.startsWith('flip') && s.k !== 'leaves'));
   const pos = [
     { k: 'x', t: 'num', l: 'X (cm)', step: 1 }, { k: 'y', t: 'num', l: 'Y (cm)', step: 1 },
     { k: 'w', t: 'num', l: 'Breite (cm)', min: 1 }, { k: 'h', t: 'num', l: 'Tiefe (cm)', min: 1 },
     { k: 'rot', t: 'num', l: 'Drehung (°)', step: 1 },
+    { k: 'h3', t: 'num', l: '3D-Höhe (cm) · 0 = auto', min: 0, step: 5 },
+    { k: 'z3', t: 'num', l: '3D-Höhe über Boden (cm) · 0 = auto', min: 0, step: 5 },
   ];
-  const specs = [...g, ...ha, ...look, ...pos];
+  const specs = [...g, ...glowSpecs, ...ha, ...look, ...pos];
   const P = k => specHtml(pos.find(s => s.k === k));
   box.innerHTML = `<div class="ihead"><span class="ico">${esc(it.icon && !it.icon.startsWith('img:') ? it.icon : '▫')}</span><b>${esc((t && t.name) || 'Objekt')}</b></div>` +
     section('Allgemein', g.map(specHtml).join('')) +
+    (isText || isWin ? '' : section('Leuchten (Glow)', glowSpecs.map(specHtml).join(''))) +
     (isText ? '' : section('Home Assistant', ha.map(specHtml).join(''))) +
     section('Aussehen', look.map(specHtml).join('')) +
-    section('Position & Größe', pair(P('x'), P('y')) + (isText ? '' : pair(P('w'), P('h'))) + P('rot')) +
+    section('Position & Größe', pair(P('x'), P('y')) + (isText ? '' : pair(P('w'), P('h'))) + P('rot') + (isText || isWin ? '' : pair(P('h3'), P('z3')))) +
     actionsHtml([['front', 'Nach vorn'], ['back', 'Nach hinten'], ['dup', 'Duplizieren'], ['tpl', 'Als Vorlage speichern'], ['del', 'Löschen', 'danger']]);
-  wire(box, it, specs.filter(s => !(isText && ['entity', 'showValue', 'glow', 'onColor', 'tap', 'svc', 'svcData'].includes(s.k))), {
+  wire(box, it, specs.filter(s => !(isText && ['entity', 'glow', 'glowStyle', 'glowR', 'glowStr', 'onColor', 'tap', 'svc', 'svcData'].includes(s.k))), {
     onInput: k => {
       if (isText && (k === 'label' || k === 'fs')) fitText(it);
       if (k === 'entity') autofillFromEntity(it);
     },
-    onChange: k => { if (k === 'tap' || k === 'shape') renderInspector(); },
+    onChange: k => { if (k === 'tap' || k === 'shape' || k === 'glow') renderInspector(); },
   });
   const entInp = $('[data-f="entity"]', box);
   if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); loadEntities().then(updateEntInfo); bindPick(box); }
+  ['glowStyle', 'glowR', 'glowStr', 'onColor'].forEach(k => { const e = $(`[data-f="${k}"]`, box); if (e) e.closest('.fld').style.opacity = it.glow ? '' : '.5'; });
   const svcRow = $('[data-f="svc"]', box);
   if (svcRow) { const show = it.tap === 'service'; svcRow.closest('.fld').hidden = !show; $('[data-f="svcData"]', box).closest('.fld').hidden = !show; }
   updateEntInfo();
-  const upBtn = $('[data-upicon]', box);
-  if (upBtn) upBtn.onclick = async () => {
-    const f = await pickFile('image/*');
-    if (!f) return;
-    try { const r = await uploadFile(f); it.icon = 'img:' + r.url; commit(); renderInspector(); render(); } catch (e) { toast('Upload fehlgeschlagen: ' + e.message); }
-  };
+  $$('[data-upicon]', box).forEach(upBtn => {
+    upBtn.onclick = async () => {
+      const k = upBtn.dataset.upicon, f = await pickFile('image/*');
+      if (!f) return;
+      try { const r = await uploadFile(f); it[k] = k === 'icon' ? 'img:' + r.url : r.url; commit(); renderInspector(); render(); } catch (e) { toast('Upload fehlgeschlagen: ' + e.message); }
+    };
+  });
   bindActs(box, {
     front: () => { const f = curFloor(); f.items = f.items.filter(x => x !== it).concat(it); commit(); render(); },
     back: () => { const f = curFloor(); f.items = [it].concat(f.items.filter(x => x !== it)); commit(); render(); },
@@ -152,6 +169,7 @@ function autofillFromEntity(it) {
   it.entity = id;
   const e = entities.find(x => x.e === id) || null;
   if (e && !it.label && e.n) it.label = e.n;
+  if (e && e.n) it.labelEnt = true;
   if (e && ['sensor', 'climate', 'number', 'input_number'].includes(domainOf(id)) && !it.showValue) it.showValue = true;
   if (domainOf(id) === 'light' && !it.glow) it.glow = true;
   pollStates();
@@ -174,6 +192,28 @@ function renderWallInspector(box, w) {
   bindActs(box, { dup: duplicateSel, del: deleteSel });
 }
 
+// Raum-Umriss skalieren/verschieben; Wandenden auf Raumecken werden mitgenommen
+function mapRoomPts(r, fn) {
+  const old = r.pts.map(p => [p[0], p[1]]), nw = old.map(p => fn(p));
+  curFloor().walls.forEach(w => {
+    old.forEach((o, i) => {
+      if (Math.hypot(w.x1 - o[0], w.y1 - o[1]) < 1.5) { w.x1 = r1(nw[i][0]); w.y1 = r1(nw[i][1]); }
+      else if (Math.hypot(w.x2 - o[0], w.y2 - o[1]) < 1.5) { w.x2 = r1(nw[i][0]); w.y2 = r1(nw[i][1]); }
+    });
+  });
+  r.pts = nw.map(p => [r1(p[0]), r1(p[1])]);
+}
+function resizeRoom(r, nw, nh) {
+  const xs = r.pts.map(p => p[0]), ys = r.pts.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys);
+  const bw = Math.max(...xs) - x0, bh = Math.max(...ys) - y0;
+  const fx = nw && bw > 0 ? Math.max(10, nw) / bw : 1, fy = nh && bh > 0 ? Math.max(10, nh) / bh : 1;
+  mapRoomPts(r, p => [x0 + (p[0] - x0) * fx, y0 + (p[1] - y0) * fy]);
+}
+function moveRoomTo(r, nx, ny) {
+  const x0 = Math.min(...r.pts.map(p => p[0])), y0 = Math.min(...r.pts.map(p => p[1]));
+  const dx = nx == null ? 0 : nx - x0, dy = ny == null ? 0 : ny - y0;
+  mapRoomPts(r, p => [p[0] + dx, p[1] + dy]);
+}
 function renderRoomInspector(box, r) {
   if (!r.floorScale) r.floorScale = 1;
   if (!r.floorRot) r.floorRot = 0;
@@ -185,10 +225,18 @@ function renderRoomInspector(box, r) {
     { k: 'floorRot', t: 'range', l: 'Muster-Drehung (°)', min: 0, max: 90, step: 15 },
     { k: 'entity', t: 'entity', l: 'Entität im Raum anzeigen (z. B. Temperatur)' },
   ];
+  const bb = () => { const xs = r.pts.map(p => p[0]), ys = r.pts.map(p => p[1]); return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }; };
+  const dims = [
+    { k: 'rw', t: 'num', l: 'Breite (cm)', min: 10, get: () => r1(bb().w), set: (o, v) => resizeRoom(r, v, null) },
+    { k: 'rh', t: 'num', l: 'Tiefe (cm)', min: 10, get: () => r1(bb().h), set: (o, v) => resizeRoom(r, null, v) },
+    { k: 'rx', t: 'num', l: 'Links (cm)', get: () => r1(bb().x), set: (o, v) => moveRoomTo(r, v, null) },
+    { k: 'ry', t: 'num', l: 'Oben (cm)', get: () => r1(bb().y), set: (o, v) => moveRoomTo(r, null, v) },
+  ];
   box.innerHTML = `<div class="ihead"><span class="ico">⬠</span><b>Raum</b></div>` +
+    section('Maße (Umriss)', pair(specHtml(dims[0]), specHtml(dims[1])) + pair(specHtml(dims[2]), specHtml(dims[3])) + '<div class="hint">Wände, deren Enden auf den Raumecken liegen, wandern mit. Türen/Fenster ggf. nachziehen.</div>') +
     section('Raum', specs.map(specHtml).join('') + `<div class="hint">Fläche: ${fmtN(polyArea(r.pts) / 10000, 2)} m² · ${r.pts.length} Ecken<br>Tipp: Ecken ziehen, kleine Punkte auf den Kanten ziehen fügt Ecken hinzu.</div>`) +
     actionsHtml([['walls', 'Wände entlang des Raums'], ['dup', 'Duplizieren'], ['del', 'Löschen', 'danger']]);
-  wire(box, r, specs, { onChange: k => { if (k === 'floor') renderInspector(); }, onInput: k => { if (k === 'entity') { r.entity = r.entity.trim(); pollStates(); } } });
+  wire(box, r, [...specs, ...dims], { onChange: k => { if (k === 'floor') renderInspector(); }, onInput: k => { if (k === 'entity') { r.entity = r.entity.trim(); pollStates(); } } });
   const entInp = $('[data-f="entity"]', box);
   if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); bindPick(box); }
   updateEntInfo();
@@ -213,6 +261,7 @@ function renderFloorInspector(box) {
     { k: 'showArea', t: 'check', l: 'Raumflächen anzeigen' },
     { k: 'labelSize', t: 'range', l: 'Schriftgröße im Plan', min: 8, max: 40, step: 1 },
     { k: 'wallThickness', t: 'num', l: 'Standard-Wanddicke (cm)', min: 2 },
+    { k: 'wallH3', t: 'num', l: 'Wandhöhe in 3D (cm)', min: 180, step: 10 },
     { k: 'wallColor', t: 'color', l: 'Wandfarbe', def: '#2b3240' },
     { k: 'roomOpacity', t: 'range', l: 'Raumfüllung', min: 0.05, max: 0.8, step: 0.05 },
     { k: 'theme', t: 'select', l: 'Darstellung', o: [['auto', 'Automatisch'], ['light', 'Hell'], ['dark', 'Dunkel']] },
@@ -311,7 +360,7 @@ function renderLibrary() {
   box.innerHTML = [...cats].map(([cat, list]) => `<details open><summary>${esc(cat)}<span>${list.length}</span></summary><div class="libgrid">` +
     list.map(t => {
       const thumb = symThumb(t);
-      const ico = thumb || ((t.icon && t.icon.startsWith('img:')) ? `<img src="${esc(t.icon.slice(4))}" alt="">` : esc(t.icon || (t.shape === 'door' ? '🚪' : t.shape === 'window' ? '🪟' : '▫')));
+      const ico = t.image ? `<img src="${esc(t.image)}" alt="">` : thumb || ((t.icon && t.icon.startsWith('img:')) ? `<img src="${esc(t.icon.slice(4))}" alt="">` : esc(t.icon || (t.shape === 'door' ? '🚪' : t.shape === 'window' ? '🪟' : '▫')));
       return `<button class="lib" draggable="true" data-id="${esc(t.id)}" title="${esc(t.name)} (${fmtN(t.w / 100, 2)}×${fmtN(t.h / 100, 2)} m)"><span class="ico" style="background:${thumb ? 'transparent' : esc(t.color || '#eceff1')}">${ico}</span><span class="nm">${esc(t.name)}</span><i class="ed" data-ed="${esc(t.id)}" title="Vorlage bearbeiten">✎</i></button>`;
     }).join('') + '</div></details>').join('') || '<p class="hint">Nichts gefunden.</p>';
   $$('.lib', box).forEach(b => {
@@ -327,10 +376,13 @@ function renderLibrary() {
 
 async function editType(t) {
   const isNew = !t;
-  const o = t ? { ...t } : { id: 'c_' + uid(), cat: 'Eigene', name: '', icon: '⭐', w: 60, h: 60, color: '#d1c4e9', shape: 'rect', glow: false, hint: '' };
+  const o = t ? { ...t } : { id: 'c_' + uid(), cat: 'Eigene', name: '', icon: '⭐', image: '', imgMode: 'contain', w: 60, h: 60, color: '#d1c4e9', shape: 'rect', glow: false, hint: '' };
   const specs = [
     { k: 'name', t: 'text', l: 'Name' }, { k: 'cat', t: 'text', l: 'Kategorie (frei wählbar)' },
-    { k: 'icon', t: 'icon', l: 'Icon' }, { k: 'color', t: 'color', l: 'Farbe', def: '#d1c4e9' },
+    { k: 'icon', t: 'icon', l: 'Icon (Emoji, oder Bild über „Bild …“) – optional' },
+    { k: 'image', t: 'image', l: 'Bild (z. B. Draufsicht) – optional' },
+    { k: 'imgMode', t: 'select', l: 'Bild-Darstellung', o: [['contain', 'Eingepasst'], ['stretch', 'Ganze Fläche (gestreckt)'], ['bare', 'Nur Bild (ohne Fläche)']] },
+    { k: 'color', t: 'color', l: 'Farbe', def: '#d1c4e9' },
     { k: 'w', t: 'num', l: 'Breite (cm)', min: 1 }, { k: 'h', t: 'num', l: 'Tiefe (cm)', min: 1 },
     { k: 'shape', t: 'select', l: 'Form', o: [['rect', 'Rechteck'], ['ellipse', 'Kreis / Ellipse'], ['none', 'Nur Icon'], ['door', 'Tür'], ['window', 'Fenster'], ['text', 'Text']] },
     { k: 'glow', t: 'check', l: 'Leuchtet, wenn aktiv' },
@@ -338,18 +390,20 @@ async function editType(t) {
   const wrap = document.createElement('div');
   wrap.innerHTML = specs.map(specHtml).join('');
   wire(wrap, o, specs, { commit: false });
-  $('[data-upicon]', wrap).onclick = async () => {
-    const f = await pickFile('image/*');
-    if (!f) return;
-    try { const r = await uploadFile(f); o.icon = 'img:' + r.url; $('[data-f="icon"]', wrap).value = o.icon; } catch (e) { toast('Upload fehlgeschlagen: ' + e.message); }
-  };
+  $$('[data-upicon]', wrap).forEach(b => {
+    b.onclick = async () => {
+      const k = b.dataset.upicon, f = await pickFile('image/*');
+      if (!f) return;
+      try { const r = await uploadFile(f); o[k] = k === 'icon' ? 'img:' + r.url : r.url; $(`[data-f="${k}"]`, wrap).value = o[k]; } catch (e) { toast('Upload fehlgeschlagen: ' + e.message); }
+    };
+  });
   const actions = [{ label: 'Abbrechen', value: null }];
   if (t && t.custom) actions.push({ label: t.builtin ? 'Zurücksetzen' : 'Löschen', danger: true, value: 'del' });
   actions.push({ label: 'Speichern', primary: true, value: 'ok', cb: () => { if (!o.name.trim()) { toast('Bitte einen Namen eingeben.'); return false; } } });
   const r = await modal({ title: isNew ? 'Eigenes Objekt anlegen' : 'Vorlage bearbeiten', body: wrap, actions });
   if (r === 'ok') {
     o.wall = o.shape === 'door' || o.shape === 'window';
-    plan.customTypes = plan.customTypes.filter(x => x.id !== o.id).concat([{ id: o.id, cat: o.cat.trim() || 'Eigene', name: o.name.trim(), icon: o.icon, w: o.w, h: o.h, color: o.color, shape: o.shape, glow: !!o.glow, hint: o.hint || '', wall: o.wall }]);
+    plan.customTypes = plan.customTypes.filter(x => x.id !== o.id).concat([{ id: o.id, cat: o.cat.trim() || 'Eigene', name: o.name.trim(), icon: o.icon, image: o.image || '', imgMode: o.imgMode || 'contain', w: o.w, h: o.h, color: o.color, shape: o.shape, glow: !!o.glow, hint: o.hint || '', wall: o.wall }]);
     commit(); renderLibrary();
   } else if (r === 'del') {
     plan.customTypes = plan.customTypes.filter(x => x.id !== o.id);
@@ -358,7 +412,7 @@ async function editType(t) {
 }
 function saveAsTemplate(it) {
   const base = typeById(it.type);
-  editType({ id: 'c_' + uid(), cat: 'Eigene', name: it.label || (base && base.name) || 'Objekt', icon: it.icon, w: it.w, h: it.h, color: it.color, shape: it.shape, glow: it.glow, hint: it.hint, custom: false });
+  editType({ id: 'c_' + uid(), cat: 'Eigene', name: it.label || (base && base.name) || 'Objekt', icon: it.icon, image: it.image || '', imgMode: it.imgMode || 'contain', w: it.w, h: it.h, color: it.color, shape: it.shape, glow: it.glow, hint: it.hint, custom: false });
 }
 
 // ---------- Menü, Export, Import ----------

@@ -103,7 +103,7 @@ const ROOM_COLORS = ['#90caf9', '#a5d6a7', '#ffcc80', '#ce93d8', '#80cbc4', '#ef
 
 const DEFAULT_SETTINGS = {
   grid: 25, snap: true, showGrid: true, showDims: true, showArea: true, showRoomNames: true,
-  labelSize: 20, wallThickness: 15, wallColor: '', roomOpacity: 0.28, itemShadow: true, symStyle: 'b', viewRot: 0, unit: 'm', theme: 'auto',
+  labelSize: 20, wallThickness: 15, wallColor: '', roomOpacity: 0.28, itemShadow: true, symStyle: 'b', viewRot: 0, unit: 'm', wallH3: 250, look3d: 'auto', walls3d: 'auto', all3d: false, theme: 'auto',
   pollSec: 4, rectWalls: true, liveTap: 'toggle',
 };
 
@@ -111,7 +111,7 @@ const DEFAULT_SETTINGS = {
 const CF = '#d7ccc8', CA = '#cfd8dc', CW = '#b3e5fc', CH = '#ffccbc', CS = '#c5e1a5', CB = '#eceff1';
 
 function T(cat, id, name, icon, w, h, color, o = {}) {
-  return { cat, id, name, icon, w, h, color, shape: o.shape || 'rect', glow: !!o.glow, hint: o.hint || '', wall: !!o.wall };
+  return { cat, id, name, icon, w, h, color, leaves: o.leaves || 0, shape: o.shape || 'rect', glow: !!o.glow, hint: o.hint || '', wall: !!o.wall };
 }
 
 // Maße in cm
@@ -172,11 +172,237 @@ const LIB = [
   T('Smart Home', 'meter_power', 'Stromzähler', '⚡', 40, 25, CS, { hint: 'sensor' }),
   T('Smart Home', 'meter_gas', 'Gaszähler', '🔥', 30, 25, CS, { hint: 'sensor' }),
 
+  T('Licht', 'lamp_pendant', 'Pendelleuchte', '🏮', 40, 40, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'chandelier', 'Kronleuchter', '🕯️', 60, 60, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_table', 'Tischlampe', '💡', 22, 22, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_desk', 'Schreibtischlampe', '💡', 20, 20, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_night', 'Nachtlicht', '🌙', 12, 12, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_mirror', 'Spiegelleuchte', '✨', 60, 10, CB, { glow: true, hint: 'light' }),
+  T('Licht', 'light_panel', 'LED-Panel', '⬜', 60, 60, CB, { glow: true, hint: 'light' }),
+  T('Licht', 'lamp_bulb', 'Smarte Glühbirne', '💡', 10, 10, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_outdoor', 'Außenleuchte', '🏮', 22, 22, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'lamp_garden', 'Gartenleuchte', '🌿', 15, 15, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Möbel', 'sofa_corner', 'Ecksofa', '🛋️', 250, 180, CF),
+  T('Möbel', 'sofa_2', '2er-Sofa', '🛋️', 150, 90, CF),
+  T('Möbel', 'stool', 'Hocker', '🪑', 40, 40, CF, { shape: 'ellipse' }),
+  T('Möbel', 'bench', 'Sitzbank', '🪑', 120, 40, CF),
+  T('Möbel', 'table_side', 'Beistelltisch', '', 45, 45, CF, { shape: 'ellipse' }),
+  T('Möbel', 'table_round', 'Runder Tisch', '🍽️', 110, 110, CF, { shape: 'ellipse' }),
+  T('Möbel', 'table_bar', 'Bartisch', '🍸', 140, 60, CF),
+  T('Möbel', 'sideboard', 'Sideboard', '🗄️', 180, 45, CF),
+  T('Möbel', 'wall_unit', 'Schrankwand', '🗄️', 300, 50, CF),
+  T('Möbel', 'bookcase', 'Bücherregal', '📚', 80, 30, CF),
+  T('Möbel', 'nightstand', 'Nachttisch', '', 45, 40, CF),
+  T('Möbel', 'vanity', 'Frisiertisch', '🪞', 100, 45, CF),
+  T('Möbel', 'wardrobe_sliding', 'Schiebetürenschrank', '👔', 250, 65, CF),
+  T('Möbel', 'coat_rack', 'Garderobe', '🧥', 100, 30, CF),
+  T('Möbel', 'shoe_rack', 'Schuhschrank', '👟', 80, 30, CF),
+  T('Möbel', 'bed_bunk', 'Hochbett', '🛏️', 90, 200, CF),
+  T('Möbel', 'crib', 'Babybett', '🍼', 60, 120, CF),
+  T('Möbel', 'changing', 'Wickelkommode', '🍼', 90, 70, CF),
+  T('Möbel', 'highchair', 'Hochstuhl', '🪑', 50, 50, CF),
+  T('Möbel', 'desk_corner', 'Eckschreibtisch', '🖥️', 160, 140, CF),
+  T('Möbel', 'office_chair', 'Bürostuhl', '🪑', 60, 60, CF, { shape: 'ellipse' }),
+  T('Möbel', 'piano', 'Klavier', '🎹', 150, 60, CF),
+  T('Möbel', 'mirror', 'Spiegel', '🪞', 60, 5, CF),
+  T('Möbel', 'daybed', 'Gästebett / Schlafsofa', '🛏️', 140, 200, CF),
+  T('Möbel', 'recliner', 'Relaxsessel', '🛋️', 85, 95, CF),
+  T('Möbel', 'ottoman', 'Sitzpuff', '', 50, 50, CF, { shape: 'ellipse' }),
+  T('Möbel', 'cabinet', 'Schrank', '🗄️', 90, 45, CF),
+  T('Möbel', 'tv_stand', 'TV-Wand / Lowboard', '📺', 200, 45, CF),
+  T('Möbel', 'bar_stool', 'Barhocker', '🪑', 38, 38, CF, { shape: 'ellipse' }),
+  T('Küche & Bad', 'kitchen_island', 'Kücheninsel', '🍽️', 180, 90, CA),
+  T('Küche & Bad', 'counter', 'Arbeitsplatte / Zeile', '', 120, 60, CA),
+  T('Küche & Bad', 'cabinet_base', 'Unterschrank', '', 60, 60, CA),
+  T('Küche & Bad', 'cabinet_wall', 'Oberschrank', '', 60, 35, CA),
+  T('Küche & Bad', 'oven', 'Backofen', '♨️', 60, 60, CA),
+  T('Küche & Bad', 'microwave', 'Mikrowelle', '📦', 45, 35, CA),
+  T('Küche & Bad', 'hood', 'Dunstabzug', '🌀', 60, 50, CA),
+  T('Küche & Bad', 'freezer', 'Gefrierschrank', '🧊', 60, 65, CA),
+  T('Küche & Bad', 'fridge_side', 'Side-by-Side-Kühlschrank', '🧊', 90, 70, CA),
+  T('Küche & Bad', 'coffee', 'Kaffeemaschine', '☕', 25, 35, CA, { hint: 'switch' }),
+  T('Küche & Bad', 'kettle', 'Wasserkocher', '♨️', 20, 20, CA, { hint: 'switch' }),
+  T('Küche & Bad', 'dryer', 'Trockner', '🧺', 60, 60, CA),
+  T('Küche & Bad', 'dishwasher_tall', 'Geschirrspüler (hoch)', '🫧', 60, 60, CA),
+  T('Küche & Bad', 'trash', 'Mülleimer', '🗑️', 35, 35, CA),
+  T('Küche & Bad', 'pantry', 'Vorratsschrank', '🥫', 60, 50, CA),
+  T('Küche & Bad', 'basin_double', 'Doppelwaschbecken', '🚰', 120, 50, CW),
+  T('Küche & Bad', 'bidet', 'Bidet', '🚽', 40, 60, CW),
+  T('Küche & Bad', 'mirror_cabinet', 'Spiegelschrank', '🪞', 60, 15, CW),
+  T('Küche & Bad', 'towel_radiator', 'Handtuchheizkörper', '♨️', 60, 12, CH, { hint: 'climate' }),
+  T('Küche & Bad', 'sauna', 'Sauna', '🧖', 200, 200, CW),
+  T('Küche & Bad', 'whirlpool', 'Whirlpool', '🛁', 200, 200, CW, { shape: 'ellipse' }),
+  T('Küche & Bad', 'water_heater', 'Boiler / Durchlauferhitzer', '🚿', 40, 40, CW, { hint: 'switch' }),
+  T('Küche & Bad', 'utility_sink', 'Ausguss / Waschtrog', '🚰', 60, 50, CW),
+  T('Küche & Bad', 'washstand', 'Waschtisch', '🚰', 90, 50, CW),
+  T('Küche & Bad', 'shower_tray', 'Duschwanne', '🚿', 90, 90, CW),
+  T('Küche & Bad', 'shower_walkin', 'Walk-in-Dusche', '🚿', 120, 90, CW),
+  T('Küche & Bad', 'toilet_wall', 'Wand-WC', '🚽', 40, 55, CW),
+  T('Heizung & Klima', 'floor_heating', 'Fußbodenheizung', '♨️', 100, 100, CH, { hint: 'climate' }),
+  T('Heizung & Klima', 'heat_pump', 'Wärmepumpe', '♨️', 120, 80, CH, { hint: 'climate' }),
+  T('Heizung & Klima', 'air_purifier', 'Luftreiniger', '🌬️', 30, 30, CH, { shape: 'ellipse', hint: 'fan' }),
+  T('Heizung & Klima', 'humidifier', 'Luftbefeuchter', '💧', 25, 25, CH, { shape: 'ellipse', hint: 'humidifier' }),
+  T('Heizung & Klima', 'dehumidifier', 'Luftentfeuchter', '💧', 35, 25, CH, { hint: 'humidifier' }),
+  T('Heizung & Klima', 'ventilation', 'Lüftungsgerät', '🌀', 60, 60, CH, { hint: 'fan' }),
+  T('Heizung & Klima', 'fan_ceiling', 'Deckenventilator', '🌀', 100, 100, CH, { shape: 'ellipse', hint: 'fan' }),
+  T('Heizung & Klima', 'pellet', 'Pelletofen', '🔥', 60, 60, CH),
+  T('Heizung & Klima', 'water_tank', 'Pufferspeicher', '🛢️', 80, 80, CH, { shape: 'ellipse' }),
+  T('Heizung & Klima', 'heater_elec', 'Heizlüfter / Heizstrahler', '♨️', 30, 25, CH, { hint: 'switch' }),
+  T('Heizung & Klima', 'heat_valve', 'Heizkörperventil', '🌡️', 12, 12, CH, { shape: 'ellipse', hint: 'climate' }),
+  T('Heizung & Klima', 'heat_dist', 'Heizkreisverteiler', '♨️', 60, 20, CH),
+  T('Heizung & Klima', 'split_ac', 'Split-Klimagerät', '❄️', 90, 25, CH, { hint: 'climate' }),
+  T('Heizung & Klima', 'solar_thermal', 'Solarthermie-Station', '☀️', 50, 40, CH),
+  T('Heizung & Klima', 'chimney_stove', 'Kaminofen', '🔥', 60, 50, CH),
+  T('Smart Home', 'plug', 'Zwischenstecker', '🔌', 12, 12, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'dimmer', 'Dimmer', '🎚️', 14, 14, CS, { shape: 'ellipse', hint: 'light' }),
+  T('Smart Home', 'button', 'Taster / Knopf', '🔘', 12, 12, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'scene_switch', 'Szenentaster', '🔘', 14, 14, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'remote', 'Fernbedienung', '🎛️', 10, 18, CS),
+  T('Smart Home', 'wall_tablet', 'Wand-Tablet / Display', '📱', 25, 16, CS),
+  T('Smart Home', 'hub', 'Hub / Gateway', '📡', 15, 15, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'sensor_presence', 'Präsenzsensor', '👁️', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'sensor_lux', 'Helligkeitssensor', '☀️', 14, 14, CS, { shape: 'ellipse', hint: 'sensor' }),
+  T('Smart Home', 'sensor_co2', 'CO₂-/Luftqualitätssensor', '🌫️', 16, 16, CS, { shape: 'ellipse', hint: 'sensor' }),
+  T('Smart Home', 'sensor_leak', 'Wassermelder', '💧', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'sensor_vibr', 'Vibrationssensor', '〰️', 12, 12, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'sensor_co', 'CO-Melder', '🚨', 16, 16, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'sensor_gas', 'Gasmelder', '🚨', 16, 16, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'glassbreak', 'Glasbruchmelder', '🚨', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'siren', 'Sirene', '🚨', 16, 16, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'doorbell_cam', 'Video-Türklingel', '🔔', 14, 22, CS, { hint: 'camera' }),
+  T('Smart Home', 'camera_ptz', 'Schwenk-Kamera', '📹', 20, 20, CS, { shape: 'ellipse', hint: 'camera' }),
+  T('Smart Home', 'garage_opener', 'Garagentorantrieb', '🚪', 30, 20, CS, { hint: 'cover' }),
+  T('Smart Home', 'curtain_motor', 'Vorhangmotor', '🪟', 150, 8, CS, { hint: 'cover' }),
+  T('Smart Home', 'awning', 'Markise', '⛱️', 300, 25, CS, { hint: 'cover' }),
+  T('Smart Home', 'shutter_outdoor', 'Raffstore', '🪟', 120, 10, CS, { hint: 'cover' }),
+  T('Smart Home', 'smart_meter', 'Smart Meter', '⚡', 30, 20, CS, { hint: 'sensor' }),
+  T('Smart Home', 'inverter', 'Solar-Wechselrichter', '☀️', 40, 25, CS, { hint: 'sensor' }),
+  T('Smart Home', 'battery', 'Batteriespeicher', '🔋', 50, 25, CS, { hint: 'sensor' }),
+  T('Smart Home', 'heat_meter', 'Wärmemengenzähler', '🌡️', 25, 20, CS, { hint: 'sensor' }),
+  T('Smart Home', 'water_meter', 'Wasserzähler', '💧', 25, 20, CS, { hint: 'sensor' }),
+  T('Smart Home', 'weather', 'Wetterstation', '🌦️', 20, 20, CS, { shape: 'ellipse', hint: 'sensor' }),
+  T('Smart Home', 'irrigation', 'Bewässerungsventil', '💧', 16, 16, CS, { shape: 'ellipse', hint: 'valve' }),
+  T('Smart Home', 'pool_pump', 'Poolpumpe', '🌊', 40, 30, CS, { hint: 'switch' }),
+  T('Smart Home', 'smart_tv', 'Smart-TV', '📺', 120, 8, CS, { hint: 'media_player' }),
+  T('Smart Home', 'soundbar', 'Soundbar', '🔊', 100, 10, CS, { hint: 'media_player' }),
+  T('Smart Home', 'smart_speaker', 'Smart Speaker', '🔊', 15, 15, CS, { shape: 'ellipse', hint: 'media_player' }),
+  T('Smart Home', 'led_ctrl', 'LED-Controller', '💡', 15, 10, CS, { hint: 'light' }),
+  T('Smart Home', 'zigbee_router', 'Zigbee-Router', '📶', 14, 14, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'ble_proxy', 'Bluetooth-Proxy', '📶', 14, 14, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'esp', 'ESP-/DIY-Gerät', '🧩', 18, 12, CS),
+  T('Smart Home', 'alarm_panel', 'Alarmzentrale', '🛡️', 20, 15, CS, { hint: 'alarm_control_panel' }),
+  T('Smart Home', 'keypad', 'Codeschloss / Keypad', '🔢', 12, 16, CS),
+  T('Smart Home', 'fingerprint', 'Fingerprint-Leser', '☝️', 12, 12, CS, { shape: 'ellipse', hint: 'lock' }),
+  T('Smart Home', 'mailbox_sensor', 'Briefkasten-Sensor', '📬', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'pet_feeder', 'Futterautomat', '🐾', 25, 25, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'nas', 'NAS / Server', '🗄️', 20, 30, CS),
+  T('Smart Home', 'pc', 'PC / Rechner', '🖥️', 20, 45, CS),
+  T('Smart Home', 'ups', 'USV', '🔋', 25, 35, CS, { hint: 'sensor' }),
+  T('Smart Home', 'knx', 'KNX-/Aktor-Verteilung', '🧰', 60, 20, CS),
+  T('Smart Home', 'ir_blaster', 'IR-Sender', '📡', 12, 12, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'smart_valve', 'Wasser-Hauptventil', '🚰', 16, 16, CS, { shape: 'ellipse', hint: 'valve' }),
+  T('Smart Home', 'rain_sensor', 'Regensensor', '🌧️', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'wind_sensor', 'Windsensor', '🌬️', 14, 14, CS, { shape: 'ellipse', hint: 'sensor' }),
+  T('Smart Home', 'window_handle', 'Fenstergriff-Sensor', '🧲', 12, 12, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Smart Home', 'radiator_valve', 'Smartes Heizkörperthermostat', '🌡️', 14, 14, CS, { shape: 'ellipse', hint: 'climate' }),
+  T('Smart Home', 'smart_blind_ctrl', 'Rollladen-Aktor', '🪟', 16, 16, CS, { shape: 'ellipse', hint: 'cover' }),
+  T('Smart Home', 'smart_light_sw', 'Lichtschalter', '💡', 14, 14, CS, { shape: 'ellipse', hint: 'light' }),
+  T('Smart Home', 'powerstrip', 'Steckdosenleiste', '🔌', 40, 8, CS, { hint: 'switch' }),
+  T('Smart Home', 'thread', 'Thread-Border-Router', '📶', 16, 16, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'ev_charger', 'Ladepunkt E-Auto', '🔌', 25, 20, CS, { hint: 'switch' }),
+  T('Büro & Medien', 'monitor', 'Monitor', '🖥️', 60, 20, CB),
+  T('Büro & Medien', 'printer', 'Drucker', '🖨️', 40, 35, CB),
+  T('Büro & Medien', 'printer3d', '3D-Drucker', '🧱', 40, 40, CB),
+  T('Büro & Medien', 'server_rack', 'Serverschrank', '🗄️', 60, 80, CB),
+  T('Büro & Medien', 'console', 'Spielkonsole', '🎮', 30, 22, CB),
+  T('Büro & Medien', 'projector', 'Beamer', '📽️', 30, 25, CB),
+  T('Büro & Medien', 'hifi', 'HiFi-Anlage', '🎶', 45, 35, CB),
+  T('Büro & Medien', 'aquarium', 'Aquarium', '🐠', 100, 40, CB),
+  T('Büro & Medien', 'workbench', 'Werkbank', '🛠️', 150, 60, CB),
+  T('Büro & Medien', 'tool_cabinet', 'Werkzeugschrank', '🧰', 60, 50, CB),
+  T('Büro & Medien', 'whiteboard', 'Whiteboard / Pinnwand', '📋', 120, 5, CB),
+  T('Außen & Garage', 'car', 'Auto', '🚗', 180, 450, '#cfd8dc'),
+  T('Außen & Garage', 'carport', 'Stellplatz / Carport', '🅿️', 280, 520, '#eceff1'),
+  T('Außen & Garage', 'garage_door', 'Garagentor', '🚪', 250, 15, CB, { shape: 'door', wall: true }),
+  T('Außen & Garage', 'bike', 'Fahrrad / Ständer', '🚲', 60, 180, CB),
+  T('Außen & Garage', 'terrace_table', 'Gartentisch', '🍽️', 150, 90, CF),
+  T('Außen & Garage', 'lounger', 'Sonnenliege', '🏖️', 70, 190, CF),
+  T('Außen & Garage', 'grill', 'Grill', '🍖', 60, 45, CA),
+  T('Außen & Garage', 'pool', 'Pool', '🏊', 300, 600, '#b3e5fc'),
+  T('Außen & Garage', 'hot_tub', 'Außen-Whirlpool', '♨️', 200, 200, '#b3e5fc', { shape: 'ellipse' }),
+  T('Außen & Garage', 'tree', 'Baum', '🌳', 150, 150, '#a5d6a7', { shape: 'ellipse' }),
+  T('Außen & Garage', 'bush', 'Busch', '🌿', 80, 80, '#c8e6c9', { shape: 'ellipse' }),
+  T('Außen & Garage', 'hedge', 'Hecke', '🌿', 300, 50, '#a5d6a7'),
+  T('Außen & Garage', 'fence', 'Zaun', '', 300, 6, '#8d6e63'),
+  T('Außen & Garage', 'flowerbed', 'Beet', '🌷', 200, 80, '#c5e1a5'),
+  T('Außen & Garage', 'lawn', 'Rasenfläche', '', 400, 300, '#c8e6c9'),
+  T('Außen & Garage', 'mailbox', 'Briefkasten', '📬', 30, 20, CB),
+  T('Außen & Garage', 'gate', 'Gartentor', '🚪', 120, 10, CB),
+  T('Außen & Garage', 'shed', 'Gartenhaus', '🏠', 250, 200, CF),
+  T('Außen & Garage', 'trash_bin', 'Mülltonne', '🗑️', 60, 70, '#b0bec5'),
+  T('Außen & Garage', 'rain_barrel', 'Regentonne', '🛢️', 60, 60, '#b0bec5', { shape: 'ellipse' }),
+  T('Außen & Garage', 'sandbox', 'Sandkasten', '🏖️', 120, 120, '#ffe0b2'),
+  T('Außen & Garage', 'trampoline', 'Trampolin', '🤸', 300, 300, '#cfd8dc', { shape: 'ellipse' }),
+  T('Außen & Garage', 'swing', 'Schaukel', '🛝', 200, 150, CF),
+  T('Außen & Garage', 'terrace', 'Terrasse / Platten', '', 400, 300, '#d7ccc8'),
+  T('Außen & Garage', 'driveway', 'Einfahrt', '', 300, 600, '#cfd8dc'),
+  T('Außen & Garage', 'firepit', 'Feuerstelle', '🔥', 90, 90, '#ffccbc', { shape: 'ellipse' }),
+  T('Außen & Garage', 'parasol', 'Sonnenschirm', '⛱️', 200, 200, '#ffe0b2', { shape: 'ellipse' }),
+  T('Kinder & Haustiere', 'playmat', 'Spielteppich', '🧸', 150, 150, '#ffe0b2'),
+  T('Kinder & Haustiere', 'toy_box', 'Spielzeugkiste', '🧸', 60, 40, CF),
+  T('Kinder & Haustiere', 'kid_table', 'Kindertisch', '', 60, 60, CF),
+  T('Kinder & Haustiere', 'cat_tree', 'Kratzbaum', '🐈', 60, 60, CF, { shape: 'ellipse' }),
+  T('Kinder & Haustiere', 'dog_bed', 'Hundebett', '🐕', 80, 60, '#d7ccc8', { shape: 'ellipse' }),
+  T('Kinder & Haustiere', 'litter', 'Katzenklo', '🐈', 40, 50, CB),
+  T('Kinder & Haustiere', 'pet_flap', 'Katzenklappe', '🐾', 20, 10, CB),
+  T('Kinder & Haustiere', 'cage', 'Käfig / Terrarium', '🐹', 80, 40, CB),
+  T('Kinder & Haustiere', 'playpen', 'Laufstall', '🍼', 100, 100, '#ffe0b2'),
+  T('Bau & Deko', 'door_sliding', 'Schiebetür', '', 100, 12, CB, { shape: 'door', wall: true }),
+  T('Bau & Deko', 'door_front', 'Haustür', '', 100, 15, CB, { shape: 'door', wall: true }),
+  T('Bau & Deko', 'door_terrace', 'Terrassentür', '', 180, 15, CB, { shape: 'door', wall: true }),
+  T('Bau & Deko', 'window_skylight', 'Dachfenster', '', 80, 15, CB, { shape: 'window', wall: true }),
+  T('Bau & Deko', 'window_small', 'Fenster klein', '', 60, 15, CB, { shape: 'window', wall: true }),
+  T('Bau & Deko', 'window_corner', 'Fensterband', '', 300, 15, CB, { shape: 'window', wall: true }),
+  T('Bau & Deko', 'archway', 'Durchgang', '', 100, 15, CB, { wall: true }),
+  T('Bau & Deko', 'stairs_spiral', 'Wendeltreppe', '🪜', 150, 150, CB, { shape: 'ellipse' }),
+  T('Bau & Deko', 'elevator', 'Aufzug', '🛗', 110, 140, CB),
+  T('Bau & Deko', 'chimney', 'Schornstein', '', 40, 40, '#b0bec5'),
+  T('Bau & Deko', 'pillar_round', 'Säule rund', '', 30, 30, '#b0bec5', { shape: 'ellipse' }),
+  T('Bau & Deko', 'curtain', 'Vorhang', '', 150, 8, '#e1bee7'),
+  T('Bau & Deko', 'painting', 'Bild / Gemälde', '🖼️', 80, 4, CB),
+  T('Bau & Deko', 'rug_round', 'Teppich rund', '', 160, 160, '#e1bee7', { shape: 'ellipse' }),
+  T('Bau & Deko', 'plant_big', 'Große Pflanze', '🪴', 60, 60, '#c8e6c9', { shape: 'ellipse' }),
+  T('Bau & Deko', 'plant_small', 'Kleine Pflanze', '🌱', 25, 25, '#c8e6c9', { shape: 'ellipse' }),
+  T('Bau & Deko', 'niche', 'Nische / Vorsprung', '', 80, 30, '#cfd8dc'),
+  T('Bau & Deko', 'safe', 'Tresor', '🔐', 40, 40, '#b0bec5'),
+  T('Bau & Deko', 'fire_ext', 'Feuerlöscher', '🧯', 15, 15, '#ffccbc', { shape: 'ellipse' }),
+  T('Bau & Deko', 'electric_panel', 'Sicherungskasten', '⚡', 40, 15, CS),
+  T('Bau & Deko', 'cable_duct', 'Kabelschacht', '', 20, 20, '#b0bec5'),
+
+  T('Licht', 'lamp_arc', 'Bogenleuchte', '🪔', 40, 40, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Licht', 'light_string', 'Lichterkette', '✨', 200, 6, CB, { glow: true, hint: 'light' }),
+  T('Smart Home', 'outlet_double', 'Doppelsteckdose', '🔌', 28, 14, CS, { hint: 'switch' }),
+  T('Smart Home', 'outlet_usb', 'USB-Steckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'outlet_outdoor', 'Außensteckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'outlet_floor', 'Bodensteckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'outlet_smart', 'Smarte Steckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Smart Home', 'outlet_cee', 'Herd-/Starkstromanschluss', '⚡', 18, 18, CS, { shape: 'ellipse' }),
+  T('Smart Home', 'switch_double', 'Doppelschalter', '🎚️', 16, 16, CS, { hint: 'switch' }),
+  T('Smart Home', 'lan_socket', 'LAN-Dose', '🌐', 14, 14, CS),
+  T('Smart Home', 'tv_socket', 'Antennen-/TV-Dose', '📺', 14, 14, CS),
   T('Bau & Deko', 'door', 'Tür', '', 90, 15, CB, { shape: 'door', wall: true }),
   T('Bau & Deko', 'door_double', 'Doppeltür', '', 160, 15, CB, { shape: 'door', wall: true }),
-  T('Bau & Deko', 'window', 'Fenster', '', 100, 15, CB, { shape: 'window', wall: true }),
-  T('Bau & Deko', 'window_big', 'Fenster groß', '', 200, 15, CB, { shape: 'window', wall: true }),
-  T('Bau & Deko', 'stairs', 'Treppe', '🪜', 100, 260, CB),
+  T('Bau & Deko', 'window', 'Fenster (einflügelig)', '', 100, 15, CB, { shape: 'window', wall: true }),
+  T('Bau & Deko', 'window_double', 'Fenster doppelflügelig', '', 140, 15, CB, { shape: 'window', wall: true, leaves: 2 }),
+  T('Bau & Deko', 'window_double_big', 'Fenster doppelflügelig groß', '', 200, 15, CB, { shape: 'window', wall: true, leaves: 2 }),
+  T('Bau & Deko', 'window_big', 'Fenster groß (einflügelig)', '', 200, 15, CB, { shape: 'window', wall: true }),
+  T('Bau & Deko', 'stairs', 'Treppe gerade', '🪜', 100, 260, CB),
+  T('Bau & Deko', 'stairs_wide', 'Treppe gerade breit', '🪜', 130, 300, CB),
+  T('Bau & Deko', 'stairs_L', 'Treppe L-förmig (Viertelwendel)', '🪜', 200, 200, CB),
+  T('Bau & Deko', 'stairs_U', 'Treppe U-förmig (Halbwendel)', '🪜', 200, 280, CB),
+  T('Bau & Deko', 'stairs_spiral_small', 'Wendeltreppe klein', '🪜', 120, 120, CB, { shape: 'ellipse' }),
+  T('Bau & Deko', 'stairs_outdoor', 'Außentreppe', '🪜', 120, 200, '#d7ccc8'),
+  T('Bau & Deko', 'stairs_basement', 'Kellertreppe', '🪜', 90, 260, CB),
   T('Bau & Deko', 'plant', 'Pflanze', '🪴', 40, 40, '#c8e6c9', { shape: 'ellipse' }),
   T('Bau & Deko', 'rug', 'Teppich', '', 200, 140, '#e1bee7'),
   T('Bau & Deko', 'pillar', 'Säule', '', 30, 30, '#b0bec5'),
@@ -195,9 +421,9 @@ function typeById(id) { return typeList().find(t => t.id === id); }
 function newItemFromType(t, x, y) {
   const it = {
     id: uid(), type: t.id, x, y, w: t.w, h: t.h, rot: 0, shape: t.shape || 'rect',
-    icon: t.icon || '', color: t.color || '', label: '', showLabel: true, entity: '',
+    icon: t.icon || '', image: t.image || '', imgMode: t.imgMode || 'contain', color: t.color || '', label: '', showLabel: true, entity: '',
     showValue: false, glow: !!t.glow, onColor: '', tap: 'auto', svc: '', svcData: '',
-    flipX: false, flipY: false, iconScale: 1, hint: t.hint || '',
+    flipX: false, flipY: false, leaves: t.leaves || 1, iconScale: 1, hint: t.hint || '',
   };
   if (it.shape === 'text') { it.label = 'Text'; it.fs = 28; it.color = ''; fitText(it); }
   return it;
@@ -253,13 +479,45 @@ const SYM = {
   rug: (w, h) => `<rect x="${-w / 2 + 8}" y="${-h / 2 + 8}" width="${Math.max(2, w - 16)}" height="${Math.max(2, h - 16)}" rx="3" stroke-dasharray="6 4"/>`,
   pillar: (w, h) => `<path d="M${-w / 2} ${-h / 2}L${w / 2} ${h / 2}M${w / 2} ${-h / 2}L${-w / 2} ${h / 2}"/>`,
   plant: (w, h) => { const r = Math.min(w, h) / 2; let s = ''; for (let i = 0; i < 8; i++) s += `<ellipse cx="0" cy="${-r * 0.5}" rx="${r * 0.2}" ry="${r * 0.42}" transform="rotate(${i * 45})"/>`; return s; },
+  floorlamp: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.72}"/><circle cx="0" cy="0" r="${r * 0.22}"/><path d="M0 ${r * 0.22}V${r * 0.72}"/>`; },
+  pendant: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><circle cx="0" cy="0" r="${r * 0.82}" stroke-dasharray="3 3"/><circle cx="0" cy="0" r="${r * 0.12}"/>`; },
+  spot: (w, h) => { const r = Math.min(w, h) / 2; let d = ''; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; d += `M${Math.cos(a) * r * 0.55} ${Math.sin(a) * r * 0.55}L${Math.cos(a) * r * 0.85} ${Math.sin(a) * r * 0.85}`; } return `<circle cx="0" cy="0" r="${r * 0.3}"/><path d="${d}"/>`; },
+  tablelamp: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><path d="M${-r * 0.4} ${r * 0.1}Q0 ${-r * 0.5} ${r * 0.4} ${r * 0.1}"/>`; },
+  chandelier: (w, h) => { const r = Math.min(w, h) / 2; let c = `<circle cx="0" cy="0" r="${r * 0.18}"/>`; for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; c += `<circle cx="${Math.cos(a) * r * 0.62}" cy="${Math.sin(a) * r * 0.62}" r="${r * 0.14}"/><path d="M${Math.cos(a) * r * 0.18} ${Math.sin(a) * r * 0.18}L${Math.cos(a) * r * 0.48} ${Math.sin(a) * r * 0.48}"/>`; } return c; },
+  bulb: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="${-r * 0.1}" r="${r * 0.5}"/><path d="M${-r * 0.22} ${r * 0.4}H${r * 0.22}M${-r * 0.16} ${r * 0.58}H${r * 0.16}"/>`; },
+  outlet: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><circle cx="${-r * 0.24}" cy="0" r="${r * 0.08}"/><circle cx="${r * 0.24}" cy="0" r="${r * 0.08}"/><path d="M${-r * 0.1} ${-r * 0.62}V${-r * 0.5}M${r * 0.1} ${-r * 0.62}V${-r * 0.5}"/>`; },
+  outlet2: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="${-w * 0.2}" cy="0" r="${r * 0.55}"/><circle cx="${w * 0.2}" cy="0" r="${r * 0.55}"/><circle cx="${-w * 0.2 - r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${-w * 0.2 + r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${w * 0.2 - r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${w * 0.2 + r * 0.2}" cy="0" r="${r * 0.07}"/>`; },
+  plug: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.55}" y="${-r * 0.55}" width="${r * 1.1}" height="${r * 1.1}" rx="${r * 0.2}"/><path d="M${-r * 0.22} ${-r * 0.2}V${r * 0.05}M${r * 0.22} ${-r * 0.2}V${r * 0.05}"/>`; },
+  powerstrip: (w, h) => { let c = ''; const n = Math.max(2, Math.floor(w / 12)); for (let i = 0; i < n; i++) c += `<circle cx="${-w / 2 + (i + 0.5) * w / n}" cy="0" r="${Math.min(h * 0.28, w / n * 0.3)}"/>`; return c; },
+  switchw: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.5}" y="${-r * 0.62}" width="${r}" height="${r * 1.24}" rx="${r * 0.15}"/><path d="M${-r * 0.5} ${r * 0.05}H${r * 0.5}"/>`; },
+  dimmer: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.6}"/><path d="M0 ${-r * 0.6}V${-r * 0.2}"/>`; },
+  button: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.55}"/><circle cx="0" cy="0" r="${r * 0.22}"/>`; },
+  lan: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.55}" y="${-r * 0.45}" width="${r * 1.1}" height="${r * 0.9}" rx="${r * 0.1}"/><path d="M${-r * 0.3} ${r * 0.1}V${r * 0.45}M0 ${r * 0.1}V${r * 0.45}M${r * 0.3} ${r * 0.1}V${r * 0.45}"/>`; },
+  spiral: (w, h) => { const r = Math.min(w, h) / 2; let d = ''; for (let i = 0; i < 14; i++) { const a = i * Math.PI * 2 / 14; d += `M${Math.cos(a) * r * 0.16} ${Math.sin(a) * r * 0.16}L${Math.cos(a) * r * 0.94} ${Math.sin(a) * r * 0.94}`; } return `<circle cx="0" cy="0" r="${r * 0.16}"/><path d="${d}"/>`; },
+  stairsL: (w, h) => { const c = Math.min(w, h) * 0.4; let d = `M${-w / 2 + c} ${-h / 2}V${h / 2 - c}H${w / 2}M${-w / 2} ${h / 2 - c}H${-w / 2 + c}`; for (let y = -h / 2 + 22; y < h / 2 - c - 4; y += 22) d += `M${-w / 2} ${y}H${-w / 2 + c}`; for (let x = -w / 2 + c + 22; x < w / 2 - 4; x += 22) d += `M${x} ${h / 2 - c}V${h / 2}`; return `<path d="${d}"/>`; },
+  stairsU: (w, h) => { const lw = Math.min(w * 0.45, h * 0.3); let d = `M0 ${-h / 2}V${h / 2 - lw}M${-w / 2} ${h / 2 - lw}H${w / 2}`; for (let y = -h / 2 + 22; y < h / 2 - lw - 4; y += 22) d += `M${-w / 2} ${y}H${w / 2}`; return `<path d="${d}"/>`; },
 };
 const SYMMAP = {
-  lamp_ceiling: 'lamp', lamp_floor: 'lamp', lamp_spot: 'lamp', lamp_wall: 'lampwall', lamp_strip: 'strip',
+  stairs_spiral: 'spiral', stairs_spiral_small: 'spiral', stairs_L: 'stairsL', stairs_U: 'stairsU', stairs_wide: 'stairs', stairs_outdoor: 'stairs', stairs_basement: 'stairs',
+  lamp_floor: 'floorlamp', lamp_arc: 'floorlamp', lamp_pendant: 'pendant', lamp_spot: 'spot', lamp_table: 'tablelamp', lamp_desk: 'tablelamp', lamp_night: 'tablelamp',
+  chandelier: 'chandelier', lamp_bulb: 'bulb', lamp_outdoor: 'pendant', lamp_garden: 'floorlamp', light_string: 'strip',
+  outlet: 'outlet', outlet_outdoor: 'outlet', outlet_floor: 'outlet', outlet_smart: 'outlet', outlet_usb: 'outlet', outlet_cee: 'outlet', outlet_double: 'outlet2', plug: 'plug', powerstrip: 'powerstrip',
+  switch: 'switchw', switch_double: 'switchw', smart_light_sw: 'switchw', dimmer: 'dimmer', button: 'button', scene_switch: 'button', lan_socket: 'lan', tv_socket: 'lan',
+  lamp_ceiling: 'lamp', lamp_wall: 'lampwall', lamp_strip: 'strip',
   bed_double: 'bed', bed_single: 'bed', bed_kid: 'bed', sofa: 'sofa', armchair: 'armchair', table_coffee: 'table', table_dining: 'table',
   chair: 'chair', desk: 'desk', wardrobe: 'wardrobe', shelf: 'shelf', dresser: 'dresser', tv_board: 'tv',
   fridge: 'fridge', stove: 'stove', sink_kitchen: 'sink', dishwasher: 'dish', washer: 'washer', bathtub: 'bath', shower: 'shower', toilet: 'toilet', basin: 'sink',
   radiator: 'radiator', ac: 'ac', fan: 'fan', fireplace: 'fireplace', stairs: 'stairs', plant: 'plant', rug: 'rug', pillar: 'pillar',
+  sofa_corner: 'sofa', sofa_2: 'sofa', recliner: 'armchair', ottoman: 'chair', stool: 'chair', bench: 'chair', bar_stool: 'chair', highchair: 'chair', office_chair: 'chair',
+  table_side: 'table', table_round: 'table', table_bar: 'table', terrace_table: 'table', kid_table: 'table', desk_corner: 'desk', workbench: 'desk',
+  sideboard: 'dresser', nightstand: 'dresser', cabinet: 'dresser', changing: 'dresser', tv_stand: 'tv', wall_unit: 'shelf', bookcase: 'shelf', shoe_rack: 'dresser',
+  wardrobe_sliding: 'wardrobe', bed_bunk: 'bed', crib: 'bed', daybed: 'bed',
+  lamp_mirror: 'lampwall',
+  oven: 'stove', hood: 'ac', freezer: 'fridge', fridge_side: 'fridge', dryer: 'washer', dishwasher_tall: 'dish', basin_double: 'sink', washstand: 'sink', utility_sink: 'sink',
+  shower_tray: 'shower', shower_walkin: 'shower', toilet_wall: 'toilet', bidet: 'toilet', whirlpool: 'bath', hot_tub: 'bath', sauna: 'rug',
+  towel_radiator: 'radiator', fan_ceiling: 'fan', ventilation: 'fan', air_purifier: 'fan', chimney_stove: 'fireplace', pellet: 'fireplace', split_ac: 'ac', heat_pump: 'ac',
+  rug_round: 'rug', playmat: 'rug', pillar_round: 'pillar', chimney: 'pillar', plant_big: 'plant', plant_small: 'plant', tree: 'plant', bush: 'plant',
+  monitor: 'tv', smart_tv: 'tv',
 };
 // Stile: a = klassisch, b = modern-neutral (Standard), c = farbig dezent; alles andere = Emojis
 const SYM_STYLES = {
@@ -271,7 +529,7 @@ function symStyleKey() { const k = plan && plan.settings && plan.settings.symSty
 function builtinType(id) { return LIB.find(t => t.id === id); }
 // Symbolschlüssel für ein Objekt – leer, wenn Emoji-Modus, kein Symbol vorhanden oder ein eigenes Icon gesetzt wurde
 function symKeyFor(it) {
-  if (!symStyleKey()) return '';
+  if (!symStyleKey() || it.image) return '';
   const key = SYMMAP[it.type], bt = builtinType(it.type);
   if (!key || !bt || (it.icon && it.icon !== bt.icon)) return '';
   return key;
@@ -691,7 +949,7 @@ function readColors() {
 function render() {
   if (rq || !plan) return;
   rq = true;
-  requestAnimationFrame(() => { rq = false; renderNow(); });
+  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) return; renderNow(); });
 }
 
 function renderNow() {
@@ -704,15 +962,26 @@ function renderNow() {
   gWalls.innerHTML = f.walls.map(wl => wallMarkup(wl, live, v)).join('');
   const ctx = { glows: new Map(), glowOut: [] };
   gItems.innerHTML = f.items.map(i => itemMarkup(i, ctx)).join('') + ctx.glowOut.join('');
-  gDefs.innerHTML = [...ctx.glows].map(([col, id]) =>
-    `<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".5" stop-color="${col}" stop-opacity=".42"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`).join('');
+  gDefs.innerHTML = glowDefsMarkup(ctx.glows);
   gOver.innerHTML = live ? '' : overlayMarkup(f, v);
   const empty = !f.walls.length && !f.rooms.length && !f.items.length && !(f.bg && f.bg.url);
   $('#empty').hidden = !(empty && !live && tool === 'select' && !drawing);
   updateStatus();
 }
 
-function glowId(map, col) { if (!map.has(col)) map.set(col, 'gl' + map.size); return map.get(col); }
+function glowId(map, col, style) { const key = col + '|' + (style || 'soft'); if (!map.has(key)) map.set(key, 'gl' + map.size); return map.get(key); }
+const GLOW_STOPS = {
+  soft: [[0, .95], [.5, .42], [1, 0]],
+  strong: [[0, 1], [.55, .7], [.85, .25], [1, 0]],
+  ring: [[0, 0], [.45, .15], [.72, .75], [1, 0]],
+  pulse: [[0, .95], [.5, .42], [1, 0]],
+};
+function glowDefsMarkup(map) {
+  return [...map].map(([key, id]) => {
+    const i = key.lastIndexOf('|'), col = key.slice(0, i), st = GLOW_STOPS[key.slice(i + 1)] || GLOW_STOPS.soft;
+    return `<radialGradient id="${id}">${st.map(([o, a]) => `<stop offset="${o}" stop-color="${col}" stop-opacity="${a}"/>`).join('')}</radialGradient>`;
+  }).join('');
+}
 
 function gridMarkup(v, w, h) {
   let step = S().grid;
@@ -796,10 +1065,16 @@ function doorSvg(it) {
     `<line x1="${-w / 2}" y1="0" x2="${-w / 2}" y2="${-w}" stroke="${C.wall}" stroke-width="3" ${NS}/></g>`;
 }
 function windowSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6);
-  return `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
+  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1;
+  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${C.wall}" stroke-width="1.2" ${NS} ${extra}/>`;
+  // Öffnungsdreieck: Spitze am Scharnier, offene Seite am freien Flügelrand
+  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${C.wall}" stroke-width="1" stroke-dasharray="4 3" ${NS}/>`;
+  let o = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
     `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="#b3e5fc" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    `<line x1="${-w / 2}" y1="0" x2="${w / 2}" y2="0" stroke="${C.wall}" stroke-width="1.2" ${NS}/>`;
+    ln(-w / 2, 0, w / 2, 0);
+  if (two) o += ln(0, -t / 2, 0, t / 2).replace('stroke-width="1.2"', 'stroke-width="2.4"') + swing(-w / 2, -2) + swing(w / 2, 2);
+  else o += `<g transform="scale(${sx} 1)">${swing(-w / 2, w / 2 - 2)}</g>`;
+  return o;
 }
 
 function iconMarkup(it) {
@@ -815,15 +1090,31 @@ function iconMarkup(it) {
   return `<text transform="rotate(${rot})" text-anchor="middle" dy=".35em" font-size="${size}" pointer-events="none" style="user-select:none${grey}">${esc(it.icon)}</text>`;
 }
 
+function labelText(it) {
+  const st = it.entity ? states[it.entity] : null;
+  const fn = it.labelEnt && st && st.attributes && st.attributes.friendly_name;
+  return fn || it.label || '';
+}
+function valuePos(it) {
+  const rad = (it.rot || 0) * Math.PI / 180, hh = Math.abs(it.w / 2 * Math.sin(rad)) + Math.abs(it.h / 2 * Math.cos(rad)), vf = S().labelSize * 0.9;
+  return { x: it.x, y: it.y - hh - vf };
+}
+function labelPos(it) {
+  const rad = (it.rot || 0) * Math.PI / 180, hh = Math.abs(it.w / 2 * Math.sin(rad)) + Math.abs(it.h / 2 * Math.cos(rad)), fs = S().labelSize;
+  return { x: it.x, y: it.y + hh + fs * 1.05 - fs * 0.3 };
+}
 function itemMarkup(it, ctx) {
   const s = !ctx.noState && it.entity ? states[it.entity] : null;
   const act = isActive(s), na = s && (s.state === 'unavailable' || s.state === 'unknown');
   const w = it.w, h = it.h, rot = it.rot || 0, isLight = domainOf(it.entity) === 'light';
   let out = '';
   if (act && it.glow && ctx.glows) {
-    const col = glowColor(it, s), id = glowId(ctx.glows, col);
-    const R = Math.max(w, h) * 2.2 + 90, br = s.attributes && s.attributes.brightness != null ? clamp(s.attributes.brightness / 255, 0.35, 1) : 1;
-    const glowSvg = `<circle cx="${it.x}" cy="${it.y}" r="${R}" fill="url(#${id})" opacity="${br * 0.8}" pointer-events="none"/>`;
+    const gs = ['soft', 'strong', 'ring', 'pulse'].includes(it.glowStyle) ? it.glowStyle : 'soft';
+    const col = glowColor(it, s), id = glowId(ctx.glows, col, gs);
+    const R = it.glowR > 0 ? it.glowR : Math.max(w, h) * 2.2 + 90, br = s.attributes && s.attributes.brightness != null ? clamp(s.attributes.brightness / 255, 0.35, 1) : 1;
+    const str = clamp(it.glowStr > 0 ? it.glowStr : 1, 0.1, 1.5), op = clamp(br * 0.8 * str, 0, 1);
+    const glowSvg = `<circle cx="${it.x}" cy="${it.y}" r="${R}" fill="url(#${id})" opacity="${op}" pointer-events="none">` +
+      (gs === 'pulse' ? `<animate attributeName="opacity" values="${op};${op * 0.45};${op}" dur="2.4s" repeatCount="indefinite"/>` : '') + '</circle>';
     if (ctx.glowOut) ctx.glowOut.push(glowSvg); else out += glowSvg;
   }
   const sk = symStyleKey(), SS = sk ? SYM_STYLES[sk] : null, symKey = symKeyFor(it);
@@ -844,19 +1135,23 @@ function itemMarkup(it, ctx) {
     case 'none': body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="transparent"/>`; break;
     default: body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="${Math.min(8, Math.min(w, h) / 4)}" fill="${fill}" ${st}/>`;
   }
-  const sh = S().itemShadow !== false && it.shape !== 'text' && it.shape !== 'door' && it.shape !== 'window' && it.shape !== 'none' ? ' filter="url(#fpShadow)"' : '';
+  const imgBare = it.image && it.imgMode === 'bare';
+  if (imgBare && !['text', 'door', 'window'].includes(it.shape)) body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="transparent"/>`;
+  const imgSvg = it.image && !['text', 'door', 'window'].includes(it.shape)
+    ? `<image href="${esc(it.image)}" x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" preserveAspectRatio="${it.imgMode === 'stretch' ? 'none' : 'xMidYMid meet'}" pointer-events="none"/>` : '';
+  const sh = S().itemShadow !== false && !imgBare && it.shape !== 'text' && it.shape !== 'door' && it.shape !== 'window' && it.shape !== 'none' ? ' filter="url(#fpShadow)"' : '';
   const cls = 'item' + (it.entity && mode === 'live' ? ' act' : '');
-  out += `<g class="${cls}" data-k="item" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${rot})"${na ? ' opacity=".45"' : ''}><g${sh}>${body}</g>${symKey ? symDetail(symKey, w, h) : ''}${iconMarkup(it)}</g>`;
+  out += `<g class="${cls}" data-k="item" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${rot})"${na ? ' opacity=".45"' : ''}><g${sh}>${body}</g>${imgSvg}${symKey ? symDetail(symKey, w, h) : ''}${iconMarkup(it)}</g>`;
 
   const rad = rot * Math.PI / 180, hh = Math.abs(w / 2 * Math.sin(rad)) + Math.abs(h / 2 * Math.cos(rad)), fs = S().labelSize;
-  if (it.shape !== 'text' && it.showLabel && it.label) {
-    out += `<text data-k="item" data-id="${it.id}" x="${it.x}" y="${it.y + hh + fs * 1.05}" text-anchor="middle" font-size="${fs}" fill="${C.text}" paint-order="stroke" stroke="${C.canvas}" stroke-width="${fs * 0.22}" style="user-select:none">${esc(it.label)}</text>`;
+  if (it.shape !== 'text' && it.showLabel && labelText(it)) {
+    out += `<text data-k="item" data-id="${it.id}" x="${it.x}" y="${it.y + hh + fs * 1.05}" text-anchor="middle" font-size="${fs}" fill="${C.text}" paint-order="stroke" stroke="${C.canvas}" stroke-width="${fs * 0.22}"${it.labelRot ? ` transform="rotate(${it.labelRot} ${it.x} ${it.y + hh + fs * 1.05 - fs * 0.3})"` : ''} style="user-select:none">${esc(labelText(it))}</text>`;
   }
   if (!ctx.noState && it.entity && it.showValue) {
     const t = valueText(it.entity);
     if (t) {
       const vf = fs * 0.9, tw = t.length * vf * 0.58 + vf * 1.1, cy = it.y - hh - vf * 1.0;
-      out += `<g data-k="item" data-id="${it.id}" style="user-select:none"><rect x="${it.x - tw / 2}" y="${cy - vf * 0.75}" width="${tw}" height="${vf * 1.5}" rx="${vf * 0.75}" fill="${act ? C.accent : C.muted}"/>` +
+      out += `<g data-k="item" data-id="${it.id}"${it.valueRot ? ` transform="rotate(${it.valueRot} ${it.x} ${cy})"` : ''} style="user-select:none"><rect x="${it.x - tw / 2}" y="${cy - vf * 0.75}" width="${tw}" height="${vf * 1.5}" rx="${vf * 0.75}" fill="${act ? C.accent : C.muted}"/>` +
         `<text x="${it.x}" y="${cy}" dy=".35em" text-anchor="middle" font-size="${vf}" fill="#fff" font-weight="600">${esc(t)}</text></g>`;
     }
   }
@@ -878,6 +1173,17 @@ function overlayMarkup(f, v) {
     out += `<g transform="translate(${o.x} ${o.y}) rotate(${o.rot || 0})"><rect x="${-hw}" y="${-hh}" width="${o.w}" height="${o.h}" fill="none" stroke="${C.accent}" stroke-width="1.5" stroke-dasharray="6 4" pointer-events="none" ${NS}/>`;
     if (o.shape !== 'text') [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].forEach((c, i) => { out += handle('size', c[0], c[1], `data-c="${i}"`, s, 6); });
     out += `<line x1="0" y1="${-hh}" x2="0" y2="${-hh - 28 * s}" stroke="${C.accent}" stroke-width="1.5" pointer-events="none" ${NS}/>` + handle('rot', 0, -hh - 28 * s, '', s) + '</g>';
+    // Griff zum Drehen der Bezeichnung direkt im Plan
+    if (o.shape !== 'text' && o.showLabel && labelText(o)) {
+      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = S().labelSize * 1.5;
+      const hx = L.x + Math.sin(lr) * rr, hy = L.y - Math.cos(lr) * rr;
+      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('lrot', hx, hy, '', s, 6);
+    }
+    if (o.entity && o.showValue && valueText(o.entity)) {
+      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = S().labelSize * 1.9;
+      const hx = V0.x + Math.sin(vr) * rr, hy = V0.y - Math.cos(vr) * rr;
+      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('vrot', hx, hy, '', s, 6);
+    }
   } else if (o && sel.k === 'wall') {
     out += `<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="${C.accent}" stroke-opacity=".35" stroke-width="${o.t + 10 * s}" stroke-linecap="square" pointer-events="none"/>`;
     out += handle('wa', o.x1, o.y1, '', s) + handle('wb', o.x2, o.y2, '', s);
@@ -953,6 +1259,1071 @@ async function exportSvgString(f, withBg = true) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${w} ${h}" width="${w}" height="${h}" font-family="system-ui,sans-serif"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter></defs><rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="${C.canvas}"/>${bg}${body}</svg>`;
 }
 
+/* ---- models3d.js ---- */
+// ---------- Prozedurale 3D-Modelle (realistische Möbel, Geräte, Smart-Home-Objekte) ----------
+// Jedes Modell wird aus einfachen Körpern zusammengesetzt. Ursprung = Mitte der Grundfläche, y = 0 am Boden,
+// Rückseite = -z, Vorderseite = +z. Einheit: cm.
+const FPM = (() => {
+  let T = null, cache = new Map();
+  const P = {
+    white: '#f1f2f3', offwhite: '#e6e4df', steel: '#b8bdc3', chrome: '#dfe3e8', black: '#202328', dark: '#33373d', grey: '#7d848d', lgrey: '#c7ccd2',
+    oak: '#c19a6b', walnut: '#6e4b33', birch: '#dcc29a', pine: '#d8b27a', fabric: '#8d949d', leather: '#5b4636', cream: '#e8dfcf', ceramic: '#f8f9fa',
+    green: '#4f8a4a', leaf: '#5d9b52', dgreen: '#3b6e3a', soil: '#5a4331', brick: '#a8553b', stone: '#a9a399', concrete: '#aeb3b9', water: '#4aa8d8',
+  };
+  function mat(c, r, m, o) {
+    r = r == null ? 0.7 : r; m = m || 0;
+    const k = c + '|' + r + '|' + m + (o ? JSON.stringify(o) : '');
+    let x = cache.get(k);
+    if (!x) { x = new T.MeshStandardMaterial(Object.assign({ color: c, roughness: r, metalness: m }, o || {})); cache.set(k, x); }
+    return x;
+  }
+  const glassM = () => mat('#cfe9f7', 0.04, 0.2, { transparent: true, opacity: 0.3, depthWrite: false });
+  const mirrorM = () => mat('#dfe8ee', 0.05, 0.9);
+
+  function mk(it, w, d, h, col) {
+    const g = new T.Group(), live = [];
+    const add = (geo, m, x, y, z, sh) => { const me = new T.Mesh(geo, m); me.position.set(x, y, z); me.castShadow = sh !== false; me.receiveShadow = true; g.add(me); return me; };
+    const b = {
+      g, w, d, h, col, it, live, mat, P, glass: glassM, mirror: mirrorM, add,
+      box: (W, H, D, x, y, z, m) => add(new T.BoxGeometry(W, H, D), m, x, y + H / 2, z),
+      cyl: (rt, rb, H, x, y, z, m, seg) => add(new T.CylinderGeometry(rt, rb, H, seg || 20), m, x, y + H / 2, z),
+      sph: (r, x, y, z, m, sx, sy, sz) => { const me = add(new T.SphereGeometry(r, 18, 12), m, x, y, z); me.scale.set(sx || 1, sy || 1, sz || 1); return me; },
+      tor: (R, r, x, y, z, m, seg) => add(new T.TorusGeometry(R, r, 8, seg || 24), m, x, y, z),
+      // abgerundeter Quader (Mitte unten bei x,y,z)
+      rb: (W, H, D, r, x, y, z, m) => {
+        r = Math.max(0.2, Math.min(r, W / 2 - 0.1, H / 2 - 0.1, D / 2 - 0.1));
+        const sh = new T.Shape(), a = W / 2 - r, c = H / 2 - r;
+        sh.moveTo(-a, -c); sh.lineTo(a, -c); sh.lineTo(a, c); sh.lineTo(-a, c); sh.closePath();
+        const geo = new T.ExtrudeGeometry(sh, { depth: Math.max(0.1, D - 2 * r), bevelEnabled: true, bevelSize: r, bevelThickness: r, bevelSegments: 2, curveSegments: 1 });
+        geo.translate(0, 0, -(D - 2 * r) / 2);
+        return add(geo, m, x, y + H / 2, z);
+      },
+      // leuchtendes / schaltbares Material (reagiert auf den Zustand der Entität)
+      lv: (base, on, ei) => {
+        const m = new T.MeshStandardMaterial({ color: base, roughness: 0.4, emissive: 0x000000 });
+        m.userData.base = new T.Color(base); m.userData.on = on || null; m.userData.ei = ei == null ? 0.9 : ei; live.push(m); return m;
+      },
+    };
+    return b;
+  }
+
+  const R = {}; // Typ-ID -> Baufunktion (b)
+  const reg = (ids, fn) => ids.split(' ').forEach(i => { if (i) R[i] = fn; });
+  const fabricOf = (b, def) => mat(b.col || def || P.fabric, 0.95);
+
+  // ---------- Betten ----------
+  function bed(b, o) {
+    o = o || {};
+    const { w, d, h } = b, wood = mat(o.wood || P.walnut, 0.6), fab = fabricOf(b, o.fab || '#cfd6df'), white = mat('#f4f4f2', 0.9);
+    b.box(w, h * 0.38, d, 0, 0, 0, wood);
+    b.rb(w - 6, h * 0.42, d - 8, 4, 0, h * 0.34, 3, mat('#f1efe9', 0.95));
+    b.box(w, h * 1.45, 6, 0, 0, -d / 2 + 3, wood);
+    const n = w > 130 ? 2 : 1, pw = (w - 20) / n - 6;
+    for (let i = 0; i < n; i++) b.rb(pw, h * 0.2, 36, 6, (i - (n - 1) / 2) * (pw + 6), h * 0.74, -d / 2 + 30, white);
+    if (!o.noDuvet) b.rb(w - 2, h * 0.2, d * 0.62, 6, 0, h * 0.7, d * 0.17, fab);
+  }
+  reg('bed_double bed_single bed_kid daybed', b => bed(b, b.it.type === 'bed_kid' ? { wood: P.birch, fab: '#9fc5e8' } : b.it.type === 'daybed' ? { wood: P.oak, noDuvet: false } : {}));
+  reg('bed_bunk', b => {
+    const { w, d, h } = b, wd = mat(P.pine, 0.6);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(6, h, 6, x * (w / 2 - 3), 0, z * (d / 2 - 3), wd));
+    [28, h * 0.62].forEach(y => { b.box(w, 6, d, 0, y, 0, wd); b.rb(w - 8, 14, d - 12, 4, 0, y + 6, 0, mat('#f1efe9', 0.95)); });
+    b.box(w, 24, 3, 0, h * 0.62 + 6, d / 2 - 2, wd); b.box(w, 24, 3, 0, h * 0.62 + 6, -d / 2 + 2, wd);
+    for (let i = 0; i < 5; i++) b.box(w - 14, 2.5, 3, 0, 8 + i * 22, d / 2, wd);
+  });
+  reg('crib', b => {
+    const { w, d, h } = b, wd = mat(P.birch, 0.6);
+    b.box(w, 4, d, 0, 18, 0, wd); b.rb(w - 6, 10, d - 6, 3, 0, 22, 0, mat('#f6f4ee', 0.95));
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(4, h, 4, x * (w / 2 - 2), 0, z * (d / 2 - 2), wd));
+    for (let i = 0; i < 9; i++) { const x = -w / 2 + 6 + i * (w - 12) / 8; b.box(1.6, h - 30, 1.6, x, 28, d / 2 - 2, wd); b.box(1.6, h - 30, 1.6, x, 28, -d / 2 + 2, wd); }
+    for (let i = 0; i < 6; i++) { const z = -d / 2 + 6 + i * (d - 12) / 5; b.box(1.6, h - 30, 1.6, w / 2 - 2, 28, z, wd); b.box(1.6, h - 30, 1.6, -w / 2 + 2, 28, z, wd); }
+    b.box(w, 3, 3, 0, h - 4, d / 2 - 2, wd); b.box(w, 3, 3, 0, h - 4, -d / 2 + 2, wd);
+  });
+
+  // ---------- Sofas & Sessel ----------
+  function seat(b, x, z, W, D, o) {
+    const { h } = b, f = fabricOf(b, o.fab), arm = o.arm == null ? 14 : o.arm, bh = h, sh = h * 0.45;
+    b.rb(W, sh, D, 5, x, 6, z, f);
+    const nn = Math.max(1, Math.round((W - 2 * arm) / (o.seatW || 62))), cw = (W - 2 * arm) / nn;
+    for (let i = 0; i < nn; i++) {
+      b.rb(cw - 1, h * 0.18, D * 0.7, 5, x - (W - 2 * arm) / 2 + cw * (i + 0.5), sh + 3, z + D * 0.12, f);
+      b.rb(cw - 1, bh * 0.42, D * 0.22, 6, x - (W - 2 * arm) / 2 + cw * (i + 0.5), sh + 2, z - D / 2 + D * 0.14, f).rotation.x = -0.12;
+    }
+    if (arm > 0) [-1, 1].forEach(s => b.rb(arm, bh * 0.62, D, 6, x + s * (W / 2 - arm / 2), 6, z, f));
+    b.rb(W, bh * 0.85, D * 0.2, 6, x, 6, z - D / 2 + D * 0.1, f);
+    if (o.legs !== false) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => b.cyl(2, 1.6, 8, x + sx * (W / 2 - 6), 0, z + sz * (D / 2 - 6), mat(P.black, 0.4, 0.5), 8));
+  }
+  reg('sofa sofa_2', b => seat(b, 0, 0, b.w, b.d, {}));
+  reg('armchair', b => seat(b, 0, 0, b.w, b.d, { arm: 11, seatW: 60, fab: '#9aa7b4' }));
+  reg('recliner', b => { seat(b, 0, 0, b.w, b.d, { arm: 12, fab: P.leather }); b.rb(b.w - 24, 12, b.d * 0.4, 5, 0, 8, b.d / 2 - 10, mat(P.leather, 0.7)); });
+  reg('sofa_corner', b => {
+    const { w, d } = b, a = d * 0.5;
+    seat(b, 0, -d / 2 + a / 2, w, a, { seatW: 64 });
+    const cw = w * 0.34; seat(b, w / 2 - cw / 2, a / 2, cw, d - a, { arm: 0, legs: false });
+    b.rb(cw - 4, b.h * 0.2, d - a - 6, 5, w / 2 - cw / 2, b.h * 0.45 + 3, a / 2, fabricOf(b));
+  });
+  reg('ottoman', b => { b.rb(b.w, b.h * 0.8, b.d, 5, 0, 5, 0, fabricOf(b, '#a58d78')); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.cyl(2, 1.5, 6, x * (b.w / 2 - 6), 0, z * (b.d / 2 - 6), mat(P.walnut), 8)); });
+  reg('stool bar_stool', b => {
+    const bar = b.it.type === 'bar_stool', hh = b.h, r = Math.min(b.w, b.d) / 2;
+    b.cyl(r, r, 5, 0, hh - 5, 0, mat(bar ? '#2b2e33' : P.oak, 0.6), 24);
+    [0, 1, 2, 3].forEach(i => { const a = i * Math.PI / 2 + 0.78; const m = b.cyl(1.4, 1.4, hh - 5, Math.cos(a) * r * 0.62, 0, Math.sin(a) * r * 0.62, mat(bar ? P.chrome : P.oak, 0.4, bar ? 0.9 : 0), 8); m.rotation.set(Math.sin(a) * 0.08, 0, -Math.cos(a) * 0.08); });
+    if (bar) b.tor(r * 0.55, 0.9, 0, hh * 0.4, 0, mat(P.chrome, 0.3, 0.9)).rotation.x = Math.PI / 2;
+  });
+  reg('bench', b => {
+    const wd = mat(b.col || P.oak, 0.6);
+    b.rb(b.w, 5, b.d, 1.5, 0, b.h - 5, 0, wd);
+    [-1, 1].forEach(s => b.box(5, b.h - 5, b.d - 4, s * (b.w / 2 - 8), 0, 0, wd));
+  });
+  reg('highchair', b => {
+    const wd = mat(P.birch, 0.6), { w, d, h } = b;
+    b.box(w * 0.8, 4, d * 0.7, 0, h * 0.45, 0, wd); b.box(w * 0.8, h * 0.45, 3, 0, h * 0.5, -d * 0.35, wd);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => { const m = b.box(3, h * 0.48, 3, x * w * 0.38, 0, z * d * 0.38, wd); m.rotation.set(z * 0.1, 0, -x * 0.1); });
+    b.box(w * 0.8, 3, d * 0.3, 0, h * 0.58, d * 0.3, mat('#ffffff', 0.5));
+  });
+
+  // ---------- Tische ----------
+  function table(b, o) {
+    o = o || {};
+    const { w, d, h } = b, top = mat(b.col || o.top || P.oak, 0.55), leg = mat(o.leg || P.walnut, 0.5, o.metal ? 0.8 : 0), th = o.th || 4;
+    if (o.round || b.it.shape === 'ellipse') {
+      const r = Math.min(w, d) / 2; b.cyl(r, r, th, 0, h - th, 0, top, 32); b.cyl(3, 4, h - th, 0, 0, 0, leg, 12); b.cyl(r * 0.45, r * 0.5, 3, 0, 0, 0, leg, 20);
+    } else {
+      b.rb(w, th, d, 1.5, 0, h - th, 0, top);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(o.lw || 5, h - th, o.lw || 5, x * (w / 2 - 6), 0, z * (d / 2 - 6), leg));
+    }
+  }
+  reg('table_dining table_coffee table_side table_bar terrace_table kid_table', b => {
+    const t = b.it.type;
+    table(b, { top: t === 'table_coffee' ? P.walnut : P.oak, leg: t === 'table_bar' ? P.black : P.walnut, metal: t === 'table_bar', lw: t === 'table_side' ? 3 : 6, th: t === 'table_dining' ? 5 : 4 });
+    if (t === 'table_dining') { const n = Math.max(2, Math.round(b.w / 55)); for (let i = 0; i < n; i++) [-1, 1].forEach(s => { /* Stühle */ const x = (i - (n - 1) / 2) * 50; chairAt(b, x, s * (b.d / 2 + 14), s > 0 ? Math.PI : 0, 0.9); }); }
+    if (t === 'terrace_table') { const n = 3; for (let i = 0; i < n; i++) [-1, 1].forEach(s => chairAt(b, (i - 1) * 50, s * (b.d / 2 + 14), s > 0 ? Math.PI : 0, 0.9)); }
+  });
+  reg('table_round', b => { table(b, { round: true }); const r = b.w / 2; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; chairAt(b, Math.cos(a) * (r + 12), Math.sin(a) * (r + 12), -a - Math.PI / 2, 0.9); } });
+  function chairAt(b, x, z, ry, sc) {
+    const grp = new T.Group(); grp.position.set(x, 0, z); grp.rotation.y = ry; grp.scale.setScalar(sc || 1); b.g.add(grp);
+    const wd = mat(P.walnut, 0.55), sf = mat('#b9b4aa', 0.9), tmp = b.g;
+    const sub = { __proto__: b, g: grp, add: (geo, m, px, py, pz, sh) => { const me = new T.Mesh(geo, m); me.position.set(px, py, pz); me.castShadow = sh !== false; me.receiveShadow = true; grp.add(me); return me; } };
+    sub.box = (W, H, D, px, py, pz, m) => sub.add(new T.BoxGeometry(W, H, D), m, px, py + H / 2, pz);
+    sub.box(42, 4, 42, 0, 44, 0, sf); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => sub.box(3.5, 44, 3.5, sx * 19, 0, sz * 19, wd));
+    sub.box(42, 38, 3, 0, 48, -20, wd); sub.box(34, 24, 1.5, 0, 56, -18.2, sf);
+    void tmp;
+  }
+  reg('chair', b => {
+    const wd = mat(b.col || P.walnut, 0.55), sf = mat('#b9b4aa', 0.9), { w, d, h } = b, sh = h * 0.98;
+    b.rb(w, 4, d, 1.5, 0, sh - 4, 0, sf); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(3.5, sh - 4, 3.5, x * (w / 2 - 3), 0, z * (d / 2 - 3), wd));
+    b.box(w, sh * 0.85, 3, 0, sh, -d / 2 + 2, wd).scale.y = 1; b.box(w - 8, sh * 0.4, 1.5, 0, sh + 5, -d / 2 + 3.6, sf);
+  });
+  reg('office_chair', b => {
+    const bk = mat('#2a2d33', 0.7), { w, d, h } = b, r = Math.min(w, d) / 2;
+    b.cyl(2.2, 2.2, h * 0.38, 0, 8, 0, mat(P.steel, 0.3, 0.9), 10);
+    for (let i = 0; i < 5; i++) { const a = i * 2 * Math.PI / 5; const m = b.box(r, 3, 4, Math.cos(a) * r / 2, 4, Math.sin(a) * r / 2, bk); m.rotation.y = -a; b.cyl(2.2, 2.2, 3, Math.cos(a) * r * 0.95, 0, Math.sin(a) * r * 0.95, bk, 8); }
+    b.rb(r * 1.6, 8, r * 1.6, 3, 0, h * 0.43, 2, bk); b.rb(r * 1.5, h * 0.42, 6, 3, 0, h * 0.5, -r * 0.7, bk).rotation.x = -0.1;
+  });
+  reg('desk desk_corner workbench', b => {
+    const { w, d, h } = b, top = mat(b.col || (b.it.type === 'workbench' ? P.pine : P.birch), 0.5), leg = mat(P.dark, 0.4, 0.6);
+    b.rb(w, 4, d, 1.2, 0, h - 4, 0, top);
+    if (b.it.type === 'desk_corner') { b.rb(w * 0.4, 4, d, 1.2, w * 0.3, h - 4, 0, top); }
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(4, h - 4, 4, x * (w / 2 - 5), 0, z * (d / 2 - 5), leg));
+    if (b.it.type !== 'workbench') { b.box(w * 0.2, h * 0.5, d - 12, w / 2 - w * 0.12 - 4, h * 0.45 - 4, 0, mat(P.white, 0.5)); [0, 1, 2].forEach(i => b.box(w * 0.18, 1, 0.8, w / 2 - w * 0.12 - 4, h * 0.45 + i * 10, d / 2 - 5.6, leg)); }
+  });
+
+  // ---------- Schränke ----------
+  function cab(b, o) {
+    o = o || {};
+    const { w, d, h } = b, body = mat(b.col || o.col || P.white, 0.45), grv = mat('#2c2f35', 0.8), hd = mat(P.chrome, 0.3, 0.9), lz = o.legs || 0;
+    b.box(w, h - lz, d, 0, lz, 0, body);
+    if (lz) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.cyl(2, 1.6, lz, x * (w / 2 - 5), 0, z * (d / 2 - 5), mat(P.black), 8));
+    const doors = o.doors == null ? Math.max(1, Math.round(w / 55)) : o.doors, dr = o.drawers || 0, fh = h - lz - 4;
+    const dh = dr ? fh * (o.drawerShare || 0.4) : 0, doorH = fh - dh;
+    for (let i = 0; i < doors; i++) {
+      const dw = (w - 4) / doors, x = -w / 2 + 2 + dw * (i + 0.5);
+      if (doorH > 8) { b.box(dw - 1.2, doorH, 0.8, x, lz + 2, d / 2 + 0.2, mat(b.col || o.col || P.white, 0.4)); b.box(1.2, Math.min(24, doorH * 0.5), 1.6, x + (i % 2 ? -1 : 1) * (dw / 2 - 5), lz + 2 + doorH * 0.5 - 8, d / 2 + 1.6, hd); }
+    }
+    for (let i = 0; i < dr; i++) {
+      const y = lz + 2 + doorH + i * dh / dr; b.box(w - 4, dh / dr - 1, 0.8, 0, y, d / 2 + 0.2, mat(b.col || o.col || P.white, 0.4)); b.box(Math.min(24, w * 0.3), 1.2, 1.6, 0, y + dh / dr * 0.6, d / 2 + 1.6, hd);
+    }
+    b.cab = { top: h, d };
+  }
+  reg('wardrobe wardrobe_sliding', b => cab(b, { col: b.it.type === 'wardrobe' ? '#e9e5dd' : '#d9d4ca', doors: Math.max(2, Math.round(b.w / 50)), drawers: 0 }));
+  reg('dresser', b => cab(b, { col: P.birch, doors: 0, drawers: 4, drawerShare: 1, legs: 8 }));
+  reg('sideboard tv_board tv_stand', b => cab(b, { col: b.it.type === 'sideboard' ? P.white : P.walnut, doors: Math.max(2, Math.round(b.w / 60)), legs: 12 }));
+  reg('nightstand', b => cab(b, { col: P.birch, doors: 0, drawers: 2, drawerShare: 1, legs: 10 }));
+  reg('cabinet cabinet_base pantry tool_cabinet', b => cab(b, { col: b.it.type === 'tool_cabinet' ? '#c0392b' : b.it.type === 'cabinet' ? P.oak : '#dfe3e6', doors: b.it.type === 'cabinet_base' ? 1 : 2, drawers: b.it.type === 'cabinet_base' ? 1 : 0 }));
+  reg('shoe_rack', b => cab(b, { col: P.pine, doors: 2, legs: 8 }));
+  reg('wall_unit', b => { cab(b, { col: '#e6e2da', doors: Math.max(3, Math.round(b.w / 55)), drawers: 0 }); });
+  reg('changing', b => { cab(b, { col: P.white, doors: 0, drawers: 3, drawerShare: 0.7 }); b.rb(b.w, 5, b.d, 2, 0, b.h - 12, 0, mat('#cfe3ef', 0.8)); });
+  reg('vanity', b => { cab(b, { col: P.white, doors: 0, drawers: 2, drawerShare: 1, legs: 10 }); b.rb(b.w * 0.5, 4, b.d * 0.7, 2, 0, b.h, 4, mat(P.ceramic, 0.2)); });
+  reg('shelf bookcase', b => {
+    const { w, d, h } = b, wd = mat(b.col || P.birch, 0.55), n = Math.max(3, Math.round(h / 38));
+    b.box(2.5, h, d, -w / 2 + 1.25, 0, 0, wd); b.box(2.5, h, d, w / 2 - 1.25, 0, 0, wd); b.box(w, h, 1, 0, 0, -d / 2 + 0.5, wd);
+    const cols = ['#c0392b', '#2e86c1', '#27ae60', '#f1c40f', '#8e44ad', '#e67e22', '#34495e'];
+    for (let i = 0; i <= n; i++) {
+      const y = i * (h - 2.5) / n; b.box(w, 2.5, d, 0, y, 0, wd);
+      if (i < n && i % 2 === 0) { let x = -w / 2 + 5; let k = 0; while (x < w / 2 - 8) { const bw = 2.2 + (k * 7 % 3), bh = 18 + (k * 5 % 9); b.box(bw, bh, d * 0.7, x + bw / 2, y + 2.5, 0, mat(cols[k % cols.length], 0.8)); x += bw + 0.3; k++; if (k % 9 === 8) x += 12; } }
+    }
+  });
+  reg('coat_rack', b => {
+    const { w, d, h } = b, wd = mat(P.birch, 0.55);
+    b.box(w, h * 0.12, 2.5, 0, h * 0.82, -d / 2 + 2, wd); b.box(w, h * 0.04, 2.5, 0, h * 0.5, -d / 2 + 2, wd);
+    for (let i = 0; i < 5; i++) b.cyl(1.2, 1.2, 8, -w / 2 + 10 + i * (w - 20) / 4, h * 0.82, -d / 2 + 6, mat(P.chrome, 0.3, 0.9), 8).rotation.x = Math.PI / 2;
+    b.box(w * 0.6, h * 0.3, d * 0.5, 0, 0, 0, wd);
+  });
+  reg('mirror', b => { const { w, d, h } = b; b.box(w, h, d * 0.9, 0, 0, 0, mat(P.walnut, 0.5)); b.box(w - 6, h - 6, 0.6, 0, 3, d * 0.45, b.mirror()); });
+  reg('painting', b => {
+    const { w, d, h } = b; b.box(w, h, d, 0, 0, 0, mat(P.black, 0.5));
+    const cs = ['#d98c5f', '#5f8fd9', '#7bb86f', '#e7c35e']; b.box(w - 6, h - 6, 0.6, 0, 3, d / 2, mat(b.col || cs[(w + h) % 4], 0.9));
+    b.box((w - 6) * 0.5, (h - 6) * 0.35, 0.7, -w * 0.1, h * 0.35, d / 2 + 0.1, mat('#f3efe6', 0.9));
+  });
+  reg('piano', b => {
+    const { w, d, h } = b, bk = mat('#16181c', 0.25);
+    b.box(w, h * 0.7, d * 0.75, 0, 0, -d * 0.12, bk); b.box(w, h * 0.3, d * 0.1, 0, h * 0.7, -d * 0.45, bk);
+    b.box(w - 4, 4, d * 0.28, 0, h * 0.4, d * 0.34, mat('#f5f5f0', 0.4)); for (let i = 0; i < 24; i++) b.box(1.2, 4.4, d * 0.16, -w / 2 + 6 + i * (w - 12) / 23, h * 0.4 + 0.3, d * 0.28, bk);
+    [-1, 1].forEach(s => b.box(5, h * 0.4, 5, s * (w / 2 - 8), 0, d * 0.3, bk)); b.box(w * 0.6, 2, 18, 0, 8, d * 0.4, bk);
+  });
+
+  // ---------- Küche ----------
+  const handleV = (b, x, y, z, L) => b.box(1.6, L, 1.8, x, y, z, mat(P.chrome, 0.25, 0.9));
+  reg('fridge freezer fridge_side', b => {
+    const { w, d, h } = b, wh = mat(b.col || P.white, 0.3, 0.1), seam = mat('#9aa0a6', 0.5);
+    if (b.it.type === 'fridge_side') {
+      b.rb(w, h, d, 2, 0, 0, 0, wh); b.box(1.2, h - 6, 1, 0, 3, d / 2 + 0.2, seam);
+      handleV(b, -4, h * 0.4, d / 2 + 2.4, 60); handleV(b, 4, h * 0.4, d / 2 + 2.4, 60);
+      b.box(16, 24, 1, w * 0.18, h * 0.62, d / 2 + 0.3, b.lv('#1b2530', '#8fd4ff', 0.7)); return;
+    }
+    b.rb(w, h, d, 2, 0, 0, 0, wh);
+    if (b.it.type === 'fridge') { b.box(w - 2, 1, 1, 0, h * 0.32, d / 2 + 0.2, seam); handleV(b, w / 2 - 6, h * 0.5, d / 2 + 2.4, 45); handleV(b, w / 2 - 6, h * 0.1, d / 2 + 2.4, 25); }
+    else handleV(b, w / 2 - 6, h * 0.45, d / 2 + 2.4, 55);
+    b.box(7, 3, 0.8, 0, h * 0.9, d / 2 + 0.3, b.lv('#1b2530', '#9be37a', 0.8));
+  });
+  reg('stove oven', b => {
+    const { w, d, h } = b, wh = mat(b.col || P.white, 0.35), isStove = b.it.type === 'stove';
+    b.rb(w, h, d, 1.5, 0, 0, 0, isStove ? mat(P.steel, 0.3, 0.8) : mat(P.steel, 0.3, 0.8));
+    b.box(w - 8, h * 0.45, 1, 0, h * 0.18, d / 2 + 0.2, mat('#15171b', 0.15, 0.2)); b.box(w - 14, 2, 3, 0, h * 0.7, d / 2 + 2, mat(P.chrome, 0.2, 0.9));
+    for (let i = 0; i < 4; i++) b.cyl(1.6, 1.6, 2.5, -w / 2 + 9 + i * (w - 18) / 3, h * 0.84, d / 2 + 0.5, mat(P.black), 12).rotation.x = Math.PI / 2;
+    if (isStove) {
+      b.box(w - 2, 0.8, d - 2, 0, h, 0, mat('#111317', 0.12, 0.3));
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z], i) => { const r = i % 3 === 0 ? 8 : 6; const m = b.cyl(r, r, 0.4, x * w * 0.23, h + 0.8, z * d * 0.22, b.lv('#2b2f36', '#ff6a2a', 0.8), 20); });
+    } else b.box(w - 2, 0.6, d - 2, 0, h, 0, wh);
+    void wh;
+  });
+  reg('sink_kitchen counter kitchen_island', b => {
+    const { w, d, h } = b, body = mat(b.col || '#e4e1da', 0.5), top = mat('#8a8f96', 0.25, 0.1);
+    b.box(w, h - 4, d - 2, 0, 0, -1, body); b.rb(w + 1, 4, d + (b.it.type === 'kitchen_island' ? 8 : 2), 0.8, 0, h - 4, 0, top);
+    const n = Math.max(1, Math.round(w / 60)); for (let i = 0; i < n; i++) { b.box(w / n - 1.5, h - 10, 0.8, -w / 2 + w / n * (i + 0.5), 4, d / 2 - 0.4, mat('#f0eee8', 0.4)); b.box(10, 1.2, 1.6, -w / 2 + w / n * (i + 0.5), h - 14, d / 2 + 0.8, mat(P.chrome, 0.3, 0.9)); }
+    if (b.it.type === 'sink_kitchen') {
+      b.box(w * 0.34, 0.8, d * 0.6, -w * 0.15, h, 0, mat('#aab0b7', 0.2, 0.9)); b.box(w * 0.3, 1, d * 0.52, -w * 0.15, h + 0.2, 0, mat('#6b7078', 0.3, 0.9));
+      b.cyl(1.2, 1.2, 22, 0, h, -d * 0.3, mat(P.chrome, 0.15, 1), 10); b.tor(7, 1.2, 0, h + 22, -d * 0.3 + 7, mat(P.chrome, 0.15, 1), 14).rotation.y = 0;
+      b.box(w * 0.2, 0.8, d * 0.6, w * 0.3, h, 0, mat('#c4c9cf', 0.2, 0.7));
+    }
+    if (b.it.type === 'counter') b.box(w * 0.3, 0.6, d * 0.5, w * 0.2, h, 0, mat('#222', 0.2));
+  });
+  reg('cabinet_wall', b => { cab(b, { col: '#e9e6df', doors: Math.max(1, Math.round(b.w / 45)) }); });
+  reg('dishwasher dishwasher_tall washer dryer', b => {
+    const { w, d, h } = b, wh = mat(b.col || P.white, 0.35, 0.1), t = b.it.type;
+    b.rb(w, h, d, 1.5, 0, 0, 0, wh);
+    if (t === 'washer' || t === 'dryer') {
+      const r = Math.min(w, h) * 0.32; b.tor(r, 2.5, 0, h * 0.46, d / 2 + 1, mat(P.steel, 0.2, 0.9), 28);
+      const gl = b.cyl(r, r, 1.5, 0, h * 0.46, d / 2 + 0.2, mat('#223344', 0.08, 0.3, { transparent: true, opacity: 0.8 }), 28); gl.rotation.x = Math.PI / 2;
+      b.cyl(r * 0.6, r * 0.6, 1, 0, h * 0.46, d / 2 + 1, mat('#9fb4c8', 0.2, 0.2, { transparent: true, opacity: 0.5 }), 20).rotation.x = Math.PI / 2;
+      b.box(w * 0.7, 6, 1, 0, h * 0.86, d / 2 + 0.2, b.lv('#1b2530', '#6fd0ff', 0.7)); b.cyl(3, 3, 1.4, w * 0.3, h * 0.88, d / 2 + 0.6, mat(P.steel, 0.2, 0.9), 14).rotation.x = Math.PI / 2;
+    } else {
+      b.box(w - 4, 5, 0.8, 0, h - 8, d / 2 + 0.2, b.lv('#1b2530', '#8fe36a', 0.7)); b.box(w - 14, 1.4, 2, 0, h - 14, d / 2 + 1.4, mat(P.chrome, 0.2, 0.9));
+    }
+  });
+  reg('microwave', b => { const { w, d, h } = b; b.rb(w, h, d, 2, 0, 0, 0, mat(P.steel, 0.3, 0.8)); b.box(w * 0.64, h * 0.7, 0.8, -w * 0.12, h * 0.15, d / 2 + 0.1, b.lv('#12161b', '#ffd27a', 0.5)); b.box(w * 0.18, h * 0.7, 0.8, w * 0.36, h * 0.15, d / 2 + 0.1, mat('#1e2227', 0.4)); });
+  reg('hood', b => { const { w, d, h } = b; b.box(w, 5, d, 0, 0, 0, mat(P.steel, 0.3, 0.8)); b.box(w * 0.3, h - 5, d * 0.4, 0, 5, -d * 0.25, mat(P.steel, 0.3, 0.8)); b.box(w * 0.8, 0.8, d * 0.6, 0, -0.5, 0, b.lv('#ddd', '#fff1c4', 1)); });
+  reg('coffee', b => { const { w, d, h } = b; b.rb(w, h * 0.9, d * 0.8, 3, 0, 0, -d * 0.1, mat('#1f2226', 0.4)); b.box(w * 0.7, 3, d * 0.3, 0, 2, d * 0.28, mat(P.steel, 0.3, 0.8)); b.cyl(3, 3, 8, 0, 3, d * 0.3, mat('#f1f1f1', 0.3), 10); b.box(w * 0.5, 4, 3, 0, h * 0.7, d * 0.05, b.lv('#2a2d33', '#6fe0ff', 0.9)); });
+  reg('kettle', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.7, r, b.h * 0.8, 0, 0, 0, mat(P.steel, 0.25, 0.9), 20); b.cyl(r * 0.7, r * 0.7, 2, 0, b.h * 0.8, 0, b.lv('#222', '#4fb0ff', 1), 20); b.box(2, b.h * 0.6, 4, r * 0.9, 2, 0, mat(P.black)); });
+  reg('trash trash_bin', b => { const r = Math.min(b.w, b.d) / 2, big = b.it.type === 'trash_bin'; b.cyl(r * 0.85, r, b.h * 0.92, 0, 0, 0, mat(b.col || (big ? '#2f5d3a' : P.steel), 0.5, big ? 0 : 0.7), 20); b.cyl(r * 1.02, r * 1.02, 3, 0, b.h * 0.92, 0, mat(big ? '#27492f' : P.dark, 0.5), 20); });
+
+  // ---------- Bad ----------
+  const tub = (b, x, z, W, D, H, wallT) => {
+    const cer = mat(P.ceramic, 0.15);
+    b.box(W, 3, D, x, H * 0.12, z, cer); b.box(W, H, wallT, x, 0, z - D / 2 + wallT / 2, cer); b.box(W, H, wallT, x, 0, z + D / 2 - wallT / 2, cer);
+    b.box(wallT, H, D, x - W / 2 + wallT / 2, 0, z, cer); b.box(wallT, H, D, x + W / 2 - wallT / 2, 0, z, cer);
+  };
+  reg('bathtub', b => { const { w, d, h } = b; tub(b, 0, 0, w, d, h, 6); b.box(w - 14, 1, d - 14, 0, h * 0.14, 0, mat('#eef4f7', 0.1)); b.cyl(1.4, 1.4, 14, -w / 2 + 10, h, 0, mat(P.chrome, 0.15, 1), 10); b.cyl(1, 1, 8, -w / 2 + 14, h + 12, 0, mat(P.chrome, 0.15, 1), 10).rotation.z = Math.PI / 2; });
+  reg('whirlpool', b => { const { w, d, h } = b; b.rb(w, h, d, 14, 0, 0, 0, mat('#e8eef2', 0.2)); b.rb(w - 24, 2, d - 24, 10, 0, h - 1, 0, mat(P.water, 0.05, 0.2, { transparent: true, opacity: 0.75 })); });
+  reg('hot_tub', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r, r, b.h, 0, 0, 0, mat('#6b4a32', 0.6), 32); b.cyl(r - 5, r - 5, 2, 0, b.h - 3, 0, mat(P.water, 0.05, 0.2, { transparent: true, opacity: 0.8 }), 32); b.cyl(r + 1, r + 1, 5, 0, b.h - 5, 0, mat('#e8e2d6', 0.4), 32); });
+  reg('shower shower_tray shower_walkin', b => {
+    const { w, d, h } = b, t = b.it.type; b.rb(w, 6, d, 2, 0, 0, 0, mat(P.ceramic, 0.3)); b.cyl(3, 3, 0.4, 0, 6, 0, mat(P.chrome, 0.2, 1), 14);
+    if (t === 'shower_tray') return;
+    const H = 195; b.box(w, H, 0.8, 0, 6, d / 2 - 0.4, b.glass()); if (t === 'shower') b.box(0.8, H, d, w / 2 - 0.4, 6, 0, b.glass());
+    [[0, d / 2 - 0.4, w, 1.4], [w / 2 - 0.4, 0, 1.4, d]].forEach(([x, z, W, D]) => b.box(W, 1.6, D, x, H + 5, z, mat(P.chrome, 0.2, 1)));
+    b.cyl(1, 1, 190, -w / 2 + 6, 6, -d / 2 + 4, mat(P.chrome, 0.2, 1), 8); b.cyl(7, 7, 1.4, -w / 2 + 14, 190, -d / 2 + 10, mat(P.chrome, 0.2, 1), 16);
+  });
+  reg('toilet toilet_wall bidet', b => {
+    const { w, d, h } = b, cer = mat(P.ceramic, 0.12), bidet = b.it.type === 'bidet';
+    b.rb(w * 0.9, h * 0.55, d * 0.62, 6, 0, h * 0.0 + (b.it.type === 'toilet_wall' ? 14 : 0), d * 0.17, cer);
+    b.rb(w * 0.8, 4, d * 0.56, 3, 0, h * 0.62, d * 0.18, mat('#ffffff', 0.2));
+    if (!bidet) { b.rb(w * 0.82, h * 0.5, d * 0.2, 3, 0, h * 0.55, -d * 0.4, cer); b.cyl(2.5, 2.5, 1.6, 0, h * 1.05, -d * 0.4, mat(P.chrome, 0.2, 1), 12); b.rb(w * 0.74, 2.5, d * 0.5, 3, 0, h * 0.66, d * 0.2, cer); }
+    else b.cyl(1, 1, 8, 0, h * 0.6, -d * 0.2, mat(P.chrome, 0.2, 1), 8);
+  });
+  const faucet = (b, x, y, z) => { b.cyl(1.2, 1.2, 12, x, y, z, mat(P.chrome, 0.15, 1), 10); b.cyl(0.9, 0.9, 8, x, y + 11, z + 4, mat(P.chrome, 0.15, 1), 8).rotation.x = Math.PI / 2; };
+  reg('basin basin_double washstand', b => {
+    const { w, d, h } = b, cer = mat(P.ceramic, 0.12), t = b.it.type, n = t === 'basin_double' ? 2 : 1;
+    if (t === 'washstand') { cab(b, { col: P.oak, doors: 0, drawers: 2, drawerShare: 1, legs: 8, }); b.g.children[0].scale.y = 1; }
+    else if (t === 'basin') { b.cyl(4, 6, h * 0.62, 0, 0, -d * 0.2, cer, 16); }
+    const by = t === 'washstand' ? h : h * 0.8;
+    for (let i = 0; i < n; i++) { const x = (i - (n - 1) / 2) * (w / n); b.rb(w / n * 0.92, 12, d * 0.92, 6, x, by - 4, 0, cer); b.box(w / n * 0.62, 0.6, d * 0.58, x, by + 8, 1, mat('#e1e9ee', 0.1)); faucet(b, x, by + 8, -d * 0.36); }
+  });
+  reg('mirror_cabinet', b => { const { w, d, h } = b; b.box(w, h, d, 0, 0, 0, mat(P.white, 0.4)); b.box(w - 3, h - 3, 0.6, 0, 1.5, d / 2 + 0.1, b.mirror()); });
+  reg('towel_radiator', b => { const { w, d, h } = b, m = mat(P.white, 0.3, 0.4); [-1, 1].forEach(s => b.box(2.5, h, d, s * (w / 2 - 1.5), 0, 0, m)); for (let i = 0; i < 9; i++) b.cyl(1, 1, w - 4, 0, 5 + i * (h - 10) / 8, 0, m, 8).rotation.z = Math.PI / 2; });
+  reg('sauna', b => {
+    const { w, d, h } = b, wd = mat('#c98f55', 0.7), dk = mat('#a0683a', 0.7);
+    b.box(w, 4, d, 0, 0, 0, dk); [[0, -d / 2 + 2, w, 4], [-w / 2 + 2, 0, 4, d], [w / 2 - 2, 0, 4, d]].forEach(([x, z, W, D]) => { b.box(W, h, D, x, 4, z, wd); });
+    b.box(w, h - 4, 4, 0, 4, d / 2 - 2, wd); b.box(w * 0.34, h * 0.88, 2, w * 0.24, 4, d / 2 - 0.5, b.glass()); b.box(w, 4, d, 0, h, 0, dk);
+    b.box(w * 0.8, 4, 45, 0, 50, -d / 2 + 30, dk); b.box(w * 0.8, 4, 45, 0, 100, -d / 2 + 24, dk); b.box(26, 40, 26, -w / 2 + 26, 4, -d / 2 + 26, mat('#3a3d42', 0.6));
+  });
+  reg('water_heater water_tank boiler', b => { const t = b.it.type, r = Math.min(b.w, b.d) / 2; if (t === 'boiler') { b.rb(b.w, b.h, b.d, 3, 0, 0, 0, mat(P.white, 0.35)); b.box(b.w * 0.5, 14, 1, 0, b.h * 0.7, b.d / 2 + 0.1, b.lv('#1b2530', '#7fe3a0', 0.8)); b.cyl(2, 2, 12, -b.w * 0.25, -8, b.d * 0.3, mat(P.steel, 0.3, 0.9), 8); return; } b.cyl(r, r, b.h * 0.92, 0, 0, 0, mat(t === 'water_tank' ? P.steel : P.white, 0.3, t === 'water_tank' ? 0.8 : 0.1), 28); b.sph(r, 0, b.h * 0.92, 0, mat(t === 'water_tank' ? P.steel : P.white, 0.3, t === 'water_tank' ? 0.8 : 0.1), 1, 0.25, 1); });
+  reg('utility_sink', b => { const { w, d, h } = b; b.box(w, h - 28, d, 0, 0, 0, mat('#d7dbe0', 0.5)); b.rb(w, 28, d, 4, 0, h - 28, 0, mat(P.ceramic, 0.15)); b.box(w - 10, 1, d - 10, 0, h - 1, 0, mat('#dce5ea', 0.1)); faucet(b, 0, h, -d * 0.36); });
+
+  // ---------- Heizung & Klima ----------
+  reg('radiator heater_elec towel_heater', b => { const { w, d, h } = b, m = mat(P.white, 0.4, 0.2); b.box(w, h, d * 0.5, 0, 0, -d * 0.2, m); for (let i = 0; i < Math.round(w / 6); i++) b.box(1.2, h, d * 0.5, -w / 2 + 3 + i * 6, 0, d * 0.2, m); b.box(w, 1.5, d, 0, h, 0, mat(P.white, 0.4)); });
+  reg('thermostat radiator_valve heat_valve smart_valve', b => { const r = Math.min(b.w, b.d, b.h) / 2; b.cyl(r * 0.7, r * 0.7, b.h * 0.9, 0, 0, 0, mat(P.white, 0.4), 18); b.cyl(r * 0.5, r * 0.5, 1.2, 0, b.h * 0.9, 0, b.lv('#1b2530', '#ff9d4a', 0.9), 18); });
+  reg('ac split_ac', b => { const { w, d, h } = b; b.rb(w, h, d, 5, 0, 0, 0, mat(P.white, 0.35)); b.box(w * 0.85, 2, d * 0.35, 0, 2, d * 0.35, mat('#d3d8dd', 0.5)); b.box(6, 1.6, 0.8, w * 0.38, h * 0.62, d / 2 + 0.2, b.lv('#2a2d33', '#8fe0ff', 1)); });
+  reg('fan', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.6, r * 0.7, 3, 0, 0, 0, mat(P.dark, 0.5), 20); b.cyl(1.5, 1.5, b.h * 0.7, 0, 3, 0, mat(P.chrome, 0.3, 0.8), 8); const ring = b.tor(r * 0.8, 1.2, 0, b.h * 0.85, 0, mat(P.steel, 0.3, 0.8), 28); ring.rotation.x = 0.1; b.cyl(r * 0.8, r * 0.8, 1, 0, b.h * 0.85, 0, mat('#e9eef2', 0.3, 0.2, { transparent: true, opacity: 0.35 }), 28).rotation.x = Math.PI / 2 + 0.1; });
+  reg('fan_ceiling', b => { const r = b.w / 2; b.cyl(6, 6, 10, 0, b.h - 10, 0, mat(P.white, 0.4), 16); b.cyl(1.4, 1.4, 10, 0, b.h, 0, mat(P.dark), 8); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2, m = b.box(r * 0.8, 1.2, 14, Math.cos(a) * r * 0.5, b.h - 8, Math.sin(a) * r * 0.5, mat(P.walnut, 0.6)); m.rotation.y = -a; } b.cyl(5, 5, 4, 0, b.h - 14, 0, b.lv('#eee', '#fff0c8', 1), 14); });
+  reg('fireplace pellet chimney_stove', b => {
+    const { w, d, h } = b, t = b.it.type, stone = mat(t === 'fireplace' ? '#9a948a' : '#25282d', t === 'fireplace' ? 0.9 : 0.5, t === 'fireplace' ? 0 : 0.5);
+    b.box(w, h, d, 0, 0, 0, stone); b.box(w * 0.6, h * 0.5, 1, 0, h * 0.18, d / 2 + 0.1, mat('#08090b', 0.2)); b.box(w * 0.5, h * 0.36, 0.6, 0, h * 0.2, d / 2 + 0.3, b.lv('#1d1410', '#ff7a1a', 1.1));
+    b.box(w + 4, 4, d + 4, 0, h, 0, t === 'fireplace' ? mat('#6e6860', 0.8) : stone);
+    if (t !== 'fireplace') b.cyl(6, 6, 80, 0, h, -d * 0.2, mat('#2b2e33', 0.5, 0.6), 16);
+  });
+  reg('heat_pump', b => { const { w, d, h } = b; b.rb(w, h, d, 4, 0, 0, 0, mat('#d9dde1', 0.5, 0.2)); b.cyl(h * 0.36, h * 0.36, 1.2, -w * 0.12, h * 0.5, d / 2 + 0.1, mat('#1a1c20', 0.5), 28).rotation.x = Math.PI / 2; for (let i = 0; i < 6; i++) b.box(w * 0.26, 0.8, 0.8, w * 0.32, h * 0.2 + i * h * 0.1, d / 2 + 0.2, mat('#6f757c', 0.5)); });
+  reg('air_purifier humidifier dehumidifier ventilation', b => {
+    const { w, d, h } = b, t = b.it.type;
+    if (t === 'ventilation') { b.box(w, 4, d, 0, 0, 0, mat(P.white, 0.4)); b.box(w - 10, 1, d - 10, 0, -0.5, 0, mat('#cfd4d9', 0.5)); return; }
+    if (t === 'dehumidifier') { b.rb(w, h, d, 3, 0, 0, 0, mat('#e9edf0', 0.4)); b.box(w * 0.7, h * 0.12, 0.8, 0, h * 0.78, d / 2 + 0.2, b.lv('#1b2530', '#7fd3ff', 0.8)); return; }
+    const r = Math.min(w, d) / 2; b.cyl(r * 0.85, r, h, 0, 0, 0, mat(P.white, 0.4), 24); b.cyl(r * 0.5, r * 0.5, 0.8, 0, h, 0, b.lv('#9aa4ab', '#6fe0ff', 0.9), 20);
+  });
+  reg('heat_dist', b => { const { w, d, h } = b; b.box(w, h, d, 0, 0, 0, mat('#caced3', 0.5, 0.4)); for (let i = 0; i < 5; i++) b.cyl(1.6, 1.6, 8, -w / 2 + 6 + i * (w - 12) / 4, -6, 0, i % 2 ? mat('#c0392b') : mat('#2e86c1'), 8); });
+  reg('solar_thermal', b => { const { w, d, h } = b; const m = b.box(w, 6, d, 0, h * 0.2, 0, mat('#1d2d44', 0.15, 0.3)); m.rotation.x = -0.5; for (let i = 1; i < 4; i++) { const l = b.box(0.6, 1, d, -w / 2 + i * w / 4, h * 0.2 + 3, 0, mat('#8da2bf', 0.3, 0.7)); l.rotation.x = -0.5; } });
+  reg('floor_heating', b => { const { w, d } = b; b.box(w, 2, d, 0, 0, 0, mat('#8e949b', 0.8)); const pm = b.lv('#c0392b', '#ff6a2a', 0.9); for (let i = 0; i < 8; i++) b.box(w - 10, 1.2, 1.4, 0, 2, -d / 2 + 8 + i * (d - 16) / 7, pm); });
+
+  // ---------- Licht ----------
+  const shadeColor = '#fbf5e8', onWarm = '#ffe2a8';
+  reg('lamp_ceiling', b => { const r = b.w / 2; b.cyl(r, r, 2, 0, b.h - 2, 0, mat(P.white, 0.4), 28); b.sph(r * 0.85, 0, b.h - 2, 0, b.lv(shadeColor, onWarm, 1.2), 1, 0.4, 1); });
+  reg('lamp_spot', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r, r, 3, 0, b.h - 3, 0, mat(P.white, 0.4), 18); b.cyl(r * 0.7, r * 0.7, 1, 0, b.h - 4, 0, b.lv('#f2f2f2', onWarm, 1.4), 16); });
+  reg('lamp_panel light_panel', b => { b.box(b.w, 3, b.d, 0, b.h - 3, 0, mat(P.white, 0.5)); b.box(b.w - 4, 1, b.d - 4, 0, b.h - 3.6, 0, b.lv('#f4f6f7', '#fff6dc', 1.3)); });
+  reg('lamp_strip light_string', b => { const s = b.it.type === 'light_string'; if (s) { b.box(b.w, 0.6, 0.6, 0, b.h, 0, mat(P.black)); for (let i = 0; i < 12; i++) b.sph(2, -b.w / 2 + 8 + i * (b.w - 16) / 11, b.h - 3 - (i % 2) * 2, 0, b.lv('#fff2c0', '#ffd77a', 1.6)); } else b.box(b.w, 2, 2.5, 0, b.h - 2, 0, b.lv('#eef2f5', onWarm, 1.6)); });
+  reg('lamp_floor', b => { const { h } = b, r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.55, r * 0.6, 2.5, 0, 0, 0, mat(P.black, 0.4, 0.4), 22); b.cyl(1, 1, h * 0.8, 0, 2, 0, mat(P.black, 0.4, 0.4), 8); b.cyl(r * 0.7, r, h * 0.2, 0, h * 0.8, 0, b.lv(shadeColor, onWarm, 1.1), 24); });
+  reg('lamp_arc', b => { const { w, d, h } = b; b.cyl(8, 9, 4, -w * 0.4, 0, 0, mat('#d4d6d8', 0.2, 0.8), 20); const curve = new T.CatmullRomCurve3([new T.Vector3(-w * 0.4, 4, 0), new T.Vector3(-w * 0.4, h * 0.7, 0), new T.Vector3(-w * 0.1, h * 0.95, 0), new T.Vector3(w * 0.3, h * 0.82, 0)]); b.add(new T.TubeGeometry(curve, 24, 1.2, 8), mat('#d4d6d8', 0.2, 0.8), 0, 0, 0); b.sph(14, w * 0.38, h * 0.72, 0, b.lv(shadeColor, onWarm, 1.1), 1, 0.8, 1); });
+  reg('lamp_wall', b => { const { w, d, h } = b; b.box(w * 0.5, h * 0.4, 2, 0, h * 0.3, -d / 2 + 1, mat(P.black, 0.4, 0.5)); b.cyl(w * 0.28, w * 0.2, h * 0.6, 0, h * 0.2, -d * 0.05, b.lv(shadeColor, onWarm, 1.1), 18); });
+  reg('lamp_mirror', b => { b.box(b.w, 2.5, 3, 0, b.h - 2.5, 0, b.lv('#f2f2f2', onWarm, 1.4)); });
+  reg('lamp_pendant', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(0.3, 0.3, 40, 0, b.h, 0, mat(P.black), 4); b.cyl(r * 0.2, r * 0.9, b.h * 0.7, 0, 0, 0, b.lv(shadeColor, onWarm, 1.1), 28); b.cyl(r * 0.2, r * 0.2, 2, 0, b.h * 0.7, 0, mat(P.black, 0.4), 10); b.sph(5, 0, 6, 0, b.lv('#fffbe8', '#fff1c4', 1.5)); });
+  reg('chandelier', b => { const { w, h } = b, r = w / 2; b.cyl(0.4, 0.4, 40, 0, h, 0, mat(P.black), 4); b.tor(r * 0.8, 1.3, 0, h * 0.5, 0, mat('#c9a24a', 0.25, 0.9), 32).rotation.x = Math.PI / 2; b.cyl(2, 2, h * 0.6, 0, h * 0.4, 0, mat('#c9a24a', 0.25, 0.9), 8); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; b.cyl(1.4, 1.1, 10, Math.cos(a) * r * 0.8, h * 0.5 + 1, Math.sin(a) * r * 0.8, mat('#f4efe6', 0.4), 8); b.sph(3, Math.cos(a) * r * 0.8, h * 0.5 + 14, Math.sin(a) * r * 0.8, b.lv('#fffbe8', '#ffe6a8', 1.6), 1, 1.2, 1); } });
+  reg('lamp_table', b => { const { h } = b, r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.35, r * 0.45, h * 0.5, 0, 0, 0, mat('#d8d2c4', 0.3, 0.1), 18); b.cyl(r * 0.6, r, h * 0.5, 0, h * 0.5, 0, b.lv(shadeColor, onWarm, 1.1), 22); });
+  reg('lamp_desk', b => { const { h } = b; b.cyl(7, 8, 2, 0, 0, 0, mat(P.black, 0.4, 0.5), 18); const a1 = b.box(1.6, h * 0.8, 1.6, 0, 2, 0, mat(P.black, 0.4, 0.5)); a1.rotation.z = 0.15; const a2 = b.box(1.6, h * 0.55, 1.6, 6, h * 0.7, 0, mat(P.black, 0.4, 0.5)); a2.rotation.z = -1.1; b.cyl(1, 6, 8, 16, h * 0.78, 0, b.lv('#eee', onWarm, 1.4), 16).rotation.z = 0.5; });
+  reg('lamp_night lamp_bulb', b => { const r = Math.min(b.w, b.d) / 2; if (b.it.type === 'lamp_bulb') { b.cyl(2, 2, 3, 0, 0, 0, mat(P.steel, 0.3, 0.8), 10); b.sph(r, 0, r + 3, 0, b.lv('#fffbe8', '#fff0b8', 1.8), 1, 1.15, 1); } else { b.sph(r * 0.9, 0, r * 0.9, 0, b.lv('#f6f3ea', '#ffd9a0', 1.3)); } });
+  reg('lamp_outdoor', b => { const { w, d, h } = b; b.box(w * 0.5, h * 0.18, 4, 0, h * 0.4, -d / 2 + 2, mat(P.black, 0.5, 0.5)); b.cyl(w * 0.22, w * 0.3, h * 0.6, 0, h * 0.2, -d * 0.1, b.lv('#f3f3ef', '#ffe3a0', 1.3), 14); b.cyl(w * 0.34, w * 0.2, 3, 0, h * 0.8, -d * 0.1, mat(P.black, 0.4, 0.5), 14); });
+  reg('lamp_garden', b => { const { h } = b; b.cyl(2.2, 2.6, h * 0.7, 0, 0, 0, mat('#2b2e33', 0.5, 0.5), 10); b.cyl(5, 5, h * 0.25, 0, h * 0.7, 0, b.lv('#f3f1ea', '#ffe3a0', 1.4), 14); b.cyl(6, 1, 3, 0, h * 0.95, 0, mat('#2b2e33', 0.5, 0.5), 14); });
+
+  // ---------- Elektro / Smart Home (Wand) ----------
+  function plate(b, n, o) {
+    o = o || {};
+    const s = Math.min(b.h, 11), W = o.w || s * (n || 1) * (n > 1 ? 0.95 : 1), z = b.d / 2 - 0.2;
+    b.rb(W, s, 1.4, 0.4, 0, 0, z, mat(o.col || '#f4f4f2', 0.35));
+    return { z: z + 0.8, s, W };
+  }
+  reg('outlet outlet_double outlet_smart outlet_usb outlet_outdoor outlet_floor outlet_cee plug', b => {
+    const t = b.it.type, n = t === 'outlet_double' ? 2 : 1;
+    if (t === 'plug') { const r = Math.min(b.w, b.d, b.h) / 2; b.rb(r * 1.6, r * 1.4, r * 1.2, 2, 0, 0, 0, mat('#f3f3f1', 0.35)); b.box(0.8, 3, 0.4, -1.4, r * 0.4, r * 0.6 + 1, mat(P.chrome, 0.2, 1)); b.box(0.8, 3, 0.4, 1.4, r * 0.4, r * 0.6 + 1, mat(P.chrome, 0.2, 1)); b.sph(0.8, 0, r * 1.2, r * 0.6, b.lv('#444', '#3de07a', 1.4)); return; }
+    const p = plate(b, n, { col: t === 'outlet_outdoor' ? '#6c7a89' : t === 'outlet_cee' ? '#2e6bd3' : '#f4f4f2' });
+    for (let i = 0; i < n; i++) { const x = (i - (n - 1) / 2) * p.s * 0.9; b.cyl(p.s * 0.34, p.s * 0.34, 0.6, x, p.s * 0.5, p.z, mat('#e2e2de', 0.5), 18).rotation.x = Math.PI / 2; b.cyl(0.55, 0.55, 0.4, x - 1.2, p.s * 0.5, p.z + 0.3, mat('#222'), 8).rotation.x = Math.PI / 2; b.cyl(0.55, 0.55, 0.4, x + 1.2, p.s * 0.5, p.z + 0.3, mat('#222'), 8).rotation.x = Math.PI / 2; }
+    if (t === 'outlet_smart') b.sph(0.7, 0, 1.2, p.z + 0.3, b.lv('#444', '#3de07a', 1.4)); if (t === 'outlet_usb') [-1, 1].forEach(s => b.box(2, 0.8, 0.4, s * 2.2, p.s * 0.2, p.z, mat('#1a1a1a')));
+  });
+  reg('switch switch_double dimmer button scene_switch smart_light_sw', b => {
+    const t = b.it.type, n = t === 'switch_double' ? 2 : 1, p = plate(b, n);
+    for (let i = 0; i < n; i++) { const x = (i - (n - 1) / 2) * p.s * 0.9; if (t === 'dimmer') b.cyl(p.s * 0.28, p.s * 0.28, 1, x, p.s * 0.5, p.z + 0.2, mat('#d9d9d4', 0.4), 18).rotation.x = Math.PI / 2; else if (t === 'button' || t === 'scene_switch') b.rb(p.s * 0.55, p.s * 0.55, 0.8, 0.5, x, p.s * 0.22, p.z, b.lv('#e9e9e4', '#9ad7ff', 1)); else b.rb(p.s * 0.6, p.s * 0.7, 0.8, 0.5, x, p.s * 0.15, p.z, b.lv('#eeeeea', '#ffe27a', 1)); }
+  });
+  reg('lan_socket tv_socket', b => { const p = plate(b, 1); b.box(p.s * 0.5, p.s * 0.35, 0.8, 0, p.s * 0.32, p.z, mat('#2a2a2a', 0.5)); });
+  reg('electric_panel', b => { const { w, d, h } = b; b.box(w, h, d, 0, 0, 0, mat('#cdd2d7', 0.5, 0.4)); b.box(w - 4, h - 4, 1, 0, 2, d / 2, mat('#e8ebee', 0.5)); for (let i = 0; i < 12; i++) b.box(2, 4, 1, -w / 2 + 6 + (i % 6) * 5.4, h * (i < 6 ? 0.62 : 0.3), d / 2 + 1, mat(i % 3 ? '#333' : '#c0392b')); });
+  reg('camera camera_ptz doorbell_cam', b => {
+    const { w, d, h } = b, t = b.it.type;
+    if (t === 'doorbell_cam') { b.rb(w, h, d * 0.6, 3, 0, 0, 0, mat('#2c3036', 0.4)); b.cyl(3, 3, 1, 0, h * 0.7, d * 0.3, b.lv('#101214', '#6fd0ff', 1.2), 16).rotation.x = Math.PI / 2; b.cyl(2.2, 2.2, 1, 0, h * 0.25, d * 0.3, b.lv('#ddd', '#7fe0ff', 1.4), 14).rotation.x = Math.PI / 2; return; }
+    if (t === 'camera_ptz') { b.cyl(2, 2, 8, 0, h - 8, 0, mat(P.white, 0.4), 12); b.sph(Math.min(w, d) * 0.4, 0, h - 14, 0, mat('#2a2d33', 0.15, 0.3)); b.sph(Math.min(w, d) * 0.4, 0, h - 14, 0, mat('#8aa', 0.05, 0.2, { transparent: true, opacity: 0.25 }), 1.05, 1.05, 1.05); return; }
+    b.box(5, 5, 8, 0, h - 8, -d / 2 + 4, mat(P.white, 0.4)); const body = b.cyl(5, 5, 14, 0, h - 14, 2, mat(P.white, 0.35), 18); body.rotation.x = Math.PI / 2 - 0.15; b.cyl(4, 4, 1, 0, h - 11.5, 9.2, b.lv('#0c0e10', '#6fd0ff', 1.2), 16).rotation.x = Math.PI / 2 - 0.15; b.sph(0.8, 3.5, h - 8, 7, b.lv('#400', '#ff3030', 1.6));
+  });
+  reg('sensor_motion sensor_presence sensor_lux glassbreak sensor_vibr', b => { const r = Math.min(b.w, b.d, 14) / 2, up = b.h > 12; b.cyl(r, r, 2.4, 0, up ? b.h - 2.4 : 0, 0, mat(P.white, 0.35), 24); b.sph(r * 0.62, 0, up ? b.h - 2.4 : 2.4, 0, mat('#eef1f2', 0.2, 0, { transparent: true, opacity: 0.9 }), 1, 0.7, 1); b.sph(0.6, r * 0.7, up ? b.h - 1 : 1.2, r * 0.3, b.lv('#400', '#3de07a', 1.6)); });
+  reg('smoke sensor_co sensor_co2 sensor_gas siren', b => { const r = Math.min(b.w, b.d, 18) / 2; b.cyl(r, r, 3.4, 0, b.h - 3.4, 0, mat(P.white, 0.35), 28); b.cyl(r * 0.6, r * 0.6, 0.6, 0, b.h - 3.8, 0, mat('#d8dcdf', 0.5), 20); b.sph(0.7, r * 0.7, b.h - 3.9, 0, b.lv('#400', '#3de07a', 1.6)); });
+  reg('sensor_temp sensor_hum sensor_contact sensor_leak sensor_vibr mailbox_sensor rain_sensor wind_sensor window_handle weather', b => {
+    const t = b.it.type;
+    if (t === 'weather') { b.cyl(1.2, 1.2, b.h * 0.7, 0, 0, 0, mat(P.grey, 0.4, 0.6), 8); for (let i = 0; i < 3; i++) b.sph(3, Math.cos(i * 2.1) * 6, b.h * 0.75, Math.sin(i * 2.1) * 6, mat(P.white, 0.3)); return; }
+    const s = Math.min(b.w, b.d, 10); b.rb(s, s, 2, 1.2, 0, 0, 0, mat(P.white, 0.35));
+    if (t === 'sensor_temp' || t === 'sensor_hum') b.box(s * 0.55, s * 0.3, 0.5, 0, s * 0.45, 1.1, b.lv('#1b2530', '#9be37a', 0.9)); else if (t === 'sensor_contact') { b.box(s * 0.28, s, 2, s * 1.1, 0, 0, mat(P.white, 0.35)); } else b.sph(0.7, 0, s * 0.5, 1.2, b.lv('#400', '#3de07a', 1.6));
+  });
+  reg('speaker', b => { const { w, d, h } = b; b.rb(w * 0.7, h, d * 0.7, 3, 0, 0, 0, mat('#26282c', 0.6)); b.cyl(w * 0.2, w * 0.2, 1, 0, h * 0.3, d * 0.35, mat('#111', 0.5), 18).rotation.x = Math.PI / 2; b.cyl(w * 0.08, w * 0.08, 1, 0, h * 0.78, d * 0.35, mat('#111', 0.5), 12).rotation.x = Math.PI / 2; });
+  reg('smart_speaker', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.8, r, b.h, 0, 0, 0, mat('#4a4f57', 0.95), 28); b.cyl(r * 0.8, r * 0.8, 1.2, 0, b.h, 0, b.lv('#222', '#4fb0ff', 1.3), 28); });
+  reg('soundbar', b => { b.rb(b.w, b.h, b.d, 2, 0, 0, 0, mat('#1e2024', 0.55)); b.box(b.w - 6, b.h * 0.5, 0.6, 0, b.h * 0.25, b.d / 2 + 0.1, mat('#111', 0.9)); b.sph(0.6, b.w / 2 - 4, b.h * 0.5, b.d / 2 + 0.3, b.lv('#222', '#4fd0ff', 1.6)); });
+  reg('smart_tv', b => {
+    const { w, d, h } = b; b.rb(w, 62, Math.max(3, d * 0.6), 1, 0, 6, 0, mat('#15171a', 0.35)); b.box(w - 2, 58, 0.5, 0, 8, Math.max(3, d * 0.6) / 2 + 0.1, b.lv('#07090c', '#7fb3ff', 0.55)); b.box(w * 0.3, 3, 18, 0, 0, 0, mat('#222', 0.4, 0.5)); b.box(4, 8, 4, 0, 0, -1, mat('#222', 0.4, 0.5));
+    void h;
+  });
+  reg('monitor projector', b => {
+    const { w, d, h } = b; if (b.it.type === 'projector') { b.rb(w, h, d, 3, 0, 0, 0, mat(P.white, 0.4)); b.cyl(h * 0.3, h * 0.3, 2, 0, h * 0.5, d / 2, mat('#222', 0.2), 16).rotation.x = Math.PI / 2; return; }
+    b.rb(w, h * 0.65, 2.5, 0.8, 0, h * 0.3, 0, mat('#16181b', 0.4)); b.box(w - 2, h * 0.6, 0.4, 0, h * 0.32, 1.4, b.lv('#080a0e', '#8fc0ff', 0.55)); b.box(3, h * 0.3, 3, 0, 0, -1, mat('#222', 0.4, 0.6)); b.box(w * 0.3, 1.4, d * 0.6, 0, 0, 2, mat('#222', 0.4, 0.6));
+  });
+  reg('pc nas ups server_rack hifi console knx smart_meter inverter battery heat_meter water_meter meter_power meter_gas pool_pump ev_charger wallbox alarm_panel keypad wall_tablet hub led_ctrl esp zigbee_router ble_proxy thread ir_blaster garage_opener fingerprint remote pet_feeder', b => {
+    const { w, d, h } = b, t = b.it.type;
+    if (t === 'server_rack') { b.box(w, h, d, 0, 0, 0, mat('#1b1d21', 0.5, 0.4)); for (let i = 0; i < 9; i++) { b.box(w - 8, h / 11, 1, 0, 5 + i * h / 10.5, d / 2 + 0.1, mat(i % 2 ? '#3a3d44' : '#2a2c31', 0.4, 0.5)); b.sph(0.6, w / 2 - 8, 5 + i * h / 10.5 + 2, d / 2 + 0.5, b.lv('#400', '#3de07a', 1.6)); } return; }
+    if (t === 'pc' || t === 'nas' || t === 'ups') { b.rb(w, h, d, 2, 0, 0, 0, mat('#1c1e22', 0.45, 0.2)); b.box(w * 0.7, h * 0.5, 0.4, 0, h * 0.2, d / 2 + 0.1, mat('#0e1013', 0.8)); b.sph(0.9, 0, h * 0.85, d / 2 + 0.3, b.lv('#223', '#4fa8ff', 1.8)); return; }
+    if (t === 'wall_tablet' || t === 'alarm_panel' || t === 'keypad') { b.rb(w, h, 2.5, 1.2, 0, 0, d / 2 - 1, mat('#1b1d21', 0.4)); b.box(w - 3, h - 3, 0.4, 0, 1.5, d / 2 + 0.3, b.lv('#07090c', '#7fb3ff', 0.6)); return; }
+    if (t === 'ev_charger' || t === 'wallbox') { b.rb(w, h, d, 4, 0, 0, 0, mat('#f1f2f3', 0.35)); b.box(w * 0.6, h * 0.12, 0.8, 0, h * 0.7, d / 2 + 0.2, b.lv('#1b2530', '#4fe08a', 1)); b.tor(8, 1, 0, h * 0.3, d / 2 + 1, mat('#222', 0.5), 14).rotation.y = 0; return; }
+    if (t === 'inverter' || t === 'battery' || t === 'heat_meter' || t === 'water_meter' || t === 'meter_power' || t === 'meter_gas' || t === 'smart_meter') { b.rb(w, h, d, 2, 0, 0, 0, mat(t === 'battery' ? '#d9dde1' : '#e6e8ea', 0.4)); b.box(w * 0.55, h * 0.22, 0.6, 0, h * 0.62, d / 2 + 0.1, b.lv('#1b2530', '#9be37a', 0.9)); if (t === 'meter_gas' || t === 'water_meter') b.cyl(3, 3, 1, 0, h * 0.3, d / 2 + 0.3, mat('#5a6068', 0.3, 0.7), 16).rotation.x = Math.PI / 2; return; }
+    b.rb(w * 0.9, Math.min(h, 12) || 8, d * 0.9, 1.5, 0, 0, 0, mat('#e9ebec', 0.4)); b.sph(0.7, w * 0.3, 7, d * 0.3, b.lv('#400', '#3de07a', 1.6));
+  });
+  reg('router', b => { const { w, d, h } = b; b.rb(w, h * 0.7, d, 2, 0, 0, 0, mat(P.white, 0.4)); [-1, 1].forEach(s => b.cyl(0.8, 0.8, h * 3, s * w * 0.38, h * 0.6, -d * 0.3, mat(P.black, 0.5), 8)); for (let i = 0; i < 4; i++) b.sph(0.6, -w * 0.3 + i * w * 0.2, h * 0.35, d / 2, b.lv('#262', '#3de07a', 1.6)); });
+  reg('dongle', b => { b.rb(b.w * 0.9, 5, b.d * 0.4, 1.4, 0, 0, 0, mat('#2a2d33', 0.4)); b.box(b.w * 0.3, 3, b.d * 0.3, 0, 0.5, b.d * 0.34, mat(P.chrome, 0.2, 1)); b.sph(0.7, -b.w * 0.2, 5, 0, b.lv('#400', '#3dc0ff', 1.6)); });
+  reg('vacuum', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r, r, b.h * 0.9, 0, 0, 0, mat('#2b2e33', 0.35), 32); b.cyl(r * 0.6, r * 0.6, 0.8, 0, b.h * 0.9, 0, mat('#dfe3e6', 0.3), 28); b.sph(r * 0.1, 0, b.h * 0.95, r * 0.4, b.lv('#222', '#4fe08a', 1.6)); });
+  reg('lock', b => { const { w, d, h } = b; b.rb(w * 0.55, h, 3, 1.5, 0, 0, d / 2 - 1.5, mat('#2a2d33', 0.4, 0.5)); b.cyl(h * 0.3, h * 0.3, 2, 0, h * 0.62, d / 2 + 1, mat(P.chrome, 0.2, 1), 16).rotation.x = Math.PI / 2; b.sph(0.7, 0, h * 0.2, d / 2 + 1.5, b.lv('#400', '#3de07a', 1.6)); });
+  reg('printer printer3d', b => {
+    const { w, d, h } = b; if (b.it.type === 'printer3d') { const fr = mat('#2a2d33', 0.4, 0.4); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(2.5, h, 2.5, x * (w / 2 - 1.5), 0, z * (d / 2 - 1.5), fr)); b.box(w, 3, d, 0, 0, 0, fr); b.box(w, 3, 3, 0, h - 3, 0, fr); b.box(w * 0.6, 1.4, d * 0.6, 0, h * 0.25, 0, mat('#4d5560', 0.4, 0.6)); b.box(w * 0.7, h * 0.5, 0.4, 0, h * 0.25, d / 2 - 1, b.glass()); return; }
+    b.rb(w, h, d, 2, 0, 0, 0, mat('#e5e7e9', 0.45)); b.box(w * 0.7, 2, d * 0.3, 0, h * 0.35, d / 2 + 4, mat('#f7f7f5', 0.7)); b.box(w * 0.7, 1.2, 4, 0, h * 0.4, d / 2 - 1, mat('#222')); b.box(8, 3, 0.6, w * 0.3, h * 0.85, d / 2 + 0.1, b.lv('#1b2530', '#7fe3a0', 0.9));
+  });
+  reg('blind curtain_motor awning shutter_outdoor', b => {
+    const { w, d, h } = b, t = b.it.type; b.box(w, 6, 6, 0, h - 6, 0, mat(P.white, 0.4));
+    if (t === 'awning') { const m = b.box(w, 1.5, 200, 0, h - 8, 100, mat('#e0554f', 0.85)); m.rotation.x = 0.12; return; }
+    const L = t === 'shutter_outdoor' ? 80 : 120; for (let i = 0; i < 22; i++) b.box(w - 4, 2.5, 1, 0, h - 8 - i * 5, 0, mat(t === 'curtain_motor' ? '#cdbfa9' : '#f0efea', 0.8)); void L;
+  });
+  reg('curtain', b => { const { w, d, h } = b, n = Math.max(6, Math.round(w / 8)); b.cyl(1, 1, w, 0, h - 3, 0, mat(P.black, 0.4, 0.6), 8).rotation.z = Math.PI / 2; for (let i = 0; i < n; i++) { const x = -w / 2 + (i + 0.5) * w / n, dz = (i % 2) * 2.4; b.box(w / n * 0.92, h - 6, 1.4, x, 0, dz - 1, mat(b.col || '#d9d2c3', 0.95)); } });
+
+  // ---------- Treppen ----------
+  reg('stairs stairs_wide stairs_basement stairs_outdoor', b => {
+    const { w, d, h } = b, n = Math.max(6, Math.round(h / 18)), th = h / n, rd = d / n, wd = mat(b.it.type === 'stairs_outdoor' ? P.concrete : P.oak, 0.6), st = mat(b.it.type === 'stairs_outdoor' ? '#9aa0a6' : P.walnut, 0.6);
+    for (let i = 0; i < n; i++) { b.box(w, th * (i + 1) * 0.98, rd, 0, 0, d / 2 - rd * (i + 0.5), st); b.box(w + 1, 2.5, rd + 1, 0, th * (i + 1) - 2.5, d / 2 - rd * (i + 0.5), wd); }
+    [-1, 1].forEach(s => { const L = Math.hypot(d, h), m = b.box(2.5, 3, L, s * (w / 2 - 1.5), 0, 0, mat(P.walnut, 0.5)); m.position.set(s * (w / 2 - 1.5), h / 2 + 85, 0); m.rotation.x = Math.atan2(h, d); b.cyl(1.3, 1.3, 85, s * (w / 2 - 1.5), h + 0, -d / 2 + 2, mat(P.walnut, 0.5), 8).position.y = h + 42; });
+    for (let i = 0; i < n; i += 3) [-1, 1].forEach(s => b.cyl(1.3, 1.3, 85, s * (w / 2 - 1.5), th * (i + 1), d / 2 - rd * (i + 0.5), mat(P.walnut, 0.5), 8));
+  });
+  reg('stairs_L', b => {
+    const { w, d, h } = b, n = Math.max(8, Math.round(h / 18)), th = h / n, n1 = Math.round(n / 2), st = mat(P.walnut, 0.6), wd = mat(P.oak, 0.6), ww = Math.min(w, d) * 0.5;
+    const rd = (d - ww) / n1; for (let i = 0; i < n1; i++) { b.box(ww, th * (i + 1), rd, -w / 2 + ww / 2, 0, d / 2 - rd * (i + 0.5), st); b.box(ww + 1, 2.5, rd + 1, -w / 2 + ww / 2, th * (i + 1) - 2.5, d / 2 - rd * (i + 0.5), wd); }
+    b.box(ww, th * (n1 + 1), ww, -w / 2 + ww / 2, 0, -d / 2 + ww / 2, wd);
+    const n2 = n - n1 - 1, rw = (w - ww) / Math.max(1, n2); for (let i = 0; i < n2; i++) { b.box(rw, th * (n1 + 2 + i), ww, -w / 2 + ww + rw * (i + 0.5), 0, -d / 2 + ww / 2, st); b.box(rw + 1, 2.5, ww + 1, -w / 2 + ww + rw * (i + 0.5), th * (n1 + 2 + i) - 2.5, -d / 2 + ww / 2, wd); }
+  });
+  reg('stairs_U', b => {
+    const { w, d, h } = b, n = Math.max(8, Math.round(h / 18)), th = h / n, n1 = Math.round(n / 2) - 1, st = mat(P.walnut, 0.6), wd = mat(P.oak, 0.6), ww = (w - 6) / 2, ld = Math.min(ww * 1.1, d * 0.3), rd = (d - ld) / n1;
+    for (let i = 0; i < n1; i++) { b.box(ww, th * (i + 1), rd, -w / 2 + ww / 2, 0, d / 2 - rd * (i + 0.5), st); b.box(ww + 1, 2.5, rd + 1, -w / 2 + ww / 2, th * (i + 1) - 2.5, d / 2 - rd * (i + 0.5), wd); }
+    b.box(w, th * (n1 + 1), ld, 0, 0, -d / 2 + ld / 2, wd);
+    const n2 = n - n1 - 1; const rd2 = (d - ld) / Math.max(1, n2); for (let i = 0; i < n2; i++) { b.box(ww, th * (n1 + 2 + i), rd2, w / 2 - ww / 2, 0, -d / 2 + ld + rd2 * (i + 0.5), st); b.box(ww + 1, 2.5, rd2 + 1, w / 2 - ww / 2, th * (n1 + 2 + i) - 2.5, -d / 2 + ld + rd2 * (i + 0.5), wd); }
+  });
+  reg('stairs_spiral stairs_spiral_small', b => {
+    const { w, d, h } = b, R0 = Math.min(w, d) / 2, n = Math.max(12, Math.round(h / 19)), th = h / n, st = mat(P.oak, 0.55), mt = mat(P.black, 0.4, 0.6), turn = 1.35 * Math.PI * 2 * (h / 260), da = turn / n;
+    b.cyl(5, 5, h, 0, 0, 0, mt, 14);
+    for (let i = 0; i < n; i++) {
+      const a0 = i * da - Math.PI / 2, geo = new T.CylinderGeometry(R0, R0, 4, 8, 1, false, a0, da * 1.15), m = b.add(geo, st, 0, th * (i + 1) - 2, 0); void m;
+      const a = a0 + da / 2 + Math.PI / 2; b.cyl(1, 1, 80, Math.sin(a) * (R0 - 2), th * (i + 1), Math.cos(a) * (R0 - 2), mt, 6);
+    }
+  });
+
+  // ---------- Deko / Pflanzen ----------
+  reg('plant plant_big plant_small', b => {
+    const { w, d, h } = b, r = Math.min(w, d) / 2, ph = h * 0.28;
+    b.cyl(r * 0.75, r * 0.55, ph, 0, 0, 0, mat('#b5653a', 0.8), 16); b.cyl(r * 0.7, r * 0.7, 1, 0, ph, 0, mat(P.soil, 1), 16);
+    for (let i = 0; i < 9; i++) { const a = i * 2.4, k = 0.5 + (i % 3) * 0.25; b.sph(r * 0.5, Math.cos(a) * r * 0.5 * k, ph + (h - ph) * (0.3 + 0.07 * i), Math.sin(a) * r * 0.5 * k, mat(i % 2 ? P.leaf : '#4a8f45', 0.8), 1, 1.4, 1); }
+  });
+  reg('rug rug_round playmat', b => { const { w, d } = b; if (b.it.shape === 'ellipse' || b.it.type === 'rug_round') { b.cyl(w / 2, w / 2, 1.4, 0, 0, 0, mat(b.col || '#b9a58c', 1), 36); b.cyl(w / 2 - 6, w / 2 - 6, 1.6, 0, 0, 0, mat('#d8cbb4', 1), 36); } else { b.rb(w, 1.6, d, 0.6, 0, 0, 0, mat(b.col || '#b9a58c', 1)); b.rb(w - 12, 1.8, d - 12, 0.6, 0, 0, 0, mat('#d8cbb4', 1)); } });
+  reg('pillar pillar_round chimney', b => { const t = b.it.type, m = mat(b.col || (t === 'chimney' ? P.brick : '#d8d6d0'), 0.8); if (t === 'pillar_round') b.cyl(b.w / 2, b.w / 2, b.h, 0, 0, 0, m, 24); else b.box(b.w, b.h, b.d, 0, 0, 0, m); });
+  reg('niche', b => { b.box(b.w, b.h, b.d, 0, 0, 0, mat('#d5d0c7', 0.8)); });
+  reg('elevator', b => { const { w, d, h } = b; b.box(w, h, d, 0, 0, 0, mat('#c8ccd1', 0.35, 0.7)); b.box(w * 0.7, h * 0.85, 1, 0, 0, d / 2 + 0.2, mat('#aab0b6', 0.25, 0.9)); b.box(1, h * 0.85, 1.4, 0, 0, d / 2 + 0.6, mat('#2a2d33')); });
+  reg('safe', b => { const { w, d, h } = b; b.rb(w, h, d, 2, 0, 0, 0, mat('#3a3f47', 0.4, 0.7)); b.cyl(h * 0.2, h * 0.2, 2, 0, h * 0.5, d / 2 + 0.3, mat(P.chrome, 0.2, 1), 20).rotation.x = Math.PI / 2; b.box(h * 0.14, h * 0.1, 1, w * 0.3, h * 0.78, d / 2 + 0.2, b.lv('#101214', '#7fe3a0', 1)); });
+  reg('fire_ext', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.7, r * 0.7, b.h * 0.75, 0, 0, 0, mat('#c0392b', 0.4, 0.3), 16); b.cyl(r * 0.25, r * 0.25, b.h * 0.1, 0, b.h * 0.75, 0, mat(P.black), 10); b.box(r * 1.2, 1.5, 1.5, 0, b.h * 0.87, 0, mat(P.black)); });
+  reg('cable_duct', b => b.box(b.w, b.h, b.d, 0, 0, 0, mat('#e4e6e8', 0.6)));
+  reg('aquarium', b => { const { w, d, h } = b; b.box(w, h * 0.35, d, 0, 0, 0, mat('#3a2e26', 0.6)); b.box(w - 2, h * 0.6, d - 2, 0, h * 0.35, 0, mat(P.water, 0.05, 0.1, { transparent: true, opacity: 0.4, depthWrite: false })); b.box(w - 4, 3, d - 4, 0, h * 0.35, 0, mat('#d8c9a0', 1)); for (let i = 0; i < 4; i++) b.sph(2.4, -w * 0.3 + i * w * 0.2, h * 0.6, (i % 2 - 0.5) * d * 0.3, mat(i % 2 ? '#ff8a3d' : '#ffd23d', 0.4), 1.6, 1, 0.7); b.box(w, 2, d, 0, h * 0.95, 0, b.lv('#222', '#bfe9ff', 0.8)); });
+  reg('whiteboard', b => { b.box(b.w, b.h, b.d, 0, 0, 0, mat('#8f949a', 0.4, 0.6)); b.box(b.w - 3, b.h - 3, 0.6, 0, 1.5, b.d / 2, mat('#fbfbfb', 0.3)); });
+  reg('toy_box', b => { b.rb(b.w, b.h, b.d, 2, 0, 0, 0, mat(b.col || '#e8a33d', 0.7)); b.sph(5, -b.w * 0.2, b.h + 3, 0, mat('#e74c3c', 0.5)); b.box(8, 8, 8, b.w * 0.15, b.h, 0, mat('#3498db', 0.6)); });
+  reg('cat_tree', b => { const { w, d, h } = b, c = mat('#cdb996', 0.95); b.cyl(w * 0.5, w * 0.5, 4, 0, 0, 0, c, 20); b.cyl(4, 4, h * 0.9, 0, 0, 0, mat('#b49a74', 1), 12); b.cyl(w * 0.4, w * 0.4, 3, 0, h * 0.4, 0, c, 20); b.cyl(w * 0.35, w * 0.35, 3, 0, h * 0.9, 0, c, 20); });
+  reg('dog_bed', b => { const { w, d, h } = b; b.rb(w, h, d, h * 0.45, 0, 0, 0, mat(b.col || '#8a6f5a', 1)); b.rb(w - 14, h * 0.5, d - 14, 3, 0, h * 0.4, 0, mat('#cbb8a2', 1)); });
+  reg('litter cage pet_flap', b => { b.rb(b.w, b.h, b.d, 2, 0, 0, 0, mat('#cfd6dc', 0.6)); });
+  reg('playpen', b => { const { w, d, h } = b, wd = mat(P.birch, 0.5); b.box(w, 3, d, 0, 0, 0, mat('#8fb8d8', 1)); for (let i = 0; i < 8; i++) { const x = -w / 2 + 3 + i * (w - 6) / 7; b.box(1.6, h - 6, 1.6, x, 3, d / 2 - 1.5, wd); b.box(1.6, h - 6, 1.6, x, 3, -d / 2 + 1.5, wd); const z = -d / 2 + 3 + i * (d - 6) / 7; b.box(1.6, h - 6, 1.6, w / 2 - 1.5, 3, z, wd); b.box(1.6, h - 6, 1.6, -w / 2 + 1.5, 3, z, wd); } [[0, d / 2 - 1.5, w, 3], [0, -d / 2 + 1.5, w, 3]].forEach(([x, z, W, D]) => b.box(W, 3, D, x, h - 4, z, wd)); [[w / 2 - 1.5, 0, 3, d], [-w / 2 + 1.5, 0, 3, d]].forEach(([x, z, W, D]) => b.box(W, 3, D, x, h - 4, z, wd)); });
+  reg('console', b => { b.rb(b.w, b.h, b.d, 2, 0, 0, 0, mat('#e8eaed', 0.35)); b.sph(0.7, b.w * 0.4, b.h * 0.7, b.d / 2, b.lv('#222', '#4fb0ff', 1.6)); });
+
+  // ---------- Außen ----------
+  reg('car', b => {
+    const { w, d, h } = b, col = mat(b.col || '#b8bfc7', 0.25, 0.6), tire = mat('#16171a', 0.8);
+    b.rb(w, h * 0.42, d, 10, 0, h * 0.2, 0, col); b.rb(w * 0.9, h * 0.34, d * 0.52, 12, 0, h * 0.6, -d * 0.03, mat('#1d2a38', 0.08, 0.4));
+    b.rb(w * 0.86, h * 0.1, d * 0.5, 8, 0, h * 0.92, -d * 0.03, col);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => { const m = b.cyl(h * 0.2, h * 0.2, 22, x * (w / 2 - 6), 0, z * d * 0.32, tire, 20); m.rotation.z = Math.PI / 2; m.position.y = h * 0.2; b.cyl(h * 0.12, h * 0.12, 23, x * (w / 2 - 6), 0, z * d * 0.32, mat(P.chrome, 0.2, 0.9), 14).rotation.z = Math.PI / 2; });
+    [-1, 1].forEach(s => { b.box(w * 0.2, 6, 2, s * w * 0.33, h * 0.36, d / 2, b.lv('#fff', '#fff6d0', 1.3)); b.box(w * 0.2, 6, 2, s * w * 0.33, h * 0.36, -d / 2, mat('#b1262c', 0.4)); });
+  });
+  reg('carport', b => { const { w, d, h } = b; [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(10, 250, 10, x * (w / 2 - 5), 0, z * (d / 2 - 5), mat('#4a4f57', 0.5, 0.5))); b.box(w, 8, d, 0, 250, 0, mat('#8b9096', 0.5, 0.4)); });
+  reg('garage_door', b => { const { w, d, h } = b; for (let i = 0; i < 6; i++) b.box(w - 2, h / 6 - 0.5, d, 0, i * h / 6, 0, mat('#d9dce0', 0.5)); });
+  reg('bike', b => { const { w, d, h } = b, m = mat('#c0392b', 0.4, 0.5); [-1, 1].forEach(s => { const t = b.tor(h * 0.36, 1.4, 0, h * 0.36, s * d * 0.34, mat('#1a1a1a', 0.9), 28); t.rotation.y = Math.PI / 2; }); b.box(1.6, 1.6, d * 0.7, 0, h * 0.55, 0, m); b.box(1.6, h * 0.4, 1.6, 0, h * 0.4, -d * 0.1, m).rotation.x = 0.3; b.box(w, 1.5, 1.5, 0, h * 0.95, d * 0.34, mat(P.black)); });
+  reg('lounger', b => { const { w, d, h } = b, f = mat(P.white, 0.5), wd = mat('#8c6a4a', 0.6); b.box(w, 4, d * 0.6, 0, h * 0.5, d * 0.2, mat('#d9d5c9', 0.9)); const bk = b.box(w, 4, d * 0.4, 0, h * 0.7, -d * 0.33, mat('#d9d5c9', 0.9)); bk.rotation.x = 0.7; [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(3, h * 0.5, 3, x * (w / 2 - 3), 0, z * d * 0.4, wd)); void f; });
+  reg('grill', b => { const r = Math.min(b.w, b.d) / 2; b.sph(r * 0.9, 0, b.h * 0.62, 0, mat('#1e2024', 0.35, 0.5), 1, 0.7, 1); b.sph(r * 0.9, 0, b.h * 0.62, 0, mat('#2a2d33', 0.35, 0.5), 1, 0.35, 1); [[-1, -1], [1, -1], [0, 1]].forEach(([x, z]) => b.cyl(1.5, 1, b.h * 0.55, x * r * 0.6, 0, z * r * 0.55, mat(P.black), 8)); b.box(r * 1.4, 2, 3, 0, b.h * 0.85, r * 0.85, mat(P.black)); });
+  reg('pool', b => { const { w, d } = b; b.box(w, 4, d, 0, 0, 0, mat('#e6e1d6', 0.6)); b.box(w - 24, 3, d - 24, 0, 1, 0, mat(P.water, 0.04, 0.25, { transparent: true, opacity: 0.82, emissive: 0x0a3a52, emissiveIntensity: 0.25 })); });
+  reg('tree', b => { const { w, d, h } = b, r = Math.min(w, d) / 2; b.cyl(r * 0.08, r * 0.12, h * 0.45, 0, 0, 0, mat('#6b4a32', 0.9), 10); [[0, 0.62, 0, 0.95], [0.4, 0.5, 0.2, 0.7], [-0.35, 0.55, -0.2, 0.7], [0.1, 0.8, 0.1, 0.6]].forEach(([x, y, z, s], i) => b.sph(r * s, x * r, h * y, z * r, mat(i % 2 ? '#4f8a3f' : '#5d9b4a', 0.9), 1, 0.95, 1)); });
+  reg('bush', b => { const r = Math.min(b.w, b.d) / 2; [[0, 0, 0, 1], [0.5, 0, 0.2, 0.7], [-0.5, 0, -0.2, 0.7]].forEach(([x, y, z, s], i) => b.sph(r * s, x * r, r * 0.8 * s, z * r, mat(i % 2 ? '#468a3d' : '#59a04a', 0.9), 1, 0.85, 1)); });
+  reg('hedge', b => { b.rb(b.w, b.h, b.d, 6, 0, 0, 0, mat('#3f7d3a', 0.95)); });
+  reg('fence', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.7), n = Math.max(2, Math.round(w / 60)); for (let i = 0; i <= n; i++) b.box(5, h, 5, -w / 2 + i * w / n, 0, 0, wd); [0.3, 0.75].forEach(y => b.box(w, 5, 2.5, 0, h * y, 2, wd)); for (let i = 0; i < n * 5; i++) b.box(7, h * 0.9, 1.5, -w / 2 + 6 + i * (w - 12) / (n * 5 - 1), 2, -1, mat('#b98a58', 0.7)); void d; });
+  reg('gate', b => { const { w, d, h } = b, m = mat('#2d3238', 0.4, 0.6); [-1, 1].forEach(s => b.box(8, h, 8, s * (w / 2 - 4), 0, 0, m)); b.box(w - 16, 4, 3, 0, h * 0.2, 0, m); b.box(w - 16, 4, 3, 0, h * 0.85, 0, m); for (let i = 0; i < 12; i++) b.box(2, h * 0.7, 2, -w / 2 + 12 + i * (w - 24) / 11, h * 0.2, 0, m); void d; });
+  reg('flowerbed', b => { const { w, d, h } = b; b.rb(w, h, d, 3, 0, 0, 0, mat('#8e8a82', 0.9)); b.box(w - 8, 1, d - 8, 0, h - 0.5, 0, mat(P.soil, 1)); const cs = ['#e74c3c', '#f1c40f', '#e67eb4', '#9b59b6']; for (let i = 0; i < 14; i++) { const x = -w / 2 + 12 + (i * 37 % 100) / 100 * (w - 24), z = -d / 2 + 10 + ((i * 53) % 100) / 100 * (d - 20); b.cyl(0.5, 0.5, 10, x, h, z, mat(P.leaf), 5); b.sph(3, x, h + 11, z, mat(cs[i % 4], 0.6)); } });
+  reg('lawn', b => { b.rb(b.w, b.h + 1, b.d, 0.5, 0, 0, 0, mat(b.col || '#6aa84f', 1)); });
+  reg('terrace', b => { b.box(b.w, b.h + 2, b.d, 0, 0, 0, mat(b.col || '#a68a6a', 0.8)); const n = Math.round(b.d / 12); for (let i = 1; i < n; i++) b.box(b.w, 0.4, 0.4, 0, b.h + 2, -b.d / 2 + i * 12, mat('#6d573f', 0.9)); });
+  reg('driveway', b => { b.box(b.w, b.h + 1, b.d, 0, 0, 0, mat(b.col || '#9a9ea3', 0.95)); });
+  reg('mailbox', b => { const { w, d, h } = b; b.box(3, h * 0.55, 3, 0, 0, 0, mat('#4a4f57', 0.5, 0.5)); b.rb(w, h * 0.35, d, 3, 0, h * 0.62, 0, mat('#d9a521', 0.5)); b.box(w * 0.7, 1, 1, 0, h * 0.76, d / 2, mat(P.black)); });
+  reg('shed', b => { const { w, d, h } = b; b.box(w, h * 0.78, d, 0, 0, 0, mat('#a97c50', 0.75)); const sh = new T.Shape(); sh.moveTo(-w / 2 - 8, 0); sh.lineTo(w / 2 + 8, 0); sh.lineTo(0, h * 0.28); sh.closePath(); const geo = new T.ExtrudeGeometry(sh, { depth: d + 12, bevelEnabled: false }); geo.translate(0, 0, -(d + 12) / 2); b.add(geo, mat('#5a3d2a', 0.8), 0, h * 0.78, 0).rotation.y = 0; b.box(w * 0.3, h * 0.6, 1, -w * 0.2, 0, d / 2 + 0.3, mat('#7d5a38', 0.7)); b.box(w * 0.22, h * 0.25, 1, w * 0.22, h * 0.3, d / 2 + 0.3, b.glass()); });
+  reg('rain_barrel', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r, r * 0.92, b.h, 0, 0, 0, mat('#2f6f4a', 0.5), 24); [0.2, 0.8].forEach(y => b.tor(r * 0.97, 1, 0, b.h * y, 0, mat('#1f3d2c', 0.5), 28).rotation.x = Math.PI / 2); });
+  reg('sandbox', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.7); b.box(w, h * 0.5, d, 0, 0, 0, mat('#e2cf9a', 1)); b.box(w, h, 3, 0, 0, d / 2 - 1.5, wd); b.box(w, h, 3, 0, 0, -d / 2 + 1.5, wd); b.box(3, h, d, w / 2 - 1.5, 0, 0, wd); b.box(3, h, d, -w / 2 + 1.5, 0, 0, wd); });
+  reg('trampoline', b => { const { w, d, h } = b, r = Math.min(w, d) / 2; b.tor(r * 0.95, 2, 0, h, 0, mat('#2a4d8f', 0.5), 36).rotation.x = Math.PI / 2; b.cyl(r * 0.9, r * 0.9, 1, 0, h - 1, 0, mat('#1a1a1a', 0.9), 36); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; b.cyl(1.4, 1.4, h, Math.cos(a) * r * 0.9, 0, Math.sin(a) * r * 0.9, mat(P.chrome, 0.3, 0.8), 8); } });
+  reg('swing', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.7); [-1, 1].forEach(s => { [-1, 1].forEach(z => { const m = b.box(6, h, 6, s * (w / 2 - 3), 0, z * d * 0.4, wd); m.rotation.z = -s * 0.12; m.rotation.x = z * 0.0; }); }); b.box(w, 8, 8, 0, h - 8, 0, wd); [-0.25, 0.25].forEach(x => { b.cyl(0.4, 0.4, h * 0.75, x * w, h * 0.22, 0, mat(P.chrome, 0.3, 0.8), 6); b.box(w * 0.2, 3, 22, x * w, h * 0.2, 0, mat('#2e86c1', 0.6)); }); });
+  reg('firepit', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r, r * 0.9, b.h, 0, 0, 0, mat('#4a4f57', 0.6, 0.5), 28); b.cyl(r * 0.8, r * 0.8, 1, 0, b.h - 0.5, 0, mat('#15110d'), 28); b.sph(r * 0.4, 0, b.h + 4, 0, b.lv('#2a1a10', '#ff7a1a', 1.5), 1, 1.2, 1); });
+  reg('parasol', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(1.6, 1.6, b.h, 0, 0, 0, mat(P.chrome, 0.4, 0.7), 8); b.add(new T.CylinderGeometry(2, r, b.h * 0.14, 18, 1, true), mat('#e8dcc4', 0.9, 0, { side: T.DoubleSide }), 0, b.h * 0.86, 0); b.cyl(r * 0.2, r * 0.2, 4, 0, 0, 0, mat('#555'), 10); });
+  reg('bell', b => { const p = plate(b, 1); b.cyl(p.s * 0.28, p.s * 0.28, 1, 0, p.s * 0.5, p.z + 0.2, b.lv('#d9d9d4', '#ffe27a', 1.2), 18).rotation.x = Math.PI / 2; });
+  reg('irrigation smart_blind_ctrl', b => { const r = Math.min(b.w, b.d) / 2; b.rb(r * 1.6, Math.max(6, b.h), r * 1.6, 2, 0, 0, 0, mat('#2f6f4a', 0.5)); b.sph(0.7, 0, Math.max(6, b.h), 0, b.lv('#400', '#3de07a', 1.6)); });
+  reg('powerstrip', b => { const { w, d } = b; b.rb(w, 3.2, 8, 1.2, 0, 0, 0, mat('#f1f1ef', 0.4)); for (let i = 0; i < 5; i++) b.box(5, 0.6, 5, -w / 2 + 6 + i * (w - 12) / 4, 3.2, 0, mat('#1c1c1c', 0.5)); b.box(4, 1.4, 1.5, w / 2 - 3, 3.2, 3, b.lv('#400', '#ff4a3a', 1.4)); void d; });
+  reg('window_small window_skylight archway door_front door_terrace door_sliding window_corner window_double_big', () => null);
+
+  function build(THREE, it, w, d, h, col) {
+    T = THREE;
+    const fn = R[it.type];
+    if (!fn) return null;
+    const b = mk(it, w, d, h, col);
+    try { fn(b); } catch (e) { if (typeof console !== 'undefined') console.warn('3D-Modell ' + it.type + ':', e.message); return null; }
+    if (!b.g.children.length) return null;
+    return { group: b.g, live: b.live };
+  }
+  function reset(THREE) { T = THREE; cache = new Map(); }
+  const has = (type) => !!R[type];
+  return { build, reset, has, count: () => Object.keys(R).length };
+})();
+
+/* ---- view3d.js ---- */
+// ---------- 3D-Ansicht (three.js wird bei Bedarf nachgeladen; geteilt von Editor und Karte) ----------
+// Einheiten: 1 Einheit = 1 cm. Plan-X → X, Plan-Y → Z, Höhe → Y.
+const FP3D = (() => {
+  let loading = null;
+  function load(base) {
+    if (window.THREE_LITE) return Promise.resolve(window.THREE_LITE);
+    if (loading) return loading;
+    loading = new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = base + 'three-lite.js';
+      s.onload = () => (window.THREE_LITE ? res(window.THREE_LITE) : rej(new Error('three.js fehlt')));
+      s.onerror = () => { loading = null; rej(new Error('3D-Bibliothek konnte nicht geladen werden')); };
+      document.head.appendChild(s);
+    });
+    return loading;
+  }
+
+  // [Höhe, Höhe über Boden]; Höhe über Boden -1 = an der Decke
+  const H3 = {
+    bed_double: [55, 0], bed_single: [55, 0], bed_kid: [45, 0], bed_bunk: [160, 0], crib: [80, 0], daybed: [50, 0],
+    sofa: [85, 0], sofa_corner: [85, 0], sofa_2: [85, 0], armchair: [85, 0], recliner: [95, 0], ottoman: [40, 0], stool: [45, 0], bench: [45, 0], bar_stool: [75, 0], highchair: [80, 0],
+    table_coffee: [42, 0], table_dining: [75, 0], table_side: [50, 0], table_round: [75, 0], table_bar: [105, 0], chair: [45, 0], office_chair: [50, 0], desk: [75, 0], desk_corner: [75, 0],
+    wardrobe: [210, 0], wardrobe_sliding: [230, 0], shelf: [180, 0], bookcase: [190, 0], dresser: [85, 0], tv_board: [50, 0], sideboard: [80, 0], wall_unit: [210, 0], nightstand: [50, 0],
+    vanity: [75, 0], coat_rack: [190, 0], shoe_rack: [110, 0], cabinet: [120, 0], mirror: [160, 30], piano: [120, 0], changing: [95, 0], tv_stand: [60, 0],
+    fridge: [180, 0], freezer: [180, 0], fridge_side: [180, 0], stove: [90, 0], oven: [90, 0], sink_kitchen: [90, 0], dishwasher: [85, 0], dishwasher_tall: [85, 0], washer: [85, 0], dryer: [85, 0],
+    microwave: [30, 90], hood: [40, 150], coffee: [35, 90], kettle: [25, 90], counter: [90, 0], cabinet_base: [90, 0], cabinet_wall: [70, 140], kitchen_island: [92, 0], pantry: [210, 0], trash: [60, 0],
+    bathtub: [55, 0], shower: [6, 0], shower_tray: [6, 0], shower_walkin: [6, 0], toilet: [42, 0], toilet_wall: [42, 0], bidet: [40, 0], basin: [85, 0], basin_double: [85, 0], washstand: [85, 0],
+    mirror_cabinet: [70, 120], towel_radiator: [120, 20], sauna: [210, 0], whirlpool: [70, 0], water_heater: [80, 120], utility_sink: [85, 0],
+    radiator: [60, 10], thermostat: [12, 130], ac: [30, 200], fan: [90, 0], fireplace: [110, 0], boiler: [130, 0], fan_ceiling: [25, -1], floor_heating: [3, 0], heat_pump: [130, 0],
+    air_purifier: [60, 0], humidifier: [40, 0], dehumidifier: [60, 0], ventilation: [30, 0], pellet: [110, 0], water_tank: [160, 0], heater_elec: [30, 0], heat_valve: [8, 25], heat_dist: [60, 90],
+    split_ac: [30, 210], chimney_stove: [110, 0], solar_thermal: [60, 0],
+    lamp_ceiling: [8, -1], lamp_floor: [160, 0], lamp_wall: [14, 180], lamp_spot: [8, -1], lamp_strip: [3, -1], lamp_pendant: [30, -2], chandelier: [40, -2], lamp_table: [32, 75], lamp_desk: [40, 75],
+    lamp_night: [12, 30], lamp_mirror: [8, 190], light_panel: [4, -1], lamp_bulb: [12, 190], lamp_outdoor: [25, 200], lamp_garden: [50, 0], lamp_arc: [200, 0], light_string: [3, -1],
+    outlet: [8, 30], outlet_double: [8, 30], outlet_usb: [8, 30], outlet_outdoor: [8, 40], outlet_floor: [2, 0], outlet_smart: [8, 30], outlet_cee: [8, 100], plug: [10, 30], powerstrip: [5, 5],
+    switch: [8, 105], switch_double: [8, 105], dimmer: [8, 105], button: [6, 105], scene_switch: [6, 105], smart_light_sw: [8, 105], lan_socket: [8, 30], tv_socket: [8, 30],
+    camera: [14, 230], camera_ptz: [18, 230], doorbell_cam: [18, 130], sensor_motion: [10, 220], smoke: [6, -1], sensor_presence: [8, -1], sensor_temp: [8, 140], sensor_hum: [8, 140],
+    speaker: [30, 100], smart_speaker: [22, 90], soundbar: [8, 50], smart_tv: [65, 80], monitor: [45, 75], pc: [45, 0], nas: [30, 0], server_rack: [190, 0], printer: [30, 75], printer3d: [45, 75],
+    blind: [10, 190], router: [10, 100], dongle: [10, 100], vacuum: [10, 0], lock: [10, 105], wallbox: [35, 110], meter_power: [30, 120], meter_gas: [30, 120],
+    stairs: [260, 0], stairs_wide: [260, 0], stairs_L: [260, 0], stairs_U: [260, 0], stairs_spiral: [260, 0], stairs_spiral_small: [260, 0], stairs_outdoor: [100, 0], stairs_basement: [260, 0],
+    plant: [90, 0], plant_big: [130, 0], plant_small: [30, 0], rug: [2, 0], rug_round: [2, 0], pillar: [250, 0], pillar_round: [250, 0], curtain: [240, 0], painting: [60, 140], playmat: [2, 0],
+    car: [150, 0], carport: [2, 0], bike: [100, 0], terrace_table: [75, 0], lounger: [40, 0], grill: [95, 0], pool: [4, 0], hot_tub: [80, 0], tree: [350, 0], bush: [90, 0], hedge: [150, 0], fence: [110, 0],
+    flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [3, 0], driveway: [2, 0],
+    firepit: [40, 0], parasol: [230, 0], elevator: [250, 0], chimney: [250, 0], safe: [50, 0], fire_ext: [40, 10], electric_panel: [50, 150], niche: [250, 0], cable_duct: [250, 0],
+  };
+  const CAT3 = { Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
+  const FLOOR_COL = { wood: '#c9a27a', tile: '#dfe3e6', stone: '#b8b2a7', carpet: '#b9a8c9', grass: '#8fc27a', concrete: '#b7bcc2' };
+  const LOOKS = {
+    day: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true },
+    dark: { bg: '#0f1626', sky: ['#070b16', '#121b2f', '#1d2840'], ground: '#1a2433', wall: '#cfc9bd', edge: null, amb: 0.35, hemi: 0.55, hs: '#6f86b8', hg: '#1b2230', sunc: '#8fa6d8', sun: 0.8, pl: 900, neon: false, real: true },
+    neon: { bg: '#070a12', ground: '#0c1019', wall: '#141a2b', edge: '#26e6ff', amb: 0.8, hemi: 0.8, hs: '#ffffff', hg: '#8899aa', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true },
+  };
+
+
+  function dims3(it) {
+    const t = typeById(it.type) || {};
+    let [h, z] = H3[it.type] || CAT3[t.cat] || [60, 0];
+    if (it.h3 > 0) h = Number(it.h3);
+    if (it.z3 > 0) z = Number(it.z3);
+    return [h, z];
+  }
+
+  function create(container, opts) {
+    const T = window.THREE_LITE;
+    const o = Object.assign({ look: 'auto', walls: 'full', allFloors: false, dark: () => false, wheel: 'always', shadows: true }, opts);
+    const root = document.createElement('div');
+    root.style.cssText = 'position:absolute;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none';
+    container.appendChild(root);
+    let renderer;
+    try { renderer = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false }); }
+    catch (e) { root.remove(); throw new Error('WebGL ist nicht verfügbar'); }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = T.SRGBColorSpace;
+    renderer.shadowMap.enabled = !!o.shadows;
+    renderer.shadowMap.type = T.PCFShadowMap;
+    renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
+    const cv = renderer.domElement;
+    cv.style.cssText = 'width:100%;height:100%;display:block;cursor:grab';
+    root.appendChild(cv);
+
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(42, 1, 5, 40000);
+    const amb = new T.AmbientLight(0xffffff, 1), hemi = new T.HemisphereLight(0xffffff, 0x8899aa, 1), sun = new T.DirectionalLight(0xffffff, 1);
+    sun.castShadow = !!o.shadows;
+    sun.shadow.mapSize.set(2048, 2048);
+    scene.add(amb, hemi, sun, sun.target);
+    const world = new T.Group(); scene.add(world);
+
+    let look = LOOKS.day, dirty = true, destroyed = false, built = '', liveSig = '', radius = 600, sizeSig = '';
+    const cam = { az: 0.55, pol: 0.95, dist: 1200, tx: 0, ty: 60, tz: 0 };
+    let items = [], pickables = [], fitted = false, fitKey = '';
+    const texCache = new Map();
+
+    function lookKey() { return o.look && LOOKS[o.look] ? o.look : (o.dark() ? 'dark' : 'day'); }
+    function wallH() { return Math.max(180, Number(S().wallH3) || 250); }
+
+    function colorOf(v, d) { try { return new T.Color(v || d); } catch (_) { return new T.Color(d); } }
+
+    // ---------- Texturen ----------
+    function canvasTex(w, h, draw) {
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      draw(c.getContext('2d'), w, h);
+      const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 4;
+      return t;
+    }
+    function imgTex(src, cb) {
+      const key = 'i|' + src;
+      if (texCache.has(key)) { cb(texCache.get(key)); return; }
+      const im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = () => {
+        const t = canvasTex(256, 256, (g, w, h) => { const k = Math.min(w / im.width, h / im.height); g.drawImage(im, (w - im.width * k) / 2, (h - im.height * k) / 2, im.width * k, im.height * k); });
+        texCache.set(key, t); cb(t); dirty = true;
+      };
+      im.onerror = () => { };
+      im.src = src;
+    }
+    function svgTex(svg, w, h, cb) {
+      const key = 's|' + svg;
+      if (texCache.has(key)) { cb(texCache.get(key)); return; }
+      const k = 256 / Math.max(w, h), pw = Math.max(8, Math.round(w * k)), ph = Math.max(8, Math.round(h * k));
+      const im = new Image();
+      im.onload = () => {
+        const t = canvasTex(pw, ph, (g) => { g.drawImage(im, 0, 0, pw, ph); });
+        texCache.set(key, t); cb(t); dirty = true;
+      };
+      im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-w / 2} ${-h / 2} ${w} ${h}" width="${pw}" height="${ph}">${svg}</svg>`);
+    }
+    function emojiTex(txt) {
+      const key = 'e|' + txt;
+      if (!texCache.has(key)) texCache.set(key, canvasTex(128, 128, (g, w, h) => { g.font = '96px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, w / 2, h / 2 + 6); }));
+      return texCache.get(key);
+    }
+    function textTex(text, opt = {}) {
+      const key = 't|' + text + '|' + (opt.bg || '') + '|' + (opt.fg || '') + '|' + (opt.dark ? 1 : 0);
+      let c = texCache.get(key);
+      if (!c) {
+        const fs = 56, pad = 22, m = document.createElement('canvas').getContext('2d');
+        m.font = `600 ${fs}px system-ui, sans-serif`;
+        const w = Math.ceil(m.measureText(text).width) + pad * 2, h = fs + pad;
+        const t = canvasTex(w, h, (g) => {
+          if (opt.bg) { g.fillStyle = opt.bg; g.beginPath(); if (g.roundRect) g.roundRect(2, 2, w - 4, h - 4, h / 2); else g.rect(2, 2, w - 4, h - 4); g.fill(); }
+          g.font = `600 ${fs}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+          if (!opt.bg) { g.lineWidth = 9; g.strokeStyle = opt.dark ? 'rgba(10,14,24,.9)' : 'rgba(255,255,255,.95)'; g.lineJoin = 'round'; g.strokeText(text, w / 2, h / 2 + 2); }
+          g.fillStyle = opt.fg || (opt.dark ? '#e6ebf5' : '#2b3240'); g.fillText(text, w / 2, h / 2 + 2);
+        });
+        c = { t, w, h }; texCache.set(key, c);
+      }
+      return c;
+    }
+    function textSprite(text, size, opt = {}) {
+      const c = textTex(text, opt);
+      const sp = new T.Sprite(new T.SpriteMaterial({ map: c.t, transparent: true, depthTest: false, depthWrite: false }));
+      sp.scale.set(size * c.w / c.h, size, 1);
+      sp.renderOrder = 20;
+      return sp;
+    }
+    function glowTex() {
+      if (!texCache.has('glow')) texCache.set('glow', canvasTex(128, 128, (g, w, h) => {
+        const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      }));
+      return texCache.get('glow');
+    }
+
+    // ---------- Aufbau ----------
+    let wallGroups = [];
+    function clearWorld() {
+      world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
+      while (world.children.length) world.remove(world.children[0]);
+      items = []; pickables = []; wallGroups = [];
+    }
+
+    function box(w, h, d, mat, x, y, z, ry = 0) {
+      const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true;
+      return m;
+    }
+
+    function openingsFor(wl, f) {
+      const dx = wl.x2 - wl.x1, dy = wl.y2 - wl.y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, out = [];
+      f.items.forEach(it => {
+        if (it.shape !== 'door' && it.shape !== 'window') return;
+        const px = it.x - wl.x1, py = it.y - wl.y1, s = px * ux + py * uy, d = Math.abs(-px * uy + py * ux);
+        if (d > Math.max(wl.t, it.h || 10) / 2 + 12 || s < -10 || s > L + 10) return;
+        const ang = Math.abs((((it.rot || 0) - Math.atan2(dy, dx) * 180 / Math.PI) % 180 + 180) % 180);
+        if (Math.min(ang, 180 - ang) > 25) return;
+        const a = Math.max(0, s - it.w / 2), b = Math.min(L, s + it.w / 2);
+        if (b - a > 4) out.push({ a, b, it });
+      });
+      return out.sort((p, q) => p.a - q.a);
+    }
+
+    function buildFloor(f, idx, y0, Hw, L3, isTop) {
+      const g = new T.Group(); g.position.y = y0; world.add(g);
+      const wallMat = new T.MeshStandardMaterial({ color: colorOf(S().wallColor3 || L3.wall), roughness: 0.9, metalness: 0 });
+      const glassMat = new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
+      const frameMat = new T.MeshStandardMaterial({ color: look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.neon ? 0x0a4a55 : 0x000000 });
+      const doorMat = new T.MeshStandardMaterial({ color: look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
+      const edgeMat = L3.edge ? new T.LineBasicMaterial({ color: L3.edge, transparent: true, opacity: 0.85 }) : null;
+      let wg = g; const fc = contentBounds(f); const cxm = fc.x + fc.w / 2, czm = fc.y + fc.h / 2;
+      const addWallBox = (len, h, t, cx, cy, cz, ry) => {
+        if (len < 0.5 || h < 0.5) return;
+        const m = box(len, h, t, wallMat, cx, cy, cz, ry); wg.add(m);
+        if (edgeMat) { const e = new T.LineSegments(new T.EdgesGeometry(m.geometry), edgeMat); e.position.copy(m.position); e.rotation.copy(m.rotation); wg.add(e); }
+      };
+
+      // Räume (Boden)
+      (f.rooms || []).forEach(r => {
+        if (!r.pts || r.pts.length < 3) return;
+        const sh = new T.Shape(); r.pts.forEach((p, i) => (i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1])));
+        const col = r.floor && FLOOR_COL[r.floor] ? FLOOR_COL[r.floor] : (r.color || '#90caf9');
+        const mat = new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide });
+        if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.neon ? 0x0b1020 : 0xffffff), look.neon ? 0.55 : 0.45);
+        const geo = new T.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
+        const m = new T.Mesh(geo, mat); m.rotation.x = Math.PI / 2; m.position.y = 0; m.receiveShadow = true; g.add(m);
+        const fd = typeof FLOORS !== 'undefined' ? FLOORS[r.floor] : null;
+        if (fd) {
+          const sc = r.floorScale > 0 ? r.floorScale : 1, rc = r.color || '#90caf9', key = 'f|' + r.floor + '|' + sc + '|' + rc + '|' + (look.neon ? 1 : 0);
+          const apply = (t) => { t = t.clone(); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1 / (fd[0] * sc), 1 / (fd[1] * sc)); t.rotation = (r.floorRot || 0) * Math.PI / 180; t.needsUpdate = true; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; dirty = true; };
+          const hit = texCache.get(key);
+          if (hit) apply(hit);
+          else {
+            const bx = -fd[0] / 2, by = -fd[1] / 2;
+            svgTex(`<defs><pattern id="p" patternUnits="userSpaceOnUse" x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}">${fd[2]}</pattern></defs><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${look.neon ? '#141b2e' : '#ffffff'}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${rc}" fill-opacity="${look.neon ? 0.45 : 0.62}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="url(#p)"/>`, fd[0], fd[1], t => { texCache.set(key, t); apply(t); });
+          }
+        }
+      });
+
+      // Wände mit Öffnungen
+      (f.walls || []).forEach(wl => {
+        const dx = wl.x2 - wl.x1, dy = wl.y2 - wl.y1, L = Math.hypot(dx, dy);
+        if (L < 1) return;
+        const ux = dx / L, uy = dy / L, t = wl.t || S().wallThickness || 15, ry = -Math.atan2(dy, dx), ext = t / 2;
+        wg = new T.Group(); g.add(wg);
+        { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
+        const ops = openingsFor(wl, f);
+        const seg = (a, b, h, y) => { // Teilstück [a,b] entlang der Wand
+          const len = b - a; if (len < 0.5) return;
+          const mid = (a + b) / 2;
+          addWallBox(len, h, t, wl.x1 + ux * mid, y + h / 2, wl.y1 + uy * mid, ry);
+        };
+        let cur = -ext;
+        const solidH = Hw;
+        ops.forEach(op => {
+          seg(cur, op.a, solidH, 0);
+          const win = op.it.shape === 'window', top = Math.min(Hw, 210), sill = win ? Math.min(90, Hw - 40) : 0;
+          if (win) seg(op.a, op.b, sill, 0);
+          if (Hw > top) seg(op.a, op.b, Hw - top, top);
+          const mid = (op.a + op.b) / 2, cx = wl.x1 + ux * mid, cz = wl.y1 + uy * mid;
+          if (win && Hw > sill + 20) {
+            const gh = Math.min(top, Hw) - sill;
+            const gl = box(op.b - op.a, gh, 2.5, glassMat, cx, sill + gh / 2, cz, ry); gl.castShadow = false; wg.add(gl);
+            const fr = (w2, h2, d2, x2, y2) => wg.add(box(w2, h2, d2, frameMat, x2, y2, cz, ry));
+            const along = (s2) => [wl.x1 + ux * s2, wl.y1 + uy * s2];
+            [[op.a + 2, 0], [op.b - 2, 0]].forEach(([s2]) => { const [px, pz] = along(s2); wg.add(box(4, gh, 6, frameMat, px, sill + gh / 2, pz, ry)); });
+            wg.add(box(op.b - op.a, 4, 6, frameMat, cx, sill + 2, cz, ry)); wg.add(box(op.b - op.a, 4, 6, frameMat, cx, sill + gh - 2, cz, ry));
+            if (Number(op.it.leaves) === 2) wg.add(box(4, gh, 6, frameMat, cx, sill + gh / 2, cz, ry));
+            void fr;
+          } else if (!win) {
+            // Tür: Blatt halb geöffnet (Scharnier an a oder b)
+            const dw = op.b - op.a, dh = Math.min(top, Hw) - 4, hinge = op.it.flipX ? op.b : op.a;
+            const pivot = new T.Group(); pivot.position.set(wl.x1 + ux * hinge, 0, wl.y1 + uy * hinge);
+            pivot.rotation.y = ry + (op.it.flipX ? Math.PI : 0) + (op.it.flipY ? -1.2 : 1.2);
+            const leaf = box(dw, dh, 4, doorMat, dw / 2, dh / 2, 0, 0); pivot.add(leaf); wg.add(pivot);
+            wg.add(box(dw, 4, 8, frameMat, cx, Math.min(top, Hw) - 2, cz, ry));
+          }
+          cur = op.b;
+        });
+        seg(cur, L + ext, solidH, 0);
+      });
+
+      // Objekte
+      (f.items || []).forEach(it => {
+        if (it.shape === 'door' || it.shape === 'window') {
+          // freistehend (nicht an einer Wand): dünne Fläche anzeigen
+          const onWall = (f.walls || []).some(w => openingsFor(w, f).some(op => op.it === it));
+          if (onWall) return;
+          const hh = it.shape === 'door' ? 205 : 120, zz = it.shape === 'door' ? 0 : 90;
+          const m = box(it.w, hh, Math.max(4, it.h * 0.4), it.shape === 'door' ? doorMat : glassMat, it.x, zz + hh / 2, it.y, -(it.rot || 0) * Math.PI / 180);
+          g.add(m); return;
+        }
+        if (it.shape === 'text') {
+          const c = textTex(String(it.label || '').split('\n').join(' '), { dark: !!look.neon || o.dark() }), sz = it.fs || 28;
+          const sp = new T.Mesh(new T.PlaneGeometry(sz * c.w / c.h, sz), new T.MeshBasicMaterial({ map: c.t, transparent: true, depthWrite: false }));
+          sp.rotation.set(-Math.PI / 2, 0, -(it.rot || 0) * Math.PI / 180, 'YXZ'); sp.position.set(it.x, 1.2, it.y); g.add(sp); return;
+        }
+        const [hd, zd] = dims3(it);
+        const h = Math.max(1, hd);
+        const z0 = zd === -1 ? Hw - h : zd === -2 ? Hw - h - 25 : zd;
+        const ig = new T.Group(); ig.position.set(it.x, z0, it.y); ig.rotation.y = -(it.rot || 0) * Math.PI / 180; g.add(ig);
+        const col = colorOf(it.color || (typeById(it.type) || {}).color, '#cfd8dc');
+        const mat = new T.MeshStandardMaterial({ color: col, roughness: 0.75, metalness: 0.05, emissive: 0x000000 });
+        if (look.neon) mat.color.lerp(new T.Color(0x1a2338), 0.55);
+        let geo;
+        if (it.shape === 'ellipse') { geo = new T.CylinderGeometry(1, 1, h, 28); }
+        else geo = new T.BoxGeometry(it.w, h, it.h);
+        const body = new T.Mesh(geo, mat);
+        let model = null;
+        if (!it.image && it.shape !== 'none' && !(it.icon && it.icon.startsWith('img:')) && typeof FPM !== 'undefined' && o.models !== false) model = FPM.build(T, it, it.w, it.h, h, typeof isCustomColor === 'function' && isCustomColor(it) ? it.color : null);
+        if (model) { ig.add(model.group); mat.visible = false; }
+        if (it.shape === 'ellipse') body.scale.set(it.w / 2, 1, it.h / 2);
+        if (it.shape === 'none') { body.visible = false; }
+        body.position.y = h / 2; body.castShadow = !model && h > 6; body.receiveShadow = true; body.userData.itemId = it.id;
+        ig.add(body); pickables.push(body);
+        if (!model && edgeMat && it.shape !== 'ellipse' && it.shape !== 'none') { const e = new T.LineSegments(new T.EdgesGeometry(geo), new T.LineBasicMaterial({ color: L3.edge, transparent: true, opacity: 0.55 })); e.position.y = h / 2; ig.add(e); }
+        // Symbol / Bild auf der Oberseite
+        const topY = h + 0.4, isz = Math.min(it.w, it.h) * 0.8 * (it.iconScale || 1);
+        const iconPlane = (tex, w2, h2) => {
+          const p = new T.Mesh(new T.PlaneGeometry(w2, h2), new T.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+          p.rotation.x = -Math.PI / 2; p.position.y = topY; p.userData.itemId = it.id; ig.add(p); pickables.push(p); return p;
+        };
+        const sk = model ? '' : symKeyFor(it);
+        if (model) { /* Modell statt Symbol */ }
+        else if (it.image && it.imgMode !== 'stretch') { imgTex(it.image, tx => { const k = Math.min(it.w / 256, it.h / 256); iconPlane(tx, 256 * k, 256 * k); }); }
+        else if (it.image) { imgTex(it.image, tx => iconPlane(tx, it.w, it.h)); }
+        else if (sk) { svgTex(symDetail(sk, it.w, it.h), it.w, it.h, tx => iconPlane(tx, it.w, it.h)); }
+        else if (it.icon && it.icon.startsWith('img:')) { imgTex(it.icon.slice(4), tx => iconPlane(tx, isz, isz)); }
+        else if (it.icon && it.shape !== 'none' && h > 3) iconPlane(emojiTex(it.icon), isz, isz);
+        else if (it.icon && it.shape === 'none') { const sp = new T.Sprite(new T.SpriteMaterial({ map: emojiTex(it.icon), transparent: true, depthTest: false })); sp.scale.set(Math.max(20, isz), Math.max(20, isz), 1); sp.position.y = h + 12; sp.renderOrder = 15; ig.add(sp); }
+        const rec = { it, group: ig, body, mat, h, z0, live: model ? model.live : null, labelName: null, labelVal: null, valTxt: '', pool: null, light: null, baseColor: mat.color.clone(), floorY: y0 };
+        items.push(rec);
+      });
+      return g;
+    }
+
+    function buildAll() {
+      clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
+      const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
+      const slab = wallH() + 25, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
+      const show = o.allFloors ? floors.map((f, i) => i) : floors.map((f, i) => i).filter(i => i <= curIdx);
+      let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, maxY = 0;
+      show.forEach(i => {
+        const f = floors[i];
+        buildFloor(f, i, i * slab, Hw, L3, i === show[show.length - 1]);
+        const b = contentBounds(f);
+        minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); maxY = Math.max(maxY, i * slab + wallH());
+      });
+      if (minX > maxX) { minX = -200; maxX = 200; minZ = -200; maxZ = 200; }
+      const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, R = Math.max(maxX - minX, maxZ - minZ, 300) / 2;
+      radius = Math.hypot(maxX - minX, maxZ - minZ, maxY) / 2;
+      // Boden/Umgebung
+      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(L3.ground), roughness: 1 }));
+      gm.rotation.x = -Math.PI / 2; gm.position.set(cx, -16, cz); gm.receiveShadow = true; world.add(gm);
+      const bg = colorOf(L3.bg);
+      if (L3.sky) { const sk = 'sky|' + lookKey(); let tx = texCache.get(sk); if (!tx) { tx = canvasTex(8, 256, (g, w2, h2) => { const gr = g.createLinearGradient(0, 0, 0, h2); gr.addColorStop(0, L3.sky[0]); gr.addColorStop(0.55, L3.sky[1]); gr.addColorStop(1, L3.sky[2]); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); }); texCache.set(sk, tx); } scene.background = tx; } else scene.background = bg;
+      scene.fog = new T.Fog(bg, radius * 5, radius * 16);
+      hemi.color.set(L3.hs); hemi.groundColor.set(L3.hg); sun.color.set(L3.sunc);
+      amb.intensity = L3.amb; hemi.intensity = L3.hemi; sun.intensity = L3.sun;
+      sun.position.set(cx + R * 1.2, maxY + R * 2, cz + R * 0.8); sun.target.position.set(cx, 0, cz);
+      const sc = sun.shadow.camera; sc.left = -R * 1.6; sc.right = R * 1.6; sc.top = R * 1.6; sc.bottom = -R * 1.6; sc.near = 10; sc.far = R * 8; sc.updateProjectionMatrix();
+      sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.6;
+      const key = floors.map(f => f.id).join(',') + '|' + o.getFloor() + '|' + o.allFloors;
+      if (!fitted || fitKey !== key) { cam.tx = cx; cam.ty = Math.min(maxY, 300) * 0.3; cam.tz = cz; cam.dist = radius / Math.sin(cam.fov ? cam.fov : 0.36) * 0.95; fitted = true; fitKey = key; }
+      applyLive(true);
+    }
+
+    // ---------- Live-Zustände ----------
+    function stateSig() {
+      let s = '';
+      plan.floors.forEach(f => f.items.forEach(it => { if (it.entity) { const st = states[it.entity]; if (st) s += it.entity + st.state + (st.attributes && st.attributes.brightness != null ? st.attributes.brightness : '') + (st.attributes && st.attributes.rgb_color ? st.attributes.rgb_color.join('') : '') + '|'; } }));
+      return s;
+    }
+    function applyLive(force) {
+      let lights = 0;
+      items.forEach(r => {
+        const it = r.it, s = it.entity ? states[it.entity] : null, act = isActive(s), na = s && (s.state === 'unavailable' || s.state === 'unknown');
+        const lightLike = it.glow;
+        // Farbe / Leuchten
+        if (act) {
+          const c = colorOf(it.onColor || (domainOf(it.entity) === 'light' ? glowColor(it, s) : (C && C.accent) || '#03a9f4'));
+          r.mat.color.copy(r.baseColor).lerp(c, lightLike ? 0.55 : 0.8);
+          r.mat.emissive.copy(c); r.mat.emissiveIntensity = lightLike ? 0.9 : 0.35;
+        } else { r.mat.color.copy(r.baseColor); r.mat.emissive.setRGB(0, 0, 0); r.mat.emissiveIntensity = 0; }
+        r.mat.opacity = na ? 0.5 : 1; r.mat.transparent = !!na;
+        if (r.live && r.live.length) r.live.forEach(m => {
+          if (act) { const base = m.userData.base, onc = m.userData.on ? new T.Color(m.userData.on) : colorOf(it.onColor || (domainOf(it.entity) === 'light' ? glowColor(it, s) : (C && C.accent) || '#03a9f4')); const lc = domainOf(it.entity) === 'light' || it.glow ? colorOf(it.onColor || glowColor(it, s)) : onc; m.color.copy(base).lerp(lc, 0.55); m.emissive.copy(lc); m.emissiveIntensity = m.userData.ei; }
+          else { m.color.copy(m.userData.base); m.emissive.setRGB(0, 0, 0); m.emissiveIntensity = 0; }
+        });
+        // Lichtkegel + Lichtpunkt
+        const want = act && it.glow;
+        if (want) {
+          const gc = colorOf(glowColor(it, s)), br = s.attributes && s.attributes.brightness != null ? Math.min(1, Math.max(0.35, s.attributes.brightness / 255)) : 1, str = it.glowStr > 0 ? it.glowStr : 1;
+          const R = it.glowR > 0 ? it.glowR : Math.max(it.w, it.h) * 2.2 + 90;
+          if (!r.pool) {
+            const pm = new T.MeshBasicMaterial({ map: glowTex(), transparent: true, depthWrite: false, blending: T.AdditiveBlending });
+            r.pool = new T.Mesh(new T.PlaneGeometry(2, 2), pm); r.pool.rotation.x = -Math.PI / 2; r.pool.renderOrder = 3;
+            r.group.parent.add(r.pool);
+          }
+          r.pool.position.set(it.x, 1.5, it.y); r.pool.scale.set(R, R, 1); r.pool.material.color.copy(gc); r.pool.material.opacity = Math.min(1, br * 0.9 * str); r.pool.visible = true;
+          if (lights < 10) {
+            if (!r.light) { r.light = new T.PointLight(0xffffff, 1, 1, 1); r.group.parent.add(r.light); }
+            r.light.color.copy(gc); r.light.intensity = (look.pl || 600) * br * str; r.light.distance = R * 1.5; r.light.position.set(it.x, r.z0 + Math.max(r.h, 20) + 12, it.y); r.light.visible = true; lights++;
+          } else if (r.light) r.light.visible = false;
+        } else { if (r.pool) r.pool.visible = false; if (r.light) r.light.visible = false; }
+        // Beschriftungen
+        const txt = it.shape !== 'text' && it.showLabel ? labelText(it) : '';
+        const val = it.entity && it.showValue ? valueText(it.entity) : '';
+        const lblKey = txt + '|' + (look.neon || o.dark() ? 'd' : 'l');
+        if (r.lblKey !== lblKey) {
+          if (r.labelName) { r.group.remove(r.labelName); r.labelName.material.dispose(); r.labelName = null; }
+          if (txt) { r.labelName = textSprite(txt, S().labelSize * 1.15, { dark: !!look.neon || o.dark() }); r.group.add(r.labelName); }
+          r.lblKey = lblKey;
+        }
+        if (r.labelName) r.labelName.position.set(0, r.h + S().labelSize * 1.1 + 6, 0);
+        if (r.valTxt !== val) {
+          if (r.labelVal) { r.group.remove(r.labelVal); r.labelVal.material.dispose(); r.labelVal = null; }
+          if (val) { r.labelVal = textSprite(val, S().labelSize * 1.0, { bg: act ? ((C && C.accent) || '#03a9f4') : '#6b7385', fg: '#fff' }); r.group.add(r.labelVal); }
+          r.valTxt = val;
+        }
+        if (r.labelVal) r.labelVal.position.set(0, r.h + S().labelSize * (r.labelName ? 2.6 : 1.3) + 6, 0);
+      });
+      dirty = true; void force;
+    }
+
+    // ---------- Kamera / Steuerung ----------
+    const FOV = 42 * Math.PI / 180; cam.fov = FOV / 2;
+    function placeCamera() {
+      const sp = Math.sin(cam.pol), cp = Math.cos(cam.pol);
+      camera.position.set(cam.tx + cam.dist * sp * Math.sin(cam.az), cam.ty + cam.dist * cp, cam.tz + cam.dist * sp * Math.cos(cam.az));
+      camera.lookAt(cam.tx, cam.ty, cam.tz);
+    }
+    const ptrs = new Map(); let gesture = null, tap = null, tapTimer = 0;
+    const ray = new T.Raycaster(), v2 = new T.Vector2();
+    function pick(e) {
+      const r = cv.getBoundingClientRect();
+      v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(v2, camera);
+      const hit = ray.intersectObjects(pickables, false)[0];
+      return hit ? hit.object.userData.itemId : null;
+    }
+    function panBy(dx, dy) {
+      const k = cam.dist * 0.0012, r = [Math.cos(cam.az), -Math.sin(cam.az)], u = [-Math.sin(cam.az), -Math.cos(cam.az)];
+      cam.tx += -r[0] * dx * k + u[0] * dy * k; cam.tz += -r[1] * dx * k + u[1] * dy * k;
+    }
+    const limit = () => { cam.pol = Math.min(1.5, Math.max(0.08, cam.pol)); cam.dist = Math.min(radius * 8, Math.max(80, cam.dist)); };
+    cv.addEventListener('pointerdown', e => {
+      try { cv.setPointerCapture(e.pointerId); } catch (_) { /* egal */ }
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1) {
+        const mousePan = e.pointerType === 'mouse' && (e.button === 1 || e.button === 2 || e.shiftKey);
+        gesture = { t: mousePan ? 'pan' : 'orbit' };
+        tap = { x: e.clientX, y: e.clientY, id: e.button === 0 || e.pointerType !== 'mouse' ? pick(e) : null, moved: false, long: false, time: Date.now() };
+        clearTimeout(tapTimer);
+        if (tap.id) tapTimer = setTimeout(() => { if (tap && !tap.moved) { tap.long = true; o.onTap && o.onTap(tap.id, true); } }, 550);
+      } else if (ptrs.size === 2) {
+        if (tap) tap.moved = true; clearTimeout(tapTimer);
+        const [a, b] = [...ptrs.values()];
+        gesture = { t: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y) || 1, ang: Math.atan2(b.y - a.y, b.x - a.x), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+      }
+      cv.style.cursor = 'grabbing';
+    });
+    cv.addEventListener('pointermove', e => {
+      const p = ptrs.get(e.pointerId); if (!p) return;
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (tap && !tap.moved && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) { tap.moved = true; clearTimeout(tapTimer); }
+      if (!gesture) return;
+      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; cam.pol -= dy * 0.006; limit(); dirty = true; } }
+      else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
+      else if (gesture.t === 'pinch' && ptrs.size === 2) {
+        const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        cam.dist *= gesture.d / d; let da = ang - gesture.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); cam.az -= da;
+        panBy(mx - gesture.mx, my - gesture.my);
+        gesture.d = d; gesture.ang = ang; gesture.mx = mx; gesture.my = my; limit(); dirty = true;
+      }
+    });
+    const up = e => {
+      ptrs.delete(e.pointerId); cv.style.cursor = 'grab';
+      if (ptrs.size === 0) {
+        clearTimeout(tapTimer);
+        if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(); }
+        tap = null; gesture = null;
+      } else if (ptrs.size === 1) { gesture = { t: 'orbit' }; if (tap) tap.moved = true; }
+    };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('contextmenu', e => e.preventDefault());
+    cv.addEventListener('wheel', e => {
+      if (o.wheel === 'ctrl' && !e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+      if (e.shiftKey) cam.az -= dy * 0.003; else cam.dist *= Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0012));
+      limit(); dirty = true;
+    }, { passive: false });
+    cv.addEventListener('dblclick', () => { fitted = false; build(true); });
+
+    function resize() {
+      const r = root.getBoundingClientRect(), w = Math.max(50, Math.round(r.width)), h = Math.max(50, Math.round(r.height));
+      const sig = w + 'x' + h; if (sig === sizeSig) return; sizeSig = sig;
+      renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
+    }
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null; if (ro) ro.observe(root);
+
+    let raf = 0;
+    function animateWalls() {
+      if (o.walls !== 'auto' || !wallGroups.length) return false;
+      const dx = Math.sin(cam.az), dz = Math.cos(cam.az); let busy = false;
+      wallGroups.forEach(wg => {
+        const n = wg.userData.n, tgt = (n[0] * dx + n[1] * dz) > 0.2 ? 0.12 : 1, d = tgt - wg.scale.y;
+        if (Math.abs(d) > 0.005) { wg.scale.y += d * 0.3; busy = true; } else wg.scale.y = tgt;
+      });
+      return busy;
+    }
+    function frame() {
+      raf = 0; if (destroyed) return;
+      if (animateWalls()) dirty = true;
+      if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
+      raf = requestAnimationFrame(frame);
+    }
+
+    function structSig() {
+      return JSON.stringify([plan.floors, S().wallColor, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+    }
+    function build(force) {
+      look = LOOKS[lookKey()] || LOOKS.day;
+      const sg = structSig();
+      if (!force && sg === built) return false;
+      built = sg;
+      buildAll(); liveSig = stateSig(); dirty = true;
+      return true;
+    }
+    function update() {
+      if (destroyed) return;
+      resize();
+      if (!build(false)) { const ls = stateSig(); if (ls !== liveSig) { liveSig = ls; applyLive(); } }
+    }
+    function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
+    function set(k, v) { o[k] = v; build(true); }
+    function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
+
+    resize(); build(true); frame();
+    return { update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+  }
+
+  return { load, create, dims3 };
+})();
+
 /* ---- card.src.js ---- */
 // ---------- Dashboard-Karte (Teil des Bündels; teilt Code mit dem Editor) ----------
 let mode = 'live', tool = 'select', drawing = null, hover = null;
@@ -980,6 +2351,7 @@ svg.gest.grabbing { cursor: grabbing; }
 .ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: .85; }
 .ctl button { width: 30px; height: 30px; border-radius: 15px; border: 1px solid var(--divider-color); background: var(--card-background-color, #fff); color: var(--primary-text-color); font: inherit; font-size: 15px; line-height: 1; padding: 0; cursor: pointer; }
 .item.act, [data-k="room"].act { cursor: pointer; }
+.stage3 { width: 100%; height: 420px; position: relative; touch-action: none; }
 .msg { padding: 24px 16px; color: var(--secondary-text-color); text-align: center; }
 `;
 
@@ -988,11 +2360,12 @@ class FloorplanStudioCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this._cfg = {}; this._plan = null; this._floor = null; this._sig = ''; this._unsub = null; this._err = '';
-    this._hass = null; this._loading = false; this._rev = null; this._drag = null; this._v = null; this._pts = new Map(); this._g = null;
+    this._hass = null; this._loading = false; this._rev = null; this._drag = null; this._v = null; this._pts = new Map(); this._g = null; this._v3 = null; this._k3 = ''; this._m3 = null;
   }
   static getStubConfig() { return {}; }
   getCardSize() { return 6; }
-  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._pickFloor(); this._draw(); }
+  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._kill3(); this._pickFloor(); this._draw(); }
+  _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
     const first = !this._hass;
@@ -1001,7 +2374,7 @@ class FloorplanStudioCard extends HTMLElement {
     else this._maybeDraw();
   }
   connectedCallback() { if (this._hass && !this._unsub) this._start(); }
-  disconnectedCallback() { if (this._unsub) { try { this._unsub(); } catch (_) { /* egal */ } this._unsub = null; } clearTimeout(this._drag && this._drag.timer); }
+  disconnectedCallback() { if (this._unsub) { try { this._unsub(); } catch (_) { /* egal */ } this._unsub = null; } clearTimeout(this._drag && this._drag.timer); this._kill3(); }
 
   async _start() {
     await this._load();
@@ -1074,6 +2447,8 @@ class FloorplanStudioCard extends HTMLElement {
       return;
     }
     this._ctx();
+    if (this._m3 && this._draw3(head)) return;
+    this._kill3();
     const f = curFloor(), b = contentBounds(f), pad = 60;
     const rotDeg = Number(this._cfg.rotate != null ? this._cfg.rotate : (plan.settings.viewRot || 0)) || 0;
     const rr = rotDeg * Math.PI / 180, rc = Math.abs(Math.cos(rr)), rs = Math.abs(Math.sin(rr));
@@ -1088,8 +2463,7 @@ class FloorplanStudioCard extends HTMLElement {
     }).join('');
     const walls = f.walls.map(wl => wallMarkup(wl, true, { k: 1 })).join('');
     const items = f.items.map(i => itemMarkup(i, ctx)).join('') + ctx.glowOut.join('');
-    const defs = [...ctx.glows].map(([col, id]) =>
-      `<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".5" stop-color="${col}" stop-opacity=".42"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`).join('');
+    const defs = glowDefsMarkup(ctx.glows);
     const gest = this._cfg.gestures !== false;
     this._C = { x: ccx, y: ccy };
     const empty = !f.walls.length && !f.rooms.length && !f.items.length && !(f.bg && f.bg.url);
@@ -1097,11 +2471,51 @@ class FloorplanStudioCard extends HTMLElement {
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const body = empty
       ? '<div class="msg">Der Grundriss ist noch leer. Öffne das Panel „Grundriss“ in der Seitenleiste, um ihn zu zeichnen.</div>'
-      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button></div>' : ''}</div>`;
+      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button>' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht">3D</button>' : '') + '</div>' : ''}</div>`;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}${body}</ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._v = null; this._sig = ''; this._draw(); }; });
     const svg = root.querySelector('svg');
     if (svg) this._bind(svg);
+  }
+
+  _base3() {
+    const sc = [...document.querySelectorAll('script[src]')].map(x => x.src).find(u => /floorplan-card\.js/.test(u));
+    return sc ? sc.replace(/[^/]*$/, '') + 'vendor/' : '/floorplan_studio_static/vendor/';
+  }
+
+  // 3D-Ansicht. true = übernommen (auch wenn noch geladen wird)
+  _draw3(head) {
+    const root = this.shadowRoot, key = '3|' + this._floor + '|' + (this._plan.floors.length > 1 && !this._cfg.floor ? 't' : '');
+    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); return true; }
+    this._kill3(); this._k3 = key;
+    const tabs = !this._cfg.floor && this._plan.floors.length > 1
+      ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
+    const hgt = Number(this._cfg.height3d) || 420;
+    const ctl = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="reset" title="Zurücksetzen">⤢</button>';
+    root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}<div class="wrap"><div class="stage3" style="height:${hgt}px"></div><div class="ctl">${ctl}</div></div></ha-card>`;
+    root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._sig = ''; this._draw(); }; });
+    const st = root.querySelector('.stage3'), myKey = key;
+    FP3D.load(this._base3()).then(() => {
+      if (this._k3 !== myKey || !this._m3 || !st.isConnected) return;
+      this._ctx();
+      const c = this._cfg, s = plan.settings;
+      this._v3 = FP3D.create(st, {
+        getFloor: () => this._floor,
+        look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
+        dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
+        onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
+      });
+      this._v3.update();
+    }).catch(e => { st.innerHTML = `<div class="msg">3D nicht möglich: ${esc(e.message)}</div>`; });
+    root.querySelectorAll('.ctl button').forEach(b => {
+      b.onclick = () => {
+        const k = b.dataset.v;
+        if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); }
+        else if (!this._v3) return;
+        else if (k === 'ccw') this._v3.rotate(-0.5); else if (k === 'cw') this._v3.rotate(0.5); else this._v3.resetView();
+      };
+    });
+    return true;
   }
 
   // ----- Ansicht (Drehen/Zoomen/Verschieben): Bild = T + C + k·R(a)·(p − C) -----
@@ -1151,6 +2565,7 @@ class FloorplanStudioCard extends HTMLElement {
       b.addEventListener('pointerdown', e => e.stopPropagation());
       b.onclick = () => {
         const k = b.dataset.v;
+        if (k === '3d') { this._m3 = true; this._sig = ''; this._draw(); return; }
         if (k === 'ccw') this._rotBy(-90); else if (k === 'cw') this._rotBy(90);
         else if (k === 'in') this._zoomBy(1.3); else if (k === 'out') this._zoomBy(1 / 1.3);
         else { this._v = null; this._apply(); }

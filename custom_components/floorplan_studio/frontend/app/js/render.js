@@ -17,7 +17,7 @@ function readColors() {
 function render() {
   if (rq || !plan) return;
   rq = true;
-  requestAnimationFrame(() => { rq = false; renderNow(); });
+  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) return; renderNow(); });
 }
 
 function renderNow() {
@@ -30,15 +30,26 @@ function renderNow() {
   gWalls.innerHTML = f.walls.map(wl => wallMarkup(wl, live, v)).join('');
   const ctx = { glows: new Map(), glowOut: [] };
   gItems.innerHTML = f.items.map(i => itemMarkup(i, ctx)).join('') + ctx.glowOut.join('');
-  gDefs.innerHTML = [...ctx.glows].map(([col, id]) =>
-    `<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".5" stop-color="${col}" stop-opacity=".42"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`).join('');
+  gDefs.innerHTML = glowDefsMarkup(ctx.glows);
   gOver.innerHTML = live ? '' : overlayMarkup(f, v);
   const empty = !f.walls.length && !f.rooms.length && !f.items.length && !(f.bg && f.bg.url);
   $('#empty').hidden = !(empty && !live && tool === 'select' && !drawing);
   updateStatus();
 }
 
-function glowId(map, col) { if (!map.has(col)) map.set(col, 'gl' + map.size); return map.get(col); }
+function glowId(map, col, style) { const key = col + '|' + (style || 'soft'); if (!map.has(key)) map.set(key, 'gl' + map.size); return map.get(key); }
+const GLOW_STOPS = {
+  soft: [[0, .95], [.5, .42], [1, 0]],
+  strong: [[0, 1], [.55, .7], [.85, .25], [1, 0]],
+  ring: [[0, 0], [.45, .15], [.72, .75], [1, 0]],
+  pulse: [[0, .95], [.5, .42], [1, 0]],
+};
+function glowDefsMarkup(map) {
+  return [...map].map(([key, id]) => {
+    const i = key.lastIndexOf('|'), col = key.slice(0, i), st = GLOW_STOPS[key.slice(i + 1)] || GLOW_STOPS.soft;
+    return `<radialGradient id="${id}">${st.map(([o, a]) => `<stop offset="${o}" stop-color="${col}" stop-opacity="${a}"/>`).join('')}</radialGradient>`;
+  }).join('');
+}
 
 function gridMarkup(v, w, h) {
   let step = S().grid;
@@ -122,10 +133,16 @@ function doorSvg(it) {
     `<line x1="${-w / 2}" y1="0" x2="${-w / 2}" y2="${-w}" stroke="${C.wall}" stroke-width="3" ${NS}/></g>`;
 }
 function windowSvg(it) {
-  const w = it.w, t = Math.max(it.h, 6);
-  return `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
+  const w = it.w, t = Math.max(it.h, 6), two = Number(it.leaves) === 2, sx = it.flipX ? -1 : 1;
+  const ln = (a, b, c, d, extra = '') => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${C.wall}" stroke-width="1.2" ${NS} ${extra}/>`;
+  // Öffnungsdreieck: Spitze am Scharnier, offene Seite am freien Flügelrand
+  const swing = (hx, fx) => `<path d="M ${fx} ${-t / 2} L ${hx} 0 L ${fx} ${t / 2}" fill="none" stroke="${C.wall}" stroke-width="1" stroke-dasharray="4 3" ${NS}/>`;
+  let o = `<rect x="${-w / 2}" y="${-t / 2 - 1}" width="${w}" height="${t + 2}" fill="${C.canvas}"/>` +
     `<rect x="${-w / 2}" y="${-t / 2}" width="${w}" height="${t}" fill="#b3e5fc" fill-opacity=".6" stroke="${C.wall}" stroke-width="1.2" ${NS}/>` +
-    `<line x1="${-w / 2}" y1="0" x2="${w / 2}" y2="0" stroke="${C.wall}" stroke-width="1.2" ${NS}/>`;
+    ln(-w / 2, 0, w / 2, 0);
+  if (two) o += ln(0, -t / 2, 0, t / 2).replace('stroke-width="1.2"', 'stroke-width="2.4"') + swing(-w / 2, -2) + swing(w / 2, 2);
+  else o += `<g transform="scale(${sx} 1)">${swing(-w / 2, w / 2 - 2)}</g>`;
+  return o;
 }
 
 function iconMarkup(it) {
@@ -141,15 +158,31 @@ function iconMarkup(it) {
   return `<text transform="rotate(${rot})" text-anchor="middle" dy=".35em" font-size="${size}" pointer-events="none" style="user-select:none${grey}">${esc(it.icon)}</text>`;
 }
 
+function labelText(it) {
+  const st = it.entity ? states[it.entity] : null;
+  const fn = it.labelEnt && st && st.attributes && st.attributes.friendly_name;
+  return fn || it.label || '';
+}
+function valuePos(it) {
+  const rad = (it.rot || 0) * Math.PI / 180, hh = Math.abs(it.w / 2 * Math.sin(rad)) + Math.abs(it.h / 2 * Math.cos(rad)), vf = S().labelSize * 0.9;
+  return { x: it.x, y: it.y - hh - vf };
+}
+function labelPos(it) {
+  const rad = (it.rot || 0) * Math.PI / 180, hh = Math.abs(it.w / 2 * Math.sin(rad)) + Math.abs(it.h / 2 * Math.cos(rad)), fs = S().labelSize;
+  return { x: it.x, y: it.y + hh + fs * 1.05 - fs * 0.3 };
+}
 function itemMarkup(it, ctx) {
   const s = !ctx.noState && it.entity ? states[it.entity] : null;
   const act = isActive(s), na = s && (s.state === 'unavailable' || s.state === 'unknown');
   const w = it.w, h = it.h, rot = it.rot || 0, isLight = domainOf(it.entity) === 'light';
   let out = '';
   if (act && it.glow && ctx.glows) {
-    const col = glowColor(it, s), id = glowId(ctx.glows, col);
-    const R = Math.max(w, h) * 2.2 + 90, br = s.attributes && s.attributes.brightness != null ? clamp(s.attributes.brightness / 255, 0.35, 1) : 1;
-    const glowSvg = `<circle cx="${it.x}" cy="${it.y}" r="${R}" fill="url(#${id})" opacity="${br * 0.8}" pointer-events="none"/>`;
+    const gs = ['soft', 'strong', 'ring', 'pulse'].includes(it.glowStyle) ? it.glowStyle : 'soft';
+    const col = glowColor(it, s), id = glowId(ctx.glows, col, gs);
+    const R = it.glowR > 0 ? it.glowR : Math.max(w, h) * 2.2 + 90, br = s.attributes && s.attributes.brightness != null ? clamp(s.attributes.brightness / 255, 0.35, 1) : 1;
+    const str = clamp(it.glowStr > 0 ? it.glowStr : 1, 0.1, 1.5), op = clamp(br * 0.8 * str, 0, 1);
+    const glowSvg = `<circle cx="${it.x}" cy="${it.y}" r="${R}" fill="url(#${id})" opacity="${op}" pointer-events="none">` +
+      (gs === 'pulse' ? `<animate attributeName="opacity" values="${op};${op * 0.45};${op}" dur="2.4s" repeatCount="indefinite"/>` : '') + '</circle>';
     if (ctx.glowOut) ctx.glowOut.push(glowSvg); else out += glowSvg;
   }
   const sk = symStyleKey(), SS = sk ? SYM_STYLES[sk] : null, symKey = symKeyFor(it);
@@ -170,19 +203,23 @@ function itemMarkup(it, ctx) {
     case 'none': body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="transparent"/>`; break;
     default: body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="${Math.min(8, Math.min(w, h) / 4)}" fill="${fill}" ${st}/>`;
   }
-  const sh = S().itemShadow !== false && it.shape !== 'text' && it.shape !== 'door' && it.shape !== 'window' && it.shape !== 'none' ? ' filter="url(#fpShadow)"' : '';
+  const imgBare = it.image && it.imgMode === 'bare';
+  if (imgBare && !['text', 'door', 'window'].includes(it.shape)) body = `<rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" fill="transparent"/>`;
+  const imgSvg = it.image && !['text', 'door', 'window'].includes(it.shape)
+    ? `<image href="${esc(it.image)}" x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" preserveAspectRatio="${it.imgMode === 'stretch' ? 'none' : 'xMidYMid meet'}" pointer-events="none"/>` : '';
+  const sh = S().itemShadow !== false && !imgBare && it.shape !== 'text' && it.shape !== 'door' && it.shape !== 'window' && it.shape !== 'none' ? ' filter="url(#fpShadow)"' : '';
   const cls = 'item' + (it.entity && mode === 'live' ? ' act' : '');
-  out += `<g class="${cls}" data-k="item" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${rot})"${na ? ' opacity=".45"' : ''}><g${sh}>${body}</g>${symKey ? symDetail(symKey, w, h) : ''}${iconMarkup(it)}</g>`;
+  out += `<g class="${cls}" data-k="item" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${rot})"${na ? ' opacity=".45"' : ''}><g${sh}>${body}</g>${imgSvg}${symKey ? symDetail(symKey, w, h) : ''}${iconMarkup(it)}</g>`;
 
   const rad = rot * Math.PI / 180, hh = Math.abs(w / 2 * Math.sin(rad)) + Math.abs(h / 2 * Math.cos(rad)), fs = S().labelSize;
-  if (it.shape !== 'text' && it.showLabel && it.label) {
-    out += `<text data-k="item" data-id="${it.id}" x="${it.x}" y="${it.y + hh + fs * 1.05}" text-anchor="middle" font-size="${fs}" fill="${C.text}" paint-order="stroke" stroke="${C.canvas}" stroke-width="${fs * 0.22}" style="user-select:none">${esc(it.label)}</text>`;
+  if (it.shape !== 'text' && it.showLabel && labelText(it)) {
+    out += `<text data-k="item" data-id="${it.id}" x="${it.x}" y="${it.y + hh + fs * 1.05}" text-anchor="middle" font-size="${fs}" fill="${C.text}" paint-order="stroke" stroke="${C.canvas}" stroke-width="${fs * 0.22}"${it.labelRot ? ` transform="rotate(${it.labelRot} ${it.x} ${it.y + hh + fs * 1.05 - fs * 0.3})"` : ''} style="user-select:none">${esc(labelText(it))}</text>`;
   }
   if (!ctx.noState && it.entity && it.showValue) {
     const t = valueText(it.entity);
     if (t) {
       const vf = fs * 0.9, tw = t.length * vf * 0.58 + vf * 1.1, cy = it.y - hh - vf * 1.0;
-      out += `<g data-k="item" data-id="${it.id}" style="user-select:none"><rect x="${it.x - tw / 2}" y="${cy - vf * 0.75}" width="${tw}" height="${vf * 1.5}" rx="${vf * 0.75}" fill="${act ? C.accent : C.muted}"/>` +
+      out += `<g data-k="item" data-id="${it.id}"${it.valueRot ? ` transform="rotate(${it.valueRot} ${it.x} ${cy})"` : ''} style="user-select:none"><rect x="${it.x - tw / 2}" y="${cy - vf * 0.75}" width="${tw}" height="${vf * 1.5}" rx="${vf * 0.75}" fill="${act ? C.accent : C.muted}"/>` +
         `<text x="${it.x}" y="${cy}" dy=".35em" text-anchor="middle" font-size="${vf}" fill="#fff" font-weight="600">${esc(t)}</text></g>`;
     }
   }
@@ -204,6 +241,17 @@ function overlayMarkup(f, v) {
     out += `<g transform="translate(${o.x} ${o.y}) rotate(${o.rot || 0})"><rect x="${-hw}" y="${-hh}" width="${o.w}" height="${o.h}" fill="none" stroke="${C.accent}" stroke-width="1.5" stroke-dasharray="6 4" pointer-events="none" ${NS}/>`;
     if (o.shape !== 'text') [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].forEach((c, i) => { out += handle('size', c[0], c[1], `data-c="${i}"`, s, 6); });
     out += `<line x1="0" y1="${-hh}" x2="0" y2="${-hh - 28 * s}" stroke="${C.accent}" stroke-width="1.5" pointer-events="none" ${NS}/>` + handle('rot', 0, -hh - 28 * s, '', s) + '</g>';
+    // Griff zum Drehen der Bezeichnung direkt im Plan
+    if (o.shape !== 'text' && o.showLabel && labelText(o)) {
+      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = S().labelSize * 1.5;
+      const hx = L.x + Math.sin(lr) * rr, hy = L.y - Math.cos(lr) * rr;
+      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('lrot', hx, hy, '', s, 6);
+    }
+    if (o.entity && o.showValue && valueText(o.entity)) {
+      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = S().labelSize * 1.9;
+      const hx = V0.x + Math.sin(vr) * rr, hy = V0.y - Math.cos(vr) * rr;
+      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('vrot', hx, hy, '', s, 6);
+    }
   } else if (o && sel.k === 'wall') {
     out += `<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="${C.accent}" stroke-opacity=".35" stroke-width="${o.t + 10 * s}" stroke-linecap="square" pointer-events="none"/>`;
     out += handle('wa', o.x1, o.y1, '', s) + handle('wb', o.x2, o.y2, '', s);

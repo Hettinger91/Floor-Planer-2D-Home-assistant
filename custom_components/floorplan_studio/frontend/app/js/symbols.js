@@ -41,13 +41,45 @@ const SYM = {
   rug: (w, h) => `<rect x="${-w / 2 + 8}" y="${-h / 2 + 8}" width="${Math.max(2, w - 16)}" height="${Math.max(2, h - 16)}" rx="3" stroke-dasharray="6 4"/>`,
   pillar: (w, h) => `<path d="M${-w / 2} ${-h / 2}L${w / 2} ${h / 2}M${w / 2} ${-h / 2}L${-w / 2} ${h / 2}"/>`,
   plant: (w, h) => { const r = Math.min(w, h) / 2; let s = ''; for (let i = 0; i < 8; i++) s += `<ellipse cx="0" cy="${-r * 0.5}" rx="${r * 0.2}" ry="${r * 0.42}" transform="rotate(${i * 45})"/>`; return s; },
+  floorlamp: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.72}"/><circle cx="0" cy="0" r="${r * 0.22}"/><path d="M0 ${r * 0.22}V${r * 0.72}"/>`; },
+  pendant: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><circle cx="0" cy="0" r="${r * 0.82}" stroke-dasharray="3 3"/><circle cx="0" cy="0" r="${r * 0.12}"/>`; },
+  spot: (w, h) => { const r = Math.min(w, h) / 2; let d = ''; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; d += `M${Math.cos(a) * r * 0.55} ${Math.sin(a) * r * 0.55}L${Math.cos(a) * r * 0.85} ${Math.sin(a) * r * 0.85}`; } return `<circle cx="0" cy="0" r="${r * 0.3}"/><path d="${d}"/>`; },
+  tablelamp: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><path d="M${-r * 0.4} ${r * 0.1}Q0 ${-r * 0.5} ${r * 0.4} ${r * 0.1}"/>`; },
+  chandelier: (w, h) => { const r = Math.min(w, h) / 2; let c = `<circle cx="0" cy="0" r="${r * 0.18}"/>`; for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; c += `<circle cx="${Math.cos(a) * r * 0.62}" cy="${Math.sin(a) * r * 0.62}" r="${r * 0.14}"/><path d="M${Math.cos(a) * r * 0.18} ${Math.sin(a) * r * 0.18}L${Math.cos(a) * r * 0.48} ${Math.sin(a) * r * 0.48}"/>`; } return c; },
+  bulb: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="${-r * 0.1}" r="${r * 0.5}"/><path d="M${-r * 0.22} ${r * 0.4}H${r * 0.22}M${-r * 0.16} ${r * 0.58}H${r * 0.16}"/>`; },
+  outlet: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.62}"/><circle cx="${-r * 0.24}" cy="0" r="${r * 0.08}"/><circle cx="${r * 0.24}" cy="0" r="${r * 0.08}"/><path d="M${-r * 0.1} ${-r * 0.62}V${-r * 0.5}M${r * 0.1} ${-r * 0.62}V${-r * 0.5}"/>`; },
+  outlet2: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="${-w * 0.2}" cy="0" r="${r * 0.55}"/><circle cx="${w * 0.2}" cy="0" r="${r * 0.55}"/><circle cx="${-w * 0.2 - r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${-w * 0.2 + r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${w * 0.2 - r * 0.2}" cy="0" r="${r * 0.07}"/><circle cx="${w * 0.2 + r * 0.2}" cy="0" r="${r * 0.07}"/>`; },
+  plug: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.55}" y="${-r * 0.55}" width="${r * 1.1}" height="${r * 1.1}" rx="${r * 0.2}"/><path d="M${-r * 0.22} ${-r * 0.2}V${r * 0.05}M${r * 0.22} ${-r * 0.2}V${r * 0.05}"/>`; },
+  powerstrip: (w, h) => { let c = ''; const n = Math.max(2, Math.floor(w / 12)); for (let i = 0; i < n; i++) c += `<circle cx="${-w / 2 + (i + 0.5) * w / n}" cy="0" r="${Math.min(h * 0.28, w / n * 0.3)}"/>`; return c; },
+  switchw: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.5}" y="${-r * 0.62}" width="${r}" height="${r * 1.24}" rx="${r * 0.15}"/><path d="M${-r * 0.5} ${r * 0.05}H${r * 0.5}"/>`; },
+  dimmer: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.6}"/><path d="M0 ${-r * 0.6}V${-r * 0.2}"/>`; },
+  button: (w, h) => { const r = Math.min(w, h) / 2; return `<circle cx="0" cy="0" r="${r * 0.55}"/><circle cx="0" cy="0" r="${r * 0.22}"/>`; },
+  lan: (w, h) => { const r = Math.min(w, h) / 2; return `<rect x="${-r * 0.55}" y="${-r * 0.45}" width="${r * 1.1}" height="${r * 0.9}" rx="${r * 0.1}"/><path d="M${-r * 0.3} ${r * 0.1}V${r * 0.45}M0 ${r * 0.1}V${r * 0.45}M${r * 0.3} ${r * 0.1}V${r * 0.45}"/>`; },
+  spiral: (w, h) => { const r = Math.min(w, h) / 2; let d = ''; for (let i = 0; i < 14; i++) { const a = i * Math.PI * 2 / 14; d += `M${Math.cos(a) * r * 0.16} ${Math.sin(a) * r * 0.16}L${Math.cos(a) * r * 0.94} ${Math.sin(a) * r * 0.94}`; } return `<circle cx="0" cy="0" r="${r * 0.16}"/><path d="${d}"/>`; },
+  stairsL: (w, h) => { const c = Math.min(w, h) * 0.4; let d = `M${-w / 2 + c} ${-h / 2}V${h / 2 - c}H${w / 2}M${-w / 2} ${h / 2 - c}H${-w / 2 + c}`; for (let y = -h / 2 + 22; y < h / 2 - c - 4; y += 22) d += `M${-w / 2} ${y}H${-w / 2 + c}`; for (let x = -w / 2 + c + 22; x < w / 2 - 4; x += 22) d += `M${x} ${h / 2 - c}V${h / 2}`; return `<path d="${d}"/>`; },
+  stairsU: (w, h) => { const lw = Math.min(w * 0.45, h * 0.3); let d = `M0 ${-h / 2}V${h / 2 - lw}M${-w / 2} ${h / 2 - lw}H${w / 2}`; for (let y = -h / 2 + 22; y < h / 2 - lw - 4; y += 22) d += `M${-w / 2} ${y}H${w / 2}`; return `<path d="${d}"/>`; },
 };
 const SYMMAP = {
-  lamp_ceiling: 'lamp', lamp_floor: 'lamp', lamp_spot: 'lamp', lamp_wall: 'lampwall', lamp_strip: 'strip',
+  stairs_spiral: 'spiral', stairs_spiral_small: 'spiral', stairs_L: 'stairsL', stairs_U: 'stairsU', stairs_wide: 'stairs', stairs_outdoor: 'stairs', stairs_basement: 'stairs',
+  lamp_floor: 'floorlamp', lamp_arc: 'floorlamp', lamp_pendant: 'pendant', lamp_spot: 'spot', lamp_table: 'tablelamp', lamp_desk: 'tablelamp', lamp_night: 'tablelamp',
+  chandelier: 'chandelier', lamp_bulb: 'bulb', lamp_outdoor: 'pendant', lamp_garden: 'floorlamp', light_string: 'strip',
+  outlet: 'outlet', outlet_outdoor: 'outlet', outlet_floor: 'outlet', outlet_smart: 'outlet', outlet_usb: 'outlet', outlet_cee: 'outlet', outlet_double: 'outlet2', plug: 'plug', powerstrip: 'powerstrip',
+  switch: 'switchw', switch_double: 'switchw', smart_light_sw: 'switchw', dimmer: 'dimmer', button: 'button', scene_switch: 'button', lan_socket: 'lan', tv_socket: 'lan',
+  lamp_ceiling: 'lamp', lamp_wall: 'lampwall', lamp_strip: 'strip',
   bed_double: 'bed', bed_single: 'bed', bed_kid: 'bed', sofa: 'sofa', armchair: 'armchair', table_coffee: 'table', table_dining: 'table',
   chair: 'chair', desk: 'desk', wardrobe: 'wardrobe', shelf: 'shelf', dresser: 'dresser', tv_board: 'tv',
   fridge: 'fridge', stove: 'stove', sink_kitchen: 'sink', dishwasher: 'dish', washer: 'washer', bathtub: 'bath', shower: 'shower', toilet: 'toilet', basin: 'sink',
   radiator: 'radiator', ac: 'ac', fan: 'fan', fireplace: 'fireplace', stairs: 'stairs', plant: 'plant', rug: 'rug', pillar: 'pillar',
+  sofa_corner: 'sofa', sofa_2: 'sofa', recliner: 'armchair', ottoman: 'chair', stool: 'chair', bench: 'chair', bar_stool: 'chair', highchair: 'chair', office_chair: 'chair',
+  table_side: 'table', table_round: 'table', table_bar: 'table', terrace_table: 'table', kid_table: 'table', desk_corner: 'desk', workbench: 'desk',
+  sideboard: 'dresser', nightstand: 'dresser', cabinet: 'dresser', changing: 'dresser', tv_stand: 'tv', wall_unit: 'shelf', bookcase: 'shelf', shoe_rack: 'dresser',
+  wardrobe_sliding: 'wardrobe', bed_bunk: 'bed', crib: 'bed', daybed: 'bed',
+  lamp_mirror: 'lampwall',
+  oven: 'stove', hood: 'ac', freezer: 'fridge', fridge_side: 'fridge', dryer: 'washer', dishwasher_tall: 'dish', basin_double: 'sink', washstand: 'sink', utility_sink: 'sink',
+  shower_tray: 'shower', shower_walkin: 'shower', toilet_wall: 'toilet', bidet: 'toilet', whirlpool: 'bath', hot_tub: 'bath', sauna: 'rug',
+  towel_radiator: 'radiator', fan_ceiling: 'fan', ventilation: 'fan', air_purifier: 'fan', chimney_stove: 'fireplace', pellet: 'fireplace', split_ac: 'ac', heat_pump: 'ac',
+  rug_round: 'rug', playmat: 'rug', pillar_round: 'pillar', chimney: 'pillar', plant_big: 'plant', plant_small: 'plant', tree: 'plant', bush: 'plant',
+  monitor: 'tv', smart_tv: 'tv',
 };
 // Stile: a = klassisch, b = modern-neutral (Standard), c = farbig dezent; alles andere = Emojis
 const SYM_STYLES = {
@@ -59,7 +91,7 @@ function symStyleKey() { const k = plan && plan.settings && plan.settings.symSty
 function builtinType(id) { return LIB.find(t => t.id === id); }
 // Symbolschlüssel für ein Objekt – leer, wenn Emoji-Modus, kein Symbol vorhanden oder ein eigenes Icon gesetzt wurde
 function symKeyFor(it) {
-  if (!symStyleKey()) return '';
+  if (!symStyleKey() || it.image) return '';
   const key = SYMMAP[it.type], bt = builtinType(it.type);
   if (!key || !bt || (it.icon && it.icon !== bt.icon)) return '';
   return key;

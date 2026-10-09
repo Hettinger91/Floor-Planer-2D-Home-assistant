@@ -19,6 +19,7 @@
     <span id="haBadge" class="badge" hidden></span>
     <button id="btnUndo" class="ibtn" title="Rückgängig (Strg+Z)">↶</button>
     <button id="btnRedo" class="ibtn" title="Wiederholen (Strg+Y)">↷</button>
+    <div class="seg"><button id="v2Btn" class="on" title="2D-Grundriss">2D</button><button id="v3Btn" title="3D-Ansicht">3D</button></div>
     <div class="seg"><button id="modeEdit" class="on">Bearbeiten</button><button id="modeLive">Live</button></div>
     <button id="btnMenu" class="ibtn" title="Menü">⋯</button>
     <button id="btnInsp" class="ibtn only-mobile" title="Eigenschaften">⚙</button>
@@ -52,6 +53,7 @@
         <g id="gridL"></g><g id="bgL"></g><g id="roomsL"></g><g id="wallsL"></g><g id="itemsL"></g><g id="overlayL"></g>
       </g>
     </svg>
+    <div id="stage3d" hidden></div>
     <div id="hint"></div>
     <div id="empty" hidden>
       <h2>Neuer Grundriss</h2>
@@ -94,9 +96,12 @@
 <script src="js/model.js"></script>
 <script src="js/ha.js"></script>
 <script src="js/render.js"></script>
+<script src="js/models3d.js"></script>
+<script src="js/view3d.js"></script>
 <script src="js/tools.js"></script>
 <script src="js/entities.js"></script>
 <script src="js/inspector.js"></script>
+<script src="js/edit3d.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

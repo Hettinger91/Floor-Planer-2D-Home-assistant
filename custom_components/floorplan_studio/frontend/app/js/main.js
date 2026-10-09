@@ -9,6 +9,8 @@ function renderAll() {
 function bindUi() {
   $('#btnUndo').onclick = undo;
   $('#btnRedo').onclick = redo;
+  $('#v2Btn').onclick = () => set3D(false);
+  $('#v3Btn').onclick = () => set3D(true);
   $('#modeEdit').onclick = () => setMode('edit');
   $('#modeLive').onclick = () => setMode('live');
   $('#btnMenu').onclick = showMenu;

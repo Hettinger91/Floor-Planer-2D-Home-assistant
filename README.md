@@ -1,6 +1,6 @@
 <p align="center"><img src="images/logo.png" width="128" alt="Floorplan Studio"></p>
 
-# Floorplan Studio 2 für Home Assistant (HACS)
+# Floorplan Studio für Home Assistant (HACS)
 
 Zeichne deinen Grundriss direkt in Home Assistant – Wände, Räume, Türen, Fenster, Lampen, Möbel, Heizungen, Sensoren … alles frei konfigurierbar – und nutze ihn als **Live-Dashboard**: Lampen leuchten, Heizungen zeigen die Temperatur, Tippen schaltet.
 
@@ -25,6 +25,10 @@ Danach erscheint in der Seitenleiste der Eintrag **Grundriss**.
 ### Manuell (ohne HACS)
 Ordner `custom_components/floorplan_studio` nach `<config>/custom_components/` kopieren, neu starten, Integration hinzufügen.
 
+## Entitäten verknüpfen
+* Objekt auswählen → **Auswählen …** öffnet eine Suche mit Filter nach Typ und Bereich.
+* Tab **Entitäten** links: Zeile auf den Plan ziehen oder mehrere ankreuzen und platzieren – Objekttyp, Beschriftung, Wertanzeige und Leuchten werden automatisch gesetzt.
+
 ## Individuell gestalten
 * **Symbol-Stil** (Einstellungen → Ansicht): Modern-neutral (Standard), Klassisch (Architektenplan), Farbig-dezent oder Emojis. Eigene Icons und Bilder pro Objekt bleiben möglich und haben Vorrang vor dem Symbol.
 * Jeder Raum: Farbe, **Bodenbelag** (Holz, Fliesen, Stein, Teppich, Rasen, Beton) mit Größe und Drehung des Musters.
@@ -32,7 +36,29 @@ Ordner `custom_components/floorplan_studio` nach `<config>/custom_components/` k
 * Wände (Farbe, Dicke, gestrichelt), Türen/Fenster, Hintergrundbild als Vorlage, mehrere Etagen.
 
 ## Ansicht drehen
-Am Tablet mit zwei Fingern drehen und zoomen; am PC mit Rechtsklick-Ziehen, Shift+Mausrad, den Tasten Q/E oder den Knöpfen ⟲ ⟳ (90°). In den Einstellungen kann die Drehung als **Ausrichtung** gespeichert werden – sie gilt dann auch auf der Dashboard-Karte (oder per `rotate:` in der Karte).
+Am Tablet mit zwei Fingern drehen und zoomen; am PC mit Rechtsklick-Ziehen, Shift+Mausrad, den Tasten Q/E oder den Knöpfen ⟲ ⟳ (90°). **Dashboard-Karte:** Mit einem Finger/der Maus ziehen = Ansicht um die Mitte drehen (Orbit), zwei Finger = zoomen + drehen + verschieben, Shift-/Rechts-Ziehen = verschieben, Strg+Mausrad = zoomen, Shift+Mausrad = drehen, Doppelklick = zurücksetzen; Knöpfe unten rechts. Antippen von Objekten schaltet wie gewohnt. Abschalten mit `gestures: false`. **Editor:** Knopf ◎ schaltet den Dreh-Modus (Ein-Finger-/Maus-Ziehen dreht statt zu verschieben). Längen werden in **Metern** eingegeben (Einstellung „Einheit“ → cm möglich). In den Einstellungen kann die Drehung als **Ausrichtung** gespeichert werden – sie gilt dann auch auf der Dashboard-Karte (oder per `rotate:` in der Karte).
+
+## Feinschliff pro Objekt / Raum
+* **Bezeichnung** lässt sich direkt im Plan über den kleinen Griff am Text drehen (Objekt anklicken), **Wert/Zustand** (die Kapsel über dem Objekt) ebenfalls über einen Griff im Plan. Mit „Bezeichnung = Name der Entität“ übernimmt der Plan den Namen automatisch aus Home Assistant.
+* **Leuchten, wenn aktiv:** Effekt (weich, stark, Ring, pulsierend), **Leuchtradius** und **Intensität** einstellbar.
+* **Raum:** Breite, Tiefe und Position als Zahlen ändern – Wände an den Raumecken wandern mit.
+
+## Objekte & eigene Symbole
+Die Bibliothek enthält über 260 Objekte (Möbel, Küche & Bad, Heizung & Klima, rund 75 Smart-Home-Geräte, Büro & Medien, Außen & Garage, Kinder & Haustiere, Bau & Deko). Mit **+ Eigenes** legst du eigene Objekte an – mit **Icon (Emoji)**, **Bild** (z. B. Draufsicht, Upload oder URL) oder beidem; das Bild lässt sich eingepasst, gestreckt oder ohne Fläche darstellen. Jedes platzierte Objekt kann im Inspektor ebenfalls ein eigenes Icon/Bild bekommen, und über „Als Vorlage speichern“ wird es zur wiederverwendbaren Vorlage.
+
+## 3D-Ansicht
+
+Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** unten rechts (`view3d: false` blendet ihn aus, `mode3d: true` startet direkt in 3D).
+
+* Realistischer Look (Tag/Nacht): Himmel, Sonnenlicht mit Schatten, Rasen, Bodenmuster, Wände mit Fenster-/Türöffnungen
+* Über 270 echte 3D-Modelle (Möbel, Küche, Bad, Heizung, Lampen, Steckdosen/Schalter, Kameras, Sensoren, Geräte, Treppen, Auto, Bäume, Pool …); Smart-Home-Teile leuchten bzw. zeigen ihren Zustand
+* Aktive Lampen leuchten (Lichtkegel + Glow), Wände zur Kamera werden automatisch abgesenkt (Wände: automatisch / voll / halb / flach)
+* Look: Auto · Tag · Dunkel · Neon; „alle Etagen“ stapelt die Etagen
+* Bedienung: Ziehen = Orbit, Zwei-Finger = Zoom/Verschieben/Drehen, Tippen = Objekt schalten (Live), Doppeltipp = Ansicht zurücksetzen
+* Höhen pro Objekt im Inspektor („3D-Höhe“, „Höhe über Boden“), Wandhöhe pro Etage
+* Karten-Optionen: `look3d`, `walls3d`, `all3d`, `height3d` (px)
+
+3D-Darstellung mit [three.js](https://threejs.org) (MIT, gebündelt in `frontend/vendor/`, Lizenz in `THREE-LICENSE.txt`).
 
 ## Benutzung
 
@@ -43,6 +69,7 @@ Am Tablet mit zwei Fingern drehen und zoomen; am PC mit Rechtsklick-Ziehen, Shif
 type: custom:floorplan-studio-card
 # floor: Erdgeschoss   # optional: feste Etage (Name oder ID); sonst Etagen-Tabs
 # title: Mein Haus     # optional
+# gestures: false     # optional: Touch-/Maus-Gesten abschalten (Seite scrollt dann normal)
 # rotate: 90           # optional: Drehung in Grad (sonst die im Editor gespeicherte Ausrichtung)
 ```
 

@@ -24,6 +24,7 @@ svg.gest.grabbing { cursor: grabbing; }
 .ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 4px; opacity: .85; }
 .ctl button { width: 30px; height: 30px; border-radius: 15px; border: 1px solid var(--divider-color); background: var(--card-background-color, #fff); color: var(--primary-text-color); font: inherit; font-size: 15px; line-height: 1; padding: 0; cursor: pointer; }
 .item.act, [data-k="room"].act { cursor: pointer; }
+.stage3 { width: 100%; height: 420px; position: relative; touch-action: none; }
 .msg { padding: 24px 16px; color: var(--secondary-text-color); text-align: center; }
 `;
 
@@ -32,11 +33,12 @@ class FloorplanStudioCard extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this._cfg = {}; this._plan = null; this._floor = null; this._sig = ''; this._unsub = null; this._err = '';
-    this._hass = null; this._loading = false; this._rev = null; this._drag = null; this._v = null; this._pts = new Map(); this._g = null;
+    this._hass = null; this._loading = false; this._rev = null; this._drag = null; this._v = null; this._pts = new Map(); this._g = null; this._v3 = null; this._k3 = ''; this._m3 = null;
   }
   static getStubConfig() { return {}; }
   getCardSize() { return 6; }
-  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._pickFloor(); this._draw(); }
+  setConfig(c) { this._cfg = c || {}; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._kill3(); this._pickFloor(); this._draw(); }
+  _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
     const first = !this._hass;
@@ -45,7 +47,7 @@ class FloorplanStudioCard extends HTMLElement {
     else this._maybeDraw();
   }
   connectedCallback() { if (this._hass && !this._unsub) this._start(); }
-  disconnectedCallback() { if (this._unsub) { try { this._unsub(); } catch (_) { /* egal */ } this._unsub = null; } clearTimeout(this._drag && this._drag.timer); }
+  disconnectedCallback() { if (this._unsub) { try { this._unsub(); } catch (_) { /* egal */ } this._unsub = null; } clearTimeout(this._drag && this._drag.timer); this._kill3(); }
 
   async _start() {
     await this._load();
@@ -118,6 +120,8 @@ class FloorplanStudioCard extends HTMLElement {
       return;
     }
     this._ctx();
+    if (this._m3 && this._draw3(head)) return;
+    this._kill3();
     const f = curFloor(), b = contentBounds(f), pad = 60;
     const rotDeg = Number(this._cfg.rotate != null ? this._cfg.rotate : (plan.settings.viewRot || 0)) || 0;
     const rr = rotDeg * Math.PI / 180, rc = Math.abs(Math.cos(rr)), rs = Math.abs(Math.sin(rr));
@@ -132,8 +136,7 @@ class FloorplanStudioCard extends HTMLElement {
     }).join('');
     const walls = f.walls.map(wl => wallMarkup(wl, true, { k: 1 })).join('');
     const items = f.items.map(i => itemMarkup(i, ctx)).join('') + ctx.glowOut.join('');
-    const defs = [...ctx.glows].map(([col, id]) =>
-      `<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".5" stop-color="${col}" stop-opacity=".42"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`).join('');
+    const defs = glowDefsMarkup(ctx.glows);
     const gest = this._cfg.gestures !== false;
     this._C = { x: ccx, y: ccy };
     const empty = !f.walls.length && !f.rooms.length && !f.items.length && !(f.bg && f.bg.url);
@@ -141,11 +144,51 @@ class FloorplanStudioCard extends HTMLElement {
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const body = empty
       ? '<div class="msg">Der Grundriss ist noch leer. Öffne das Panel „Grundriss“ in der Seitenleiste, um ihn zu zeichnen.</div>'
-      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button></div>' : ''}</div>`;
+      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button>' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht">3D</button>' : '') + '</div>' : ''}</div>`;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}${body}</ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._v = null; this._sig = ''; this._draw(); }; });
     const svg = root.querySelector('svg');
     if (svg) this._bind(svg);
+  }
+
+  _base3() {
+    const sc = [...document.querySelectorAll('script[src]')].map(x => x.src).find(u => /floorplan-card\.js/.test(u));
+    return sc ? sc.replace(/[^/]*$/, '') + 'vendor/' : '/floorplan_studio_static/vendor/';
+  }
+
+  // 3D-Ansicht. true = übernommen (auch wenn noch geladen wird)
+  _draw3(head) {
+    const root = this.shadowRoot, key = '3|' + this._floor + '|' + (this._plan.floors.length > 1 && !this._cfg.floor ? 't' : '');
+    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); return true; }
+    this._kill3(); this._k3 = key;
+    const tabs = !this._cfg.floor && this._plan.floors.length > 1
+      ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
+    const hgt = Number(this._cfg.height3d) || 420;
+    const ctl = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="reset" title="Zurücksetzen">⤢</button>';
+    root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}<div class="wrap"><div class="stage3" style="height:${hgt}px"></div><div class="ctl">${ctl}</div></div></ha-card>`;
+    root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._sig = ''; this._draw(); }; });
+    const st = root.querySelector('.stage3'), myKey = key;
+    FP3D.load(this._base3()).then(() => {
+      if (this._k3 !== myKey || !this._m3 || !st.isConnected) return;
+      this._ctx();
+      const c = this._cfg, s = plan.settings;
+      this._v3 = FP3D.create(st, {
+        getFloor: () => this._floor,
+        look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
+        dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
+        onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
+      });
+      this._v3.update();
+    }).catch(e => { st.innerHTML = `<div class="msg">3D nicht möglich: ${esc(e.message)}</div>`; });
+    root.querySelectorAll('.ctl button').forEach(b => {
+      b.onclick = () => {
+        const k = b.dataset.v;
+        if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); }
+        else if (!this._v3) return;
+        else if (k === 'ccw') this._v3.rotate(-0.5); else if (k === 'cw') this._v3.rotate(0.5); else this._v3.resetView();
+      };
+    });
+    return true;
   }
 
   // ----- Ansicht (Drehen/Zoomen/Verschieben): Bild = T + C + k·R(a)·(p − C) -----
@@ -195,6 +238,7 @@ class FloorplanStudioCard extends HTMLElement {
       b.addEventListener('pointerdown', e => e.stopPropagation());
       b.onclick = () => {
         const k = b.dataset.v;
+        if (k === '3d') { this._m3 = true; this._sig = ''; this._draw(); return; }
         if (k === 'ccw') this._rotBy(-90); else if (k === 'cw') this._rotBy(90);
         else if (k === 'in') this._zoomBy(1.3); else if (k === 'out') this._zoomBy(1 / 1.3);
         else { this._v = null; this._apply(); }
