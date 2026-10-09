@@ -53,8 +53,8 @@ ha-card { display: block; container-type: inline-size; }
 @media (pointer: coarse) { .rail button { padding: 8px 16px; font-size: 14px; } }
 @container (min-width: 640px) {
   .body.lay-auto, .body.lay-side { flex-direction: row; }
-  .lay-auto .rail, .lay-side .rail { flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 12px 8px 12px 12px; width: 112px; flex: 0 0 112px; box-sizing: border-box; max-height: 80vh; }
-  .lay-auto .rail button, .lay-side .rail button { border-radius: 12px; padding: 10px 8px; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+  .lay-auto .rail, .lay-side .rail { flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 12px 8px 12px 12px; width: 140px; flex: 0 0 140px; box-sizing: border-box; max-height: 80vh; }
+  .lay-auto .rail button, .lay-side .rail button { border-radius: 12px; padding: 10px 8px; text-align: center; white-space: normal; overflow-wrap: anywhere; }
   .lay-auto .rail .sep, .lay-side .rail .sep { flex: 0 0 1px; height: 1px; margin: 4px 6px; }
   .lay-auto .stage3:not(.fixed), .lay-side .stage3:not(.fixed) { aspect-ratio: 16 / 10; max-height: 80vh; }
 }
