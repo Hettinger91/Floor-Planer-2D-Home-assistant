@@ -1,0 +1,7 @@
+{
+  "name": "Floorplan Studio 2D",
+  "render_readme": true,
+  "zip_release": true,
+  "filename": "floorplan_studio.zip",
+  "homeassistant": "2024.8.0"
+}
