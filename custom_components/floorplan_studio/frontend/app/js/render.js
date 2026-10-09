@@ -25,7 +25,7 @@ function renderNow() {
   const f = curFloor(), v = V(), live = mode === 'live', { w, h } = stageSize();
   gWorld.setAttribute('transform', `translate(${v.tx} ${v.ty}) rotate(${v.a || 0}) scale(${v.k})`);
   gGrid.innerHTML = live || !S().showGrid ? '' : gridMarkup(v, w, h);
-  gBg.innerHTML = bgMarkup(f);
+  gBg.innerHTML = gardenBaseMarkup(f) + bgMarkup(f);
   gRooms.innerHTML = f.rooms.map(r => roomMarkup(r)).join('');
   gWalls.innerHTML = f.walls.map(wl => wallMarkup(wl, live, v)).join('');
   const ctx = { glows: new Map(), glowOut: [] };
@@ -81,15 +81,31 @@ const FLOORS = {
   stone: [100, 50, '<path d="M0 0H100M0 25H100M0 50H100M0 0V25M50 25V50" stroke="#000" stroke-opacity=".3" stroke-width="1.4" fill="none"/><rect width="50" height="25" fill="#000" opacity=".05"/><rect x="50" y="25" width="50" height="25" fill="#000" opacity=".05"/>'],
   carpet: [10, 10, '<circle cx="2.5" cy="2.5" r="1" fill="#000" opacity=".22"/><circle cx="7.5" cy="7.5" r="1" fill="#fff" opacity=".35"/>'],
   grass: [24, 24, '<path d="M4 10l2-5 2 5M16 20l2-5 2 5M14 8l1.5-4 1.5 4" stroke="#1b5e20" stroke-opacity=".45" stroke-width="1.2" fill="none"/>'],
+  gravel: [30, 30, '<circle cx="5" cy="6" r="2" fill="#000" opacity=".16"/><circle cx="18" cy="9" r="1.6" fill="#fff" opacity=".5"/><circle cx="11" cy="21" r="2.2" fill="#000" opacity=".14"/><circle cx="25" cy="24" r="1.8" fill="#fff" opacity=".45"/><circle cx="23" cy="4" r="1.2" fill="#000" opacity=".18"/>'],
+  pavers: [60, 40, '<path d="M0 0H60M0 20H60M0 40H60M0 0V20M30 20V40" stroke="#000" stroke-opacity=".28" stroke-width="1.6" fill="none"/><rect x="2" y="2" width="26" height="16" fill="#fff" opacity=".1"/><rect x="32" y="22" width="26" height="16" fill="#000" opacity=".06"/>'],
+  deck: [200, 24, '<path d="M0 0H200M0 12H200M0 24H200" stroke="#3e2a1a" stroke-opacity=".4" stroke-width="1.2" fill="none"/><path d="M60 0V12M140 12V24" stroke="#3e2a1a" stroke-opacity=".35" stroke-width="1"/>'],
+  sand: [20, 20, '<circle cx="4" cy="5" r="0.8" fill="#000" opacity=".2"/><circle cx="13" cy="11" r="0.7" fill="#fff" opacity=".5"/><circle cx="8" cy="16" r="0.8" fill="#000" opacity=".18"/>'],
+  soil: [20, 20, '<circle cx="5" cy="6" r="1.3" fill="#000" opacity=".3"/><circle cx="14" cy="13" r="1.1" fill="#fff" opacity=".15"/><circle cx="9" cy="17" r="1.4" fill="#000" opacity=".25"/>'],
+  water: [60, 30, '<path d="M0 8q7-5 15 0t15 0 15 0 15 0M0 22q7-5 15 0t15 0 15 0 15 0" stroke="#fff" stroke-opacity=".5" stroke-width="1.4" fill="none"/>'],
   concrete: [60, 60, '<circle cx="12" cy="15" r="1.2" fill="#000" opacity=".15"/><circle cx="40" cy="44" r="1.6" fill="#000" opacity=".12"/><circle cx="50" cy="12" r="1" fill="#fff" opacity=".3"/><circle cx="25" cy="50" r="1" fill="#fff" opacity=".3"/>'],
 };
-const FLOOR_OPTIONS = [['', 'Nur Farbe'], ['wood', 'Holz / Parkett'], ['tile', 'Fliesen'], ['stone', 'Stein / Klinker'], ['carpet', 'Teppich'], ['grass', 'Rasen'], ['concrete', 'Beton']];
+const FLOOR_OPTIONS = [['', 'Nur Farbe'], ['wood', 'Holz / Parkett'], ['tile', 'Fliesen'], ['stone', 'Stein / Klinker'], ['carpet', 'Teppich'], ['grass', 'Rasen'], ['concrete', 'Beton'], ['gravel', 'Kies'], ['pavers', 'Pflaster'], ['deck', 'Holzdeck (Terrasse)'], ['sand', 'Sand'], ['soil', 'Erde'], ['water', 'Wasser']];
+// Garten-Etage: Rasen-Untergrund + blasser Hausumriss (Orientierung)
+function gardenBaseMarkup(f) {
+  if (!f || f.kind !== 'garden') return '';
+  const d = FLOORS.grass, strip = s => s.replace(/ data-(k|id|t)="[^"]*"/g, '');
+  let ghost = '';
+  const hf = plan.floors.find(x => x.kind !== 'garden');
+  if (hf) ghost = `<g opacity=".4" pointer-events="none">${hf.rooms.map(r => strip(roomMarkup(r))).join('')}${hf.walls.map(w => strip(wallMarkup(w, true, { k: 1 }))).join('')}</g>`;
+  return `<pattern id="gardenbase" patternUnits="userSpaceOnUse" width="${d[0]}" height="${d[1]}">${d[2]}</pattern>` +
+    `<rect x="-6000" y="-6000" width="14000" height="14000" fill="#d4e8c2" pointer-events="none"/><rect x="-6000" y="-6000" width="14000" height="14000" fill="url(#gardenbase)" pointer-events="none"/>` + ghost;
+}
 function floorMarkup(r, pts) {
   const d = FLOORS[r.floor];
   if (!d) return '';
   const id = 'fl-' + r.id, sc = r.floorScale > 0 ? r.floorScale : 1;
   return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${d[0]}" height="${d[1]}" patternTransform="scale(${sc}) rotate(${r.floorRot || 0})">${d[2]}</pattern>` +
-    `<polygon points="${pts}" fill="url(#${id})" fill-opacity="${r.floor === 'grass' || r.floor === 'concrete' ? 0.9 : 1}" pointer-events="none"/>`;
+    `<polygon points="${pts}" fill="url(#${id})" fill-opacity="${['grass', 'concrete', 'gravel', 'sand', 'soil', 'water'].includes(r.floor) ? 0.9 : 1}" pointer-events="none"/>`;
 }
 
 function roomMarkup(r) {
@@ -232,6 +248,13 @@ function handle(t, x, y, extra, s, r = 7) {
     `<circle data-k="h" data-t="${t}" ${extra} cx="${x}" cy="${y}" r="${16 * s}" fill="transparent"/>`;
 }
 
+// Auffälliger Dreh-Griff für Bezeichnung / Wert (orange, mit Dreh-Symbol)
+function rotHandle(t, x, y, s) {
+  return `<circle data-k="h" data-t="${t}" cx="${x}" cy="${y}" r="${11 * s}" fill="#ff9800" stroke="#fff" stroke-width="${2 * s}" ${NS} style="cursor:grab"/>` +
+    `<text x="${x}" y="${y}" dy=".36em" text-anchor="middle" font-size="${14 * s}" fill="#fff" font-weight="700" pointer-events="none" ${NS}>↻</text>` +
+    `<circle data-k="h" data-t="${t}" cx="${x}" cy="${y}" r="${20 * s}" fill="transparent"/>`;
+}
+
 function overlayMarkup(f, v) {
   const s = 1 / v.k;
   let out = '';
@@ -243,14 +266,14 @@ function overlayMarkup(f, v) {
     out += `<line x1="0" y1="${-hh}" x2="0" y2="${-hh - 28 * s}" stroke="${C.accent}" stroke-width="1.5" pointer-events="none" ${NS}/>` + handle('rot', 0, -hh - 28 * s, '', s) + '</g>';
     // Griff zum Drehen der Bezeichnung direkt im Plan
     if (o.shape !== 'text' && o.showLabel && labelText(o)) {
-      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = S().labelSize * 1.5;
+      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = Math.max(S().labelSize * 2.2, 40 * s);
       const hx = L.x + Math.sin(lr) * rr, hy = L.y - Math.cos(lr) * rr;
-      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('lrot', hx, hy, '', s, 6);
+      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + rotHandle('lrot', hx, hy, s);
     }
     if (o.entity && o.showValue && valueText(o.entity)) {
-      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = S().labelSize * 1.9;
+      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = Math.max(S().labelSize * 2.6, 46 * s);
       const hx = V0.x + Math.sin(vr) * rr, hy = V0.y - Math.cos(vr) * rr;
-      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('vrot', hx, hy, '', s, 6);
+      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + rotHandle('vrot', hx, hy, s);
     }
   } else if (o && sel.k === 'wall') {
     out += `<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="${C.accent}" stroke-opacity=".35" stroke-width="${o.t + 10 * s}" stroke-linecap="square" pointer-events="none"/>`;

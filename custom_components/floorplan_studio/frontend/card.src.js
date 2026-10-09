@@ -129,7 +129,7 @@ class FloorplanStudioCard extends HTMLElement {
     const w = (b.w + pad * 2) * rc + (b.h + pad * 2) * rs, h = (b.w + pad * 2) * rs + (b.h + pad * 2) * rc;
     const x0 = ccx - w / 2, y0 = ccy - h / 2;
     const ctx = { glows: new Map(), glowOut: [] };
-    const rooms = f.rooms.map(r => {
+    const rooms = gardenBaseMarkup(f) + f.rooms.map(r => {
       let m = roomMarkup(r);
       if (r.entity) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
       return m;
@@ -175,7 +175,7 @@ class FloorplanStudioCard extends HTMLElement {
       this._v3 = FP3D.create(st, {
         getFloor: () => this._floor,
         look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
-        dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
+        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update();

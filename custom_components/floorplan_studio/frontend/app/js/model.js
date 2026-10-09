@@ -4,7 +4,9 @@ let hist = [], histIdx = -1;
 const views = {};
 const S = () => plan.settings;
 
-function newFloor(name) { return { id: uid(), name, bg: null, walls: [], rooms: [], items: [] }; }
+function newFloor(name, kind) { const f = { id: uid(), name, bg: null, walls: [], rooms: [], items: [] }; if (kind) f.kind = kind; return f; }
+// Standard für neue Wände: Garten-Etage = Zaun (dünn, braun)
+function wallDef() { const g = typeof curFloor === 'function' && curFloor() && curFloor().kind === 'garden'; return g ? { t: 8, style: 'solid', color: '#8d6e4a' } : { t: S().wallThickness, style: 'solid', color: '' }; }
 function defaultPlan() { return { version: 1, settings: { ...DEFAULT_SETTINGS }, floors: [newFloor('Erdgeschoss')], customTypes: [] }; }
 
 function normalize(p) {

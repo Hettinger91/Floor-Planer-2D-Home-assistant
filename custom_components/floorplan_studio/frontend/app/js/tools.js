@@ -68,7 +68,7 @@ function finishDrawing() {
   drawing = null; updateDrawBar(); render();
 }
 function addWall(a, b) {
-  const w = { id: uid(), x1: a.x, y1: a.y, x2: b.x, y2: b.y, t: S().wallThickness, style: 'solid', color: '' };
+  const w = { id: uid(), x1: a.x, y1: a.y, x2: b.x, y2: b.y, ...wallDef() };
   curFloor().walls.push(w);
   commit();
   return w;
@@ -80,7 +80,7 @@ function createRectRoom(a, b) {
   f.rooms.push(r);
   if (S().rectWalls) {
     [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]].forEach(c =>
-      f.walls.push({ id: uid(), x1: c[0], y1: c[1], x2: c[2], y2: c[3], t: S().wallThickness, style: 'solid', color: '' }));
+      f.walls.push({ id: uid(), x1: c[0], y1: c[1], x2: c[2], y2: c[3], ...wallDef() }));
   }
   commit();
   setTool('select');
@@ -90,7 +90,7 @@ function wallsFromRoom(r) {
   const f = curFloor();
   r.pts.forEach((p, i) => {
     const q = r.pts[(i + 1) % r.pts.length];
-    f.walls.push({ id: uid(), x1: p[0], y1: p[1], x2: q[0], y2: q[1], t: S().wallThickness, style: 'solid', color: '' });
+    f.walls.push({ id: uid(), x1: p[0], y1: p[1], x2: q[0], y2: q[1], ...wallDef() });
   });
   commit(); render();
 }

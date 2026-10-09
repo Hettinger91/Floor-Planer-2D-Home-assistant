@@ -180,8 +180,8 @@ const LIB = [
   T('Licht', 'lamp_mirror', 'Spiegelleuchte', '✨', 60, 10, CB, { glow: true, hint: 'light' }),
   T('Licht', 'light_panel', 'LED-Panel', '⬜', 60, 60, CB, { glow: true, hint: 'light' }),
   T('Licht', 'lamp_bulb', 'Smarte Glühbirne', '💡', 10, 10, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
-  T('Licht', 'lamp_outdoor', 'Außenleuchte', '🏮', 22, 22, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
-  T('Licht', 'lamp_garden', 'Gartenleuchte', '🌿', 15, 15, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'lamp_outdoor', 'Außenleuchte', '🏮', 22, 22, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'lamp_garden', 'Gartenleuchte', '🌿', 15, 15, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
   T('Möbel', 'sofa_corner', 'Ecksofa', '🛋️', 250, 180, CF),
   T('Möbel', 'sofa_2', '2er-Sofa', '🛋️', 150, 90, CF),
   T('Möbel', 'stool', 'Hocker', '🪑', 40, 40, CF, { shape: 'ellipse' }),
@@ -280,9 +280,9 @@ const LIB = [
   T('Smart Home', 'battery', 'Batteriespeicher', '🔋', 50, 25, CS, { hint: 'sensor' }),
   T('Smart Home', 'heat_meter', 'Wärmemengenzähler', '🌡️', 25, 20, CS, { hint: 'sensor' }),
   T('Smart Home', 'water_meter', 'Wasserzähler', '💧', 25, 20, CS, { hint: 'sensor' }),
-  T('Smart Home', 'weather', 'Wetterstation', '🌦️', 20, 20, CS, { shape: 'ellipse', hint: 'sensor' }),
-  T('Smart Home', 'irrigation', 'Bewässerungsventil', '💧', 16, 16, CS, { shape: 'ellipse', hint: 'valve' }),
-  T('Smart Home', 'pool_pump', 'Poolpumpe', '🌊', 40, 30, CS, { hint: 'switch' }),
+  T('Garten', 'weather', 'Wetterstation', '🌦️', 20, 20, CS, { shape: 'ellipse', hint: 'sensor' }),
+  T('Garten', 'irrigation', 'Bewässerungsventil', '💧', 16, 16, CS, { shape: 'ellipse', hint: 'valve' }),
+  T('Garten', 'pool_pump', 'Poolpumpe', '🌊', 40, 30, CS, { hint: 'switch' }),
   T('Smart Home', 'smart_tv', 'Smart-TV', '📺', 120, 8, CS, { hint: 'media_player' }),
   T('Smart Home', 'soundbar', 'Soundbar', '🔊', 100, 10, CS, { hint: 'media_player' }),
   T('Smart Home', 'smart_speaker', 'Smart Speaker', '🔊', 15, 15, CS, { shape: 'ellipse', hint: 'media_player' }),
@@ -301,7 +301,7 @@ const LIB = [
   T('Smart Home', 'knx', 'KNX-/Aktor-Verteilung', '🧰', 60, 20, CS),
   T('Smart Home', 'ir_blaster', 'IR-Sender', '📡', 12, 12, CS, { shape: 'ellipse' }),
   T('Smart Home', 'smart_valve', 'Wasser-Hauptventil', '🚰', 16, 16, CS, { shape: 'ellipse', hint: 'valve' }),
-  T('Smart Home', 'rain_sensor', 'Regensensor', '🌧️', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
+  T('Garten', 'rain_sensor', 'Regensensor', '🌧️', 14, 14, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
   T('Smart Home', 'wind_sensor', 'Windsensor', '🌬️', 14, 14, CS, { shape: 'ellipse', hint: 'sensor' }),
   T('Smart Home', 'window_handle', 'Fenstergriff-Sensor', '🧲', 12, 12, CS, { shape: 'ellipse', hint: 'binary_sensor' }),
   T('Smart Home', 'radiator_valve', 'Smartes Heizkörperthermostat', '🌡️', 14, 14, CS, { shape: 'ellipse', hint: 'climate' }),
@@ -321,33 +321,101 @@ const LIB = [
   T('Büro & Medien', 'workbench', 'Werkbank', '🛠️', 150, 60, CB),
   T('Büro & Medien', 'tool_cabinet', 'Werkzeugschrank', '🧰', 60, 50, CB),
   T('Büro & Medien', 'whiteboard', 'Whiteboard / Pinnwand', '📋', 120, 5, CB),
+  T('Garten', 'tree_fruit', 'Obstbaum', '🍎', 200, 200, '#a5d6a7', { shape: 'ellipse' }),
+  T('Garten', 'tree_conifer', 'Nadelbaum', '🌲', 160, 160, '#81c784', { shape: 'ellipse' }),
+  T('Garten', 'palm', 'Palme', '🌴', 150, 150, '#a5d6a7', { shape: 'ellipse' }),
+  T('Garten', 'bush_flower', 'Blühstrauch', '🌸', 90, 90, '#f8bbd0', { shape: 'ellipse' }),
+  T('Garten', 'planter', 'Pflanzkübel', '🪴', 50, 50, '#bcaaa4', { shape: 'ellipse' }),
+  T('Garten', 'raised_bed', 'Hochbeet', '🥬', 120, 80, '#c5e1a5'),
+  T('Garten', 'veggie_patch', 'Gemüsebeet', '🥕', 200, 100, '#a1887f'),
+  T('Garten', 'meadow', 'Blumenwiese', '🌼', 300, 200, '#dce775'),
+  T('Garten', 'rocks', 'Steine / Findlinge', '🪨', 100, 80, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'hedge_corner', 'Hecke (kurz)', '🌿', 120, 50, '#a5d6a7'),
+  T('Garten', 'trellis', 'Rankgitter', '🌱', 100, 6, '#bcaaa4'),
+  T('Garten', 'vineyard', 'Spalierobst', '🍇', 300, 20, '#c5e1a5'),
+  T('Garten', 'pond', 'Gartenteich', '🪷', 250, 180, '#81d4fa', { shape: 'ellipse' }),
+  T('Garten', 'fountain', 'Springbrunnen', '⛲', 80, 80, '#b3e5fc', { shape: 'ellipse' }),
+  T('Garten', 'birdbath', 'Vogeltränke', '🐦', 40, 40, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'water_tap', 'Außenwasserhahn', '🚰', 14, 14, '#b0bec5', { shape: 'ellipse' }),
+  T('Garten', 'hose_reel', 'Schlauchtrommel', '🪢', 40, 30, '#80cbc4'),
+  T('Garten', 'cistern', 'Zisterne / Regenspeicher', '💧', 120, 120, '#90a4ae', { shape: 'ellipse' }),
+  T('Garten', 'well', 'Brunnen', '🪣', 90, 90, '#bcaaa4', { shape: 'ellipse' }),
+  T('Garten', 'stream', 'Bachlauf', '〰️', 300, 60, '#81d4fa'),
+  T('Garten', 'greenhouse', 'Gewächshaus', '🪟', 250, 350, '#e0f2f1'),
+  T('Garten', 'pergola', 'Pergola', '🏛️', 300, 400, '#d7ccc8'),
+  T('Garten', 'gazebo', 'Pavillon', '⛺', 300, 300, '#d7ccc8', { shape: 'ellipse' }),
+  T('Garten', 'woodshed', 'Holzlager', '🪵', 200, 80, '#d7ccc8'),
+  T('Garten', 'compost', 'Komposter', '♻️', 100, 100, '#a1887f'),
+  T('Garten', 'bin_shelter', 'Mülltonnenbox', '🗑️', 200, 80, '#b0bec5'),
+  T('Garten', 'playhouse', 'Spielhaus', '🏠', 150, 150, '#ffe0b2'),
+  T('Garten', 'chicken_coop', 'Hühnerstall', '🐔', 150, 100, '#ffe0b2'),
+  T('Garten', 'rabbit_hutch', 'Kaninchenstall', '🐇', 120, 60, '#ffe0b2'),
+  T('Garten', 'doghouse', 'Hundehütte', '🐕', 70, 90, '#ffe0b2'),
+  T('Garten', 'hammock', 'Hängematte', '🛌', 100, 250, '#fff59d'),
+  T('Garten', 'bench_garden', 'Gartenbank', '🪑', 150, 55, '#d7ccc8'),
+  T('Garten', 'chair_garden', 'Gartenstuhl', '💺', 55, 55, '#d7ccc8'),
+  T('Garten', 'swing_seat', 'Hollywoodschaukel', '🛋️', 200, 120, '#fff59d'),
+  T('Garten', 'slide', 'Rutsche', '🛝', 80, 250, '#ffcc80'),
+  T('Garten', 'birdhouse', 'Vogelhaus', '🏡', 25, 25, '#ffe0b2', { shape: 'ellipse' }),
+  T('Garten', 'bee_hotel', 'Insektenhotel', '🐝', 30, 12, '#ffe0b2'),
+  T('Garten', 'statue', 'Gartenfigur', '🗿', 30, 30, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'outdoor_kitchen', 'Außenküche', '🍳', 200, 70, '#cfd8dc'),
+  T('Garten', 'pizza_oven', 'Pizzaofen', '🍕', 80, 80, '#d7ccc8'),
+  T('Garten', 'wood_pile', 'Holzstapel', '🪵', 200, 60, '#d7ccc8'),
+  T('Garten', 'wheelbarrow', 'Schubkarre', '🛒', 60, 130, '#cfd8dc'),
+  T('Garten', 'solar_panel', 'Solarpanel', '☀️', 170, 100, '#90a4ae'),
+  T('Garten', 'privacy_screen', 'Sichtschutz', '🧱', 180, 8, '#d7ccc8'),
+  T('Garten', 'garden_gate', 'Gartentür', '🚪', 100, 8, '#bcaaa4'),
+  T('Garten', 'stone_wall', 'Mauer / Trockenmauer', '🧱', 300, 30, '#bdbdbd'),
+  T('Garten', 'edging', 'Rasenkante / Beetrand', '➖', 300, 6, '#9e9e9e'),
+  T('Garten', 'path_stone', 'Gartenweg (Platten)', '🟫', 100, 300, '#d7ccc8'),
+  T('Garten', 'path_gravel', 'Kiesweg', '▫️', 100, 300, '#e0e0e0'),
+  T('Garten', 'stepping_stones', 'Trittsteine', '👣', 100, 220, '#bdbdbd'),
+  T('Garten', 'gravel_area', 'Kiesfläche', '▫️', 300, 200, '#eeeeee'),
+  T('Garten', 'patio', 'Pflasterfläche', '🟫', 400, 300, '#cfd8dc'),
+  T('Garten', 'deck', 'Holzdeck', '🟫', 400, 300, '#d7b98e'),
+  T('Garten', 'lamp_solar', 'Solarleuchte', '🔆', 14, 14, '#fff9c4', { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'lamp_post', 'Mastleuchte', '💡', 24, 24, '#fff9c4', { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'lamp_spike', 'Erdspieß-Strahler', '🔦', 14, 14, '#fff9c4', { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'lamp_flood', 'Fluter / Strahler', '🔦', 25, 15, '#fff9c4', { glow: true, hint: 'light' }),
+  T('Garten', 'mower_robot', 'Mähroboter', '🤖', 60, 45, '#a5d6a7'),
+  T('Garten', 'mower_station', 'Mäh-Ladestation', '🔌', 40, 30, '#a5d6a7'),
+  T('Garten', 'sensor_soil', 'Bodenfeuchtesensor', '🌱', 12, 12, '#c5e1a5', { shape: 'ellipse' }),
+  T('Garten', 'sprinkler', 'Rasensprenger', '💦', 16, 16, '#80deea', { shape: 'ellipse' }),
+  T('Garten', 'valve_box', 'Ventilbox Bewässerung', '🚿', 40, 30, '#80cbc4'),
+  T('Garten', 'pool_robot', 'Poolroboter', '🤖', 50, 40, '#80deea'),
+  T('Garten', 'pool_heater', 'Pool-Wärmepumpe', '♨️', 50, 40, '#cfd8dc'),
+  T('Garten', 'gate_motor', 'Torantrieb', '⚙️', 30, 20, '#b0bec5'),
+  T('Garten', 'cam_garden', 'Garten-Kamera', '📷', 20, 20, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'garden_speaker', 'Garten-Lautsprecher', '🔊', 25, 25, '#b0bec5', { shape: 'ellipse' }),
+  T('Garten', 'sensor_garden_motion', 'Außen-Bewegungsmelder', '🚶', 16, 16, '#cfd8dc', { shape: 'ellipse' }),
   T('Außen & Garage', 'car', 'Auto', '🚗', 180, 450, '#cfd8dc'),
   T('Außen & Garage', 'carport', 'Stellplatz / Carport', '🅿️', 280, 520, '#eceff1'),
   T('Außen & Garage', 'garage_door', 'Garagentor', '🚪', 250, 15, CB, { shape: 'door', wall: true }),
   T('Außen & Garage', 'bike', 'Fahrrad / Ständer', '🚲', 60, 180, CB),
-  T('Außen & Garage', 'terrace_table', 'Gartentisch', '🍽️', 150, 90, CF),
-  T('Außen & Garage', 'lounger', 'Sonnenliege', '🏖️', 70, 190, CF),
-  T('Außen & Garage', 'grill', 'Grill', '🍖', 60, 45, CA),
-  T('Außen & Garage', 'pool', 'Pool', '🏊', 300, 600, '#b3e5fc'),
-  T('Außen & Garage', 'hot_tub', 'Außen-Whirlpool', '♨️', 200, 200, '#b3e5fc', { shape: 'ellipse' }),
-  T('Außen & Garage', 'tree', 'Baum', '🌳', 150, 150, '#a5d6a7', { shape: 'ellipse' }),
-  T('Außen & Garage', 'bush', 'Busch', '🌿', 80, 80, '#c8e6c9', { shape: 'ellipse' }),
-  T('Außen & Garage', 'hedge', 'Hecke', '🌿', 300, 50, '#a5d6a7'),
-  T('Außen & Garage', 'fence', 'Zaun', '', 300, 6, '#8d6e63'),
-  T('Außen & Garage', 'flowerbed', 'Beet', '🌷', 200, 80, '#c5e1a5'),
-  T('Außen & Garage', 'lawn', 'Rasenfläche', '', 400, 300, '#c8e6c9'),
-  T('Außen & Garage', 'mailbox', 'Briefkasten', '📬', 30, 20, CB),
-  T('Außen & Garage', 'gate', 'Gartentor', '🚪', 120, 10, CB),
-  T('Außen & Garage', 'shed', 'Gartenhaus', '🏠', 250, 200, CF),
-  T('Außen & Garage', 'trash_bin', 'Mülltonne', '🗑️', 60, 70, '#b0bec5'),
-  T('Außen & Garage', 'rain_barrel', 'Regentonne', '🛢️', 60, 60, '#b0bec5', { shape: 'ellipse' }),
-  T('Außen & Garage', 'sandbox', 'Sandkasten', '🏖️', 120, 120, '#ffe0b2'),
-  T('Außen & Garage', 'trampoline', 'Trampolin', '🤸', 300, 300, '#cfd8dc', { shape: 'ellipse' }),
-  T('Außen & Garage', 'swing', 'Schaukel', '🛝', 200, 150, CF),
-  T('Außen & Garage', 'terrace', 'Terrasse / Platten', '', 400, 300, '#d7ccc8'),
+  T('Garten', 'terrace_table', 'Gartentisch', '🍽️', 150, 90, CF),
+  T('Garten', 'lounger', 'Sonnenliege', '🏖️', 70, 190, CF),
+  T('Garten', 'grill', 'Grill', '🍖', 60, 45, CA),
+  T('Garten', 'pool', 'Pool', '🏊', 300, 600, '#b3e5fc'),
+  T('Garten', 'hot_tub', 'Außen-Whirlpool', '♨️', 200, 200, '#b3e5fc', { shape: 'ellipse' }),
+  T('Garten', 'tree', 'Baum', '🌳', 150, 150, '#a5d6a7', { shape: 'ellipse' }),
+  T('Garten', 'bush', 'Busch', '🌿', 80, 80, '#c8e6c9', { shape: 'ellipse' }),
+  T('Garten', 'hedge', 'Hecke', '🌿', 300, 50, '#a5d6a7'),
+  T('Garten', 'fence', 'Zaun', '', 300, 6, '#8d6e63'),
+  T('Garten', 'flowerbed', 'Beet', '🌷', 200, 80, '#c5e1a5'),
+  T('Garten', 'lawn', 'Rasenfläche', '', 400, 300, '#c8e6c9'),
+  T('Garten', 'mailbox', 'Briefkasten', '📬', 30, 20, CB),
+  T('Garten', 'gate', 'Gartentor', '🚪', 120, 10, CB),
+  T('Garten', 'shed', 'Gartenhaus', '🏠', 250, 200, CF),
+  T('Garten', 'trash_bin', 'Mülltonne', '🗑️', 60, 70, '#b0bec5'),
+  T('Garten', 'rain_barrel', 'Regentonne', '🛢️', 60, 60, '#b0bec5', { shape: 'ellipse' }),
+  T('Garten', 'sandbox', 'Sandkasten', '🏖️', 120, 120, '#ffe0b2'),
+  T('Garten', 'trampoline', 'Trampolin', '🤸', 300, 300, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'swing', 'Schaukel', '🛝', 200, 150, CF),
+  T('Garten', 'terrace', 'Terrasse / Platten', '', 400, 300, '#d7ccc8'),
   T('Außen & Garage', 'driveway', 'Einfahrt', '', 300, 600, '#cfd8dc'),
-  T('Außen & Garage', 'firepit', 'Feuerstelle', '🔥', 90, 90, '#ffccbc', { shape: 'ellipse' }),
-  T('Außen & Garage', 'parasol', 'Sonnenschirm', '⛱️', 200, 200, '#ffe0b2', { shape: 'ellipse' }),
+  T('Garten', 'firepit', 'Feuerstelle', '🔥', 90, 90, '#ffccbc', { shape: 'ellipse' }),
+  T('Garten', 'parasol', 'Sonnenschirm', '⛱️', 200, 200, '#ffe0b2', { shape: 'ellipse' }),
   T('Kinder & Haustiere', 'playmat', 'Spielteppich', '🧸', 150, 150, '#ffe0b2'),
   T('Kinder & Haustiere', 'toy_box', 'Spielzeugkiste', '🧸', 60, 40, CF),
   T('Kinder & Haustiere', 'kid_table', 'Kindertisch', '', 60, 60, CF),
@@ -379,11 +447,11 @@ const LIB = [
   T('Bau & Deko', 'electric_panel', 'Sicherungskasten', '⚡', 40, 15, CS),
   T('Bau & Deko', 'cable_duct', 'Kabelschacht', '', 20, 20, '#b0bec5'),
 
-  T('Licht', 'lamp_arc', 'Bogenleuchte', '🪔', 40, 40, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
-  T('Licht', 'light_string', 'Lichterkette', '✨', 200, 6, CB, { glow: true, hint: 'light' }),
+  T('Garten', 'lamp_arc', 'Bogenleuchte', '🪔', 40, 40, CB, { shape: 'ellipse', glow: true, hint: 'light' }),
+  T('Garten', 'light_string', 'Lichterkette', '✨', 200, 6, CB, { glow: true, hint: 'light' }),
   T('Smart Home', 'outlet_double', 'Doppelsteckdose', '🔌', 28, 14, CS, { hint: 'switch' }),
   T('Smart Home', 'outlet_usb', 'USB-Steckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
-  T('Smart Home', 'outlet_outdoor', 'Außensteckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
+  T('Garten', 'outlet_outdoor', 'Außensteckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
   T('Smart Home', 'outlet_floor', 'Bodensteckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
   T('Smart Home', 'outlet_smart', 'Smarte Steckdose', '🔌', 16, 16, CS, { shape: 'ellipse', hint: 'switch' }),
   T('Smart Home', 'outlet_cee', 'Herd-/Starkstromanschluss', '⚡', 18, 18, CS, { shape: 'ellipse' }),
@@ -557,7 +625,9 @@ let hist = [], histIdx = -1;
 const views = {};
 const S = () => plan.settings;
 
-function newFloor(name) { return { id: uid(), name, bg: null, walls: [], rooms: [], items: [] }; }
+function newFloor(name, kind) { const f = { id: uid(), name, bg: null, walls: [], rooms: [], items: [] }; if (kind) f.kind = kind; return f; }
+// Standard für neue Wände: Garten-Etage = Zaun (dünn, braun)
+function wallDef() { const g = typeof curFloor === 'function' && curFloor() && curFloor().kind === 'garden'; return g ? { t: 8, style: 'solid', color: '#8d6e4a' } : { t: S().wallThickness, style: 'solid', color: '' }; }
 function defaultPlan() { return { version: 1, settings: { ...DEFAULT_SETTINGS }, floors: [newFloor('Erdgeschoss')], customTypes: [] }; }
 
 function normalize(p) {
@@ -957,7 +1027,7 @@ function renderNow() {
   const f = curFloor(), v = V(), live = mode === 'live', { w, h } = stageSize();
   gWorld.setAttribute('transform', `translate(${v.tx} ${v.ty}) rotate(${v.a || 0}) scale(${v.k})`);
   gGrid.innerHTML = live || !S().showGrid ? '' : gridMarkup(v, w, h);
-  gBg.innerHTML = bgMarkup(f);
+  gBg.innerHTML = gardenBaseMarkup(f) + bgMarkup(f);
   gRooms.innerHTML = f.rooms.map(r => roomMarkup(r)).join('');
   gWalls.innerHTML = f.walls.map(wl => wallMarkup(wl, live, v)).join('');
   const ctx = { glows: new Map(), glowOut: [] };
@@ -1013,15 +1083,31 @@ const FLOORS = {
   stone: [100, 50, '<path d="M0 0H100M0 25H100M0 50H100M0 0V25M50 25V50" stroke="#000" stroke-opacity=".3" stroke-width="1.4" fill="none"/><rect width="50" height="25" fill="#000" opacity=".05"/><rect x="50" y="25" width="50" height="25" fill="#000" opacity=".05"/>'],
   carpet: [10, 10, '<circle cx="2.5" cy="2.5" r="1" fill="#000" opacity=".22"/><circle cx="7.5" cy="7.5" r="1" fill="#fff" opacity=".35"/>'],
   grass: [24, 24, '<path d="M4 10l2-5 2 5M16 20l2-5 2 5M14 8l1.5-4 1.5 4" stroke="#1b5e20" stroke-opacity=".45" stroke-width="1.2" fill="none"/>'],
+  gravel: [30, 30, '<circle cx="5" cy="6" r="2" fill="#000" opacity=".16"/><circle cx="18" cy="9" r="1.6" fill="#fff" opacity=".5"/><circle cx="11" cy="21" r="2.2" fill="#000" opacity=".14"/><circle cx="25" cy="24" r="1.8" fill="#fff" opacity=".45"/><circle cx="23" cy="4" r="1.2" fill="#000" opacity=".18"/>'],
+  pavers: [60, 40, '<path d="M0 0H60M0 20H60M0 40H60M0 0V20M30 20V40" stroke="#000" stroke-opacity=".28" stroke-width="1.6" fill="none"/><rect x="2" y="2" width="26" height="16" fill="#fff" opacity=".1"/><rect x="32" y="22" width="26" height="16" fill="#000" opacity=".06"/>'],
+  deck: [200, 24, '<path d="M0 0H200M0 12H200M0 24H200" stroke="#3e2a1a" stroke-opacity=".4" stroke-width="1.2" fill="none"/><path d="M60 0V12M140 12V24" stroke="#3e2a1a" stroke-opacity=".35" stroke-width="1"/>'],
+  sand: [20, 20, '<circle cx="4" cy="5" r="0.8" fill="#000" opacity=".2"/><circle cx="13" cy="11" r="0.7" fill="#fff" opacity=".5"/><circle cx="8" cy="16" r="0.8" fill="#000" opacity=".18"/>'],
+  soil: [20, 20, '<circle cx="5" cy="6" r="1.3" fill="#000" opacity=".3"/><circle cx="14" cy="13" r="1.1" fill="#fff" opacity=".15"/><circle cx="9" cy="17" r="1.4" fill="#000" opacity=".25"/>'],
+  water: [60, 30, '<path d="M0 8q7-5 15 0t15 0 15 0 15 0M0 22q7-5 15 0t15 0 15 0 15 0" stroke="#fff" stroke-opacity=".5" stroke-width="1.4" fill="none"/>'],
   concrete: [60, 60, '<circle cx="12" cy="15" r="1.2" fill="#000" opacity=".15"/><circle cx="40" cy="44" r="1.6" fill="#000" opacity=".12"/><circle cx="50" cy="12" r="1" fill="#fff" opacity=".3"/><circle cx="25" cy="50" r="1" fill="#fff" opacity=".3"/>'],
 };
-const FLOOR_OPTIONS = [['', 'Nur Farbe'], ['wood', 'Holz / Parkett'], ['tile', 'Fliesen'], ['stone', 'Stein / Klinker'], ['carpet', 'Teppich'], ['grass', 'Rasen'], ['concrete', 'Beton']];
+const FLOOR_OPTIONS = [['', 'Nur Farbe'], ['wood', 'Holz / Parkett'], ['tile', 'Fliesen'], ['stone', 'Stein / Klinker'], ['carpet', 'Teppich'], ['grass', 'Rasen'], ['concrete', 'Beton'], ['gravel', 'Kies'], ['pavers', 'Pflaster'], ['deck', 'Holzdeck (Terrasse)'], ['sand', 'Sand'], ['soil', 'Erde'], ['water', 'Wasser']];
+// Garten-Etage: Rasen-Untergrund + blasser Hausumriss (Orientierung)
+function gardenBaseMarkup(f) {
+  if (!f || f.kind !== 'garden') return '';
+  const d = FLOORS.grass, strip = s => s.replace(/ data-(k|id|t)="[^"]*"/g, '');
+  let ghost = '';
+  const hf = plan.floors.find(x => x.kind !== 'garden');
+  if (hf) ghost = `<g opacity=".4" pointer-events="none">${hf.rooms.map(r => strip(roomMarkup(r))).join('')}${hf.walls.map(w => strip(wallMarkup(w, true, { k: 1 }))).join('')}</g>`;
+  return `<pattern id="gardenbase" patternUnits="userSpaceOnUse" width="${d[0]}" height="${d[1]}">${d[2]}</pattern>` +
+    `<rect x="-6000" y="-6000" width="14000" height="14000" fill="#d4e8c2" pointer-events="none"/><rect x="-6000" y="-6000" width="14000" height="14000" fill="url(#gardenbase)" pointer-events="none"/>` + ghost;
+}
 function floorMarkup(r, pts) {
   const d = FLOORS[r.floor];
   if (!d) return '';
   const id = 'fl-' + r.id, sc = r.floorScale > 0 ? r.floorScale : 1;
   return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="${d[0]}" height="${d[1]}" patternTransform="scale(${sc}) rotate(${r.floorRot || 0})">${d[2]}</pattern>` +
-    `<polygon points="${pts}" fill="url(#${id})" fill-opacity="${r.floor === 'grass' || r.floor === 'concrete' ? 0.9 : 1}" pointer-events="none"/>`;
+    `<polygon points="${pts}" fill="url(#${id})" fill-opacity="${['grass', 'concrete', 'gravel', 'sand', 'soil', 'water'].includes(r.floor) ? 0.9 : 1}" pointer-events="none"/>`;
 }
 
 function roomMarkup(r) {
@@ -1164,6 +1250,13 @@ function handle(t, x, y, extra, s, r = 7) {
     `<circle data-k="h" data-t="${t}" ${extra} cx="${x}" cy="${y}" r="${16 * s}" fill="transparent"/>`;
 }
 
+// Auffälliger Dreh-Griff für Bezeichnung / Wert (orange, mit Dreh-Symbol)
+function rotHandle(t, x, y, s) {
+  return `<circle data-k="h" data-t="${t}" cx="${x}" cy="${y}" r="${11 * s}" fill="#ff9800" stroke="#fff" stroke-width="${2 * s}" ${NS} style="cursor:grab"/>` +
+    `<text x="${x}" y="${y}" dy=".36em" text-anchor="middle" font-size="${14 * s}" fill="#fff" font-weight="700" pointer-events="none" ${NS}>↻</text>` +
+    `<circle data-k="h" data-t="${t}" cx="${x}" cy="${y}" r="${20 * s}" fill="transparent"/>`;
+}
+
 function overlayMarkup(f, v) {
   const s = 1 / v.k;
   let out = '';
@@ -1175,14 +1268,14 @@ function overlayMarkup(f, v) {
     out += `<line x1="0" y1="${-hh}" x2="0" y2="${-hh - 28 * s}" stroke="${C.accent}" stroke-width="1.5" pointer-events="none" ${NS}/>` + handle('rot', 0, -hh - 28 * s, '', s) + '</g>';
     // Griff zum Drehen der Bezeichnung direkt im Plan
     if (o.shape !== 'text' && o.showLabel && labelText(o)) {
-      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = S().labelSize * 1.5;
+      const L = labelPos(o), lr = (o.labelRot || 0) * Math.PI / 180, rr = Math.max(S().labelSize * 2.2, 40 * s);
       const hx = L.x + Math.sin(lr) * rr, hy = L.y - Math.cos(lr) * rr;
-      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('lrot', hx, hy, '', s, 6);
+      out += `<line x1="${L.x}" y1="${L.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + rotHandle('lrot', hx, hy, s);
     }
     if (o.entity && o.showValue && valueText(o.entity)) {
-      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = S().labelSize * 1.9;
+      const V0 = valuePos(o), vr = (o.valueRot || 0) * Math.PI / 180, rr = Math.max(S().labelSize * 2.6, 46 * s);
       const hx = V0.x + Math.sin(vr) * rr, hy = V0.y - Math.cos(vr) * rr;
-      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + handle('vrot', hx, hy, '', s, 6);
+      out += `<line x1="${V0.x}" y1="${V0.y}" x2="${hx}" y2="${hy}" stroke="${C.accent}" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none" ${NS}/>` + rotHandle('vrot', hx, hy, s);
     }
   } else if (o && sel.k === 'wall') {
     out += `<line x1="${o.x1}" y1="${o.y1}" x2="${o.x2}" y2="${o.y2}" stroke="${C.accent}" stroke-opacity=".35" stroke-width="${o.t + 10 * s}" stroke-linecap="square" pointer-events="none"/>`;
@@ -1582,7 +1675,7 @@ const FPM = (() => {
   reg('thermostat radiator_valve heat_valve smart_valve', b => { const r = Math.min(b.w, b.d, b.h) / 2; b.cyl(r * 0.7, r * 0.7, b.h * 0.9, 0, 0, 0, mat(P.white, 0.4), 18); b.cyl(r * 0.5, r * 0.5, 1.2, 0, b.h * 0.9, 0, b.lv('#1b2530', '#ff9d4a', 0.9), 18); });
   reg('ac split_ac', b => { const { w, d, h } = b; b.rb(w, h, d, 5, 0, 0, 0, mat(P.white, 0.35)); b.box(w * 0.85, 2, d * 0.35, 0, 2, d * 0.35, mat('#d3d8dd', 0.5)); b.box(6, 1.6, 0.8, w * 0.38, h * 0.62, d / 2 + 0.2, b.lv('#2a2d33', '#8fe0ff', 1)); });
   reg('fan', b => { const r = Math.min(b.w, b.d) / 2; b.cyl(r * 0.6, r * 0.7, 3, 0, 0, 0, mat(P.dark, 0.5), 20); b.cyl(1.5, 1.5, b.h * 0.7, 0, 3, 0, mat(P.chrome, 0.3, 0.8), 8); const ring = b.tor(r * 0.8, 1.2, 0, b.h * 0.85, 0, mat(P.steel, 0.3, 0.8), 28); ring.rotation.x = 0.1; b.cyl(r * 0.8, r * 0.8, 1, 0, b.h * 0.85, 0, mat('#e9eef2', 0.3, 0.2, { transparent: true, opacity: 0.35 }), 28).rotation.x = Math.PI / 2 + 0.1; });
-  reg('fan_ceiling', b => { const r = b.w / 2; b.cyl(6, 6, 10, 0, b.h - 10, 0, mat(P.white, 0.4), 16); b.cyl(1.4, 1.4, 10, 0, b.h, 0, mat(P.dark), 8); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2, m = b.box(r * 0.8, 1.2, 14, Math.cos(a) * r * 0.5, b.h - 8, Math.sin(a) * r * 0.5, mat(P.walnut, 0.6)); m.rotation.y = -a; } b.cyl(5, 5, 4, 0, b.h - 14, 0, b.lv('#eee', '#fff0c8', 1), 14); });
+  reg('fan_ceiling', b => { const r = b.w / 2; b.cyl(6, 6, 10, 0, b.h - 10, 0, mat(P.white, 0.4), 16); b.cyl(1.4, 1.4, 10, 0, b.h, 0, mat(P.dark), 8); const bl = new T.Group(); bl.position.set(0, b.h - 8, 0); b.g.add(bl); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2, m = new T.Mesh(new T.BoxGeometry(r * 0.8, 1.2, 14), mat(P.walnut, 0.6)); m.position.set(Math.cos(a) * r * 0.5, 0, Math.sin(a) * r * 0.5); m.rotation.y = -a; m.castShadow = true; bl.add(m); } b.cyl(5, 5, 4, 0, b.h - 14, 0, b.lv('#eee', '#fff0c8', 1), 14); let sp = 0; b.anim = { type: 'spin', step: (dt, on) => { sp = on ? Math.min(1, sp + dt * 0.8) : Math.max(0, sp - dt * 0.6); bl.rotation.y += dt * 14 * sp; return sp > 0.01; } }; });
   reg('fireplace pellet chimney_stove', b => {
     const { w, d, h } = b, t = b.it.type, stone = mat(t === 'fireplace' ? '#9a948a' : '#25282d', t === 'fireplace' ? 0.9 : 0.5, t === 'fireplace' ? 0 : 0.5);
     b.box(w, h, d, 0, 0, 0, stone); b.box(w * 0.6, h * 0.5, 1, 0, h * 0.18, d / 2 + 0.1, mat('#08090b', 0.2)); b.box(w * 0.5, h * 0.36, 0.6, 0, h * 0.2, d / 2 + 0.3, b.lv('#1d1410', '#ff7a1a', 1.1));
@@ -1680,10 +1773,34 @@ const FPM = (() => {
     const { w, d, h } = b; if (b.it.type === 'printer3d') { const fr = mat('#2a2d33', 0.4, 0.4); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(2.5, h, 2.5, x * (w / 2 - 1.5), 0, z * (d / 2 - 1.5), fr)); b.box(w, 3, d, 0, 0, 0, fr); b.box(w, 3, 3, 0, h - 3, 0, fr); b.box(w * 0.6, 1.4, d * 0.6, 0, h * 0.25, 0, mat('#4d5560', 0.4, 0.6)); b.box(w * 0.7, h * 0.5, 0.4, 0, h * 0.25, d / 2 - 1, b.glass()); return; }
     b.rb(w, h, d, 2, 0, 0, 0, mat('#e5e7e9', 0.45)); b.box(w * 0.7, 2, d * 0.3, 0, h * 0.35, d / 2 + 4, mat('#f7f7f5', 0.7)); b.box(w * 0.7, 1.2, 4, 0, h * 0.4, d / 2 - 1, mat('#222')); b.box(8, 3, 0.6, w * 0.3, h * 0.85, d / 2 + 0.1, b.lv('#1b2530', '#7fe3a0', 0.9));
   });
-  reg('blind curtain_motor awning shutter_outdoor', b => {
-    const { w, d, h } = b, t = b.it.type; b.box(w, 6, 6, 0, h - 6, 0, mat(P.white, 0.4));
-    if (t === 'awning') { const m = b.box(w, 1.5, 200, 0, h - 8, 100, mat('#e0554f', 0.85)); m.rotation.x = 0.12; return; }
-    const L = t === 'shutter_outdoor' ? 80 : 120; for (let i = 0; i < 22; i++) b.box(w - 4, 2.5, 1, 0, h - 8 - i * 5, 0, mat(t === 'curtain_motor' ? '#cdbfa9' : '#f0efea', 0.8)); void L;
+  function stripeTex(col) {
+    const k = 'stripe|' + col;
+    if (!cache.has(k)) { const c = document.createElement('canvas'); c.width = 8; c.height = 16; const g = c.getContext('2d'); g.fillStyle = col; g.fillRect(0, 0, 8, 16); g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, 12, 8, 4); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(0, 0, 8, 2); const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.wrapS = t.wrapT = T.RepeatWrapping; cache.set(k, t); }
+    const t = cache.get(k).clone(); t.needsUpdate = true; return t;
+  }
+  // Rollladen / Außenrollo: Panzer fährt hoch/runter (anim.set(offen 0..1))
+  reg('blind shutter_outdoor', b => {
+    const { w, h } = b, out = b.it.type === 'shutter_outdoor', L = Math.max(20, h - 8), tex = stripeTex(out ? '#8a8f96' : '#ece8dc');
+    b.box(w + 4, 8, 9, 0, h - 8, 0, mat(P.white, 0.4)); [-1, 1].forEach(s2 => b.box(3, L, 4, s2 * (w / 2 + 1), 0, 0, mat(P.white, 0.5)));
+    const geo = new T.BoxGeometry(w - 4, L, 1.4); geo.translate(0, -L / 2, 0);
+    const m = new T.Mesh(geo, new T.MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: out ? 0.4 : 0 })); m.position.set(0, h - 8, 0); m.castShadow = true; b.g.add(m);
+    const bar = b.box(w - 2, 3, 3, 0, 0, 0, mat(P.white, 0.4));
+    b.anim = { type: 'cover', set: o => { const f = Math.max(0.03, 1 - o); m.scale.y = f; tex.repeat.set(1, L * f / 5); bar.position.y = h - 8 - L * f - 0.5; } };
+    b.anim.set(0.4);
+  });
+  reg('curtain_motor', b => {
+    const { w, h } = b, col = '#cdbfa9', mk2 = sx => { const g2 = new T.BoxGeometry(1, h - 8, 3); g2.translate(sx * 0.5, 0, 0); const mm = new T.Mesh(g2, new T.MeshStandardMaterial({ map: stripeTex(col), roughness: 0.95 })); mm.rotation.z = 0; mm.position.set(sx * -w / 2, h / 2 - 3, 0); mm.castShadow = true; b.g.add(mm); mm.material.map.repeat.set(4, 1); return mm; };
+    b.cyl(1, 1, w + 8, 0, h - 3, 0, mat(P.black, 0.4, 0.6), 8).rotation.z = Math.PI / 2;
+    const L = mk2(-1), R = mk2(1);
+    b.anim = { type: 'cover', set: o => { const wd = Math.max(0.1, 1 - o) * w * 0.5; L.scale.x = wd; R.scale.x = wd; } };
+    b.anim.set(0.4);
+  });
+  reg('awning', b => {
+    const { w, h } = b, geo = new T.BoxGeometry(w, 1.6, 1); geo.translate(0, 0, 0.5);
+    const m = new T.Mesh(geo, new T.MeshStandardMaterial({ map: stripeTex('#e0554f'), roughness: 0.85 })); m.position.set(0, h - 4, 6); m.castShadow = true; b.g.add(m); m.material.map.repeat.set(1, 1);
+    b.box(w, 9, 9, 0, h - 9, 0, mat(P.white, 0.4)); const bar = b.box(w, 4, 3, 0, 0, 0, mat(P.white, 0.4));
+    b.anim = { type: 'cover', set: o => { const ext = 200 * Math.max(0.06, o); m.scale.z = ext; m.rotation.x = 0.16; m.position.y = h - 6; bar.position.set(0, h - 6 - Math.sin(0.16) * ext, 6 + ext * Math.cos(0.16)); } };
+    b.anim.set(0.4);
   });
   reg('curtain', b => { const { w, d, h } = b, n = Math.max(6, Math.round(w / 8)); b.cyl(1, 1, w, 0, h - 3, 0, mat(P.black, 0.4, 0.6), 8).rotation.z = Math.PI / 2; for (let i = 0; i < n; i++) { const x = -w / 2 + (i + 0.5) * w / n, dz = (i % 2) * 2.4; b.box(w / n * 0.92, h - 6, 1.4, x, 0, dz - 1, mat(b.col || '#d9d2c3', 0.95)); } });
 
@@ -1773,6 +1890,95 @@ const FPM = (() => {
   reg('powerstrip', b => { const { w, d } = b; b.rb(w, 3.2, 8, 1.2, 0, 0, 0, mat('#f1f1ef', 0.4)); for (let i = 0; i < 5; i++) b.box(5, 0.6, 5, -w / 2 + 6 + i * (w - 12) / 4, 3.2, 0, mat('#1c1c1c', 0.5)); b.box(4, 1.4, 1.5, w / 2 - 3, 3.2, 3, b.lv('#400', '#ff4a3a', 1.4)); void d; });
   reg('window_small window_skylight archway door_front door_terrace door_sliding window_corner window_double_big', () => null);
 
+
+  // ---------- Garten ----------
+  const crown = (b, r, cx, cy, cz, cols, n) => { for (let i = 0; i < (n || 6); i++) { const a = i * 2.4, k = i === 0 ? 0 : 0.55; b.sph(r * (i === 0 ? 1 : 0.62), cx + Math.cos(a) * r * k, cy + (i % 3) * r * 0.18, cz + Math.sin(a) * r * k, mat(cols[i % cols.length], 0.9), 1, 0.9, 1); } };
+  reg('tree_fruit', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; b.cyl(r * 0.07, r * 0.1, h * 0.42, 0, 0, 0, mat('#6b4a32', 0.9), 10); crown(b, r * 0.85, 0, h * 0.7, 0, ['#5d9b4a', '#6aa84f', '#4f8a3f'], 7); for (let i = 0; i < 7; i++) b.sph(3.2, Math.cos(i * 1.9) * r * 0.7, h * 0.68 + (i % 3) * 14, Math.sin(i * 1.9) * r * 0.7, mat('#d9382c', 0.5)); });
+  reg('tree_conifer', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; b.cyl(r * 0.06, r * 0.08, h * 0.2, 0, 0, 0, mat('#5b3f2b', 0.9), 8); for (let i = 0; i < 5; i++) b.cyl(r * (0.12 + 0.18 * (4 - i) / 4 * 1.0 + 0.0), r * (0.35 + 0.65 * (4 - i) / 4), h * 0.28, 0, h * 0.14 + i * h * 0.16, 0, mat(i % 2 ? '#2f6b3c' : '#3a7a46', 0.9), 14); });
+  reg('palm', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; const tr = b.cyl(r * 0.07, r * 0.1, h * 0.8, 0, 0, 0, mat('#8a6a46', 0.9), 10); tr.rotation.z = 0.06; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, lf = b.box(r * 1.1, 1.2, 10, Math.cos(a) * r * 0.5, h * 0.82 - 6, Math.sin(a) * r * 0.5, mat('#4f9a3f', 0.8)); lf.rotation.y = -a; lf.rotation.z = Math.cos(a) * 0.0; lf.rotation.x = 0; lf.position.y = h * 0.8 - Math.abs(0); } b.sph(8, 0, h * 0.8, 0, mat('#6b4a32'), 1, 0.8, 1); });
+  reg('bush_flower', b => { const r = Math.min(b.w, b.d) / 2; [[0, 1], [0.5, 0.65], [-0.5, 0.65]].forEach(([x, s2], i) => b.sph(r * s2, x * r, r * 0.8 * s2, 0, mat('#4a8f45', 0.9), 1, 0.85, 1)); const cs = ['#f48fb1', '#f8bbd0', '#ce93d8', '#fff59d']; for (let i = 0; i < 14; i++) b.sph(3, Math.cos(i * 2.2) * r * 0.75, r * 0.55 + (i % 4) * 7, Math.sin(i * 2.2) * r * 0.6, mat(cs[i % 4], 0.6)); });
+  reg('planter', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; b.cyl(r * 0.85, r * 0.6, h * 0.55, 0, 0, 0, mat(b.col || '#b5653a', 0.8), 20); b.cyl(r * 0.8, r * 0.8, 1, 0, h * 0.55, 0, mat(P.soil, 1), 20); for (let i = 0; i < 6; i++) b.sph(r * 0.4, Math.cos(i * 1.1) * r * 0.35, h * 0.55 + r * 0.4 + i * 3, Math.sin(i * 1.1) * r * 0.35, mat(i % 2 ? '#5d9b52' : '#4a8f45', 0.8), 1, 1.2, 1); });
+  reg('raised_bed veggie_patch', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.8), raised = b.it.type === 'raised_bed', bh = raised ? h : Math.min(h, 12); b.box(w, bh, 4, 0, 0, d / 2 - 2, wd); b.box(w, bh, 4, 0, 0, -d / 2 + 2, wd); b.box(4, bh, d - 8, w / 2 - 2, 0, 0, wd); b.box(4, bh, d - 8, -w / 2 + 2, 0, 0, wd); b.box(w - 8, bh - 2, d - 8, 0, 0, 0, mat(P.soil, 1)); const n = Math.round(w / 22), m = Math.max(2, Math.round(d / 30)); for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { b.cyl(0.6, 0.6, 14, -w / 2 + 16 + i * (w - 32) / Math.max(1, n - 1), bh, -d / 2 + 14 + j * (d - 28) / Math.max(1, m - 1), mat(P.leaf), 5); b.sph(6, -w / 2 + 16 + i * (w - 32) / Math.max(1, n - 1), bh + 14, -d / 2 + 14 + j * (d - 28) / Math.max(1, m - 1), mat((i + j) % 2 ? '#5d9b52' : '#7cb342', 0.8), 1, 0.9, 1); } });
+  reg('meadow', b => { const { w, d } = b; b.rb(w, 3, d, 1, 0, 0, 0, mat('#8fb857', 1)); const cs = ['#fff176', '#f48fb1', '#ffffff', '#ba68c8', '#ffb74d']; for (let i = 0; i < 40; i++) { const x = ((i * 37) % 100) / 100 * (w - 20) - (w - 20) / 2, z = ((i * 53) % 100) / 100 * (d - 20) - (d - 20) / 2; b.cyl(0.4, 0.4, 14, x, 3, z, mat(P.leaf), 4); b.sph(2.6, x, 18, z, mat(cs[i % 5], 0.6)); } });
+  reg('rocks', b => { const r = Math.min(b.w, b.d) / 2; [[0, 0, 1, 0.7], [0.55, 0.3, 0.6, 0.6], [-0.5, -0.25, 0.7, 0.55]].forEach(([x, z, s2, hy], i) => b.sph(r * s2, x * r, r * s2 * hy * 0.7, z * r, mat(i % 2 ? '#9a9a96' : '#8c8c88', 1), 1, hy, 0.9)); });
+  reg('hedge_corner', b => b.rb(b.w, b.h, b.d, 6, 0, 0, 0, mat('#3f7d3a', 0.95)));
+  reg('trellis', b => { const { w, d, h } = b, wd = mat('#8c6a4a', 0.7); for (let i = 0; i <= 8; i++) b.box(2, h, 2, -w / 2 + i * w / 8, 0, 0, wd); for (let j = 1; j < 8; j++) b.box(w, 2, 2, 0, j * h / 8, 0, wd); for (let i = 0; i < 12; i++) b.sph(7, -w / 2 + 6 + (i % 6) * (w - 12) / 5, h * 0.3 + Math.floor(i / 6) * h * 0.4, 2, mat('#4a8f45', 0.9), 1, 1, 0.5); void d; });
+  reg('vineyard', b => { const { w, h } = b, wd = mat('#8c6a4a', 0.7); for (let i = 0; i <= 5; i++) b.box(4, h, 4, -w / 2 + i * w / 5, 0, 0, wd); [0.35, 0.65, 0.95].forEach(y => b.box(w, 0.8, 0.8, 0, h * y, 0, mat('#555'))); for (let i = 0; i < 14; i++) b.sph(6, -w / 2 + 10 + i * (w - 20) / 13, h * (0.3 + (i % 3) * 0.3), 3, mat('#5d9b52', 0.9), 1, 1, 0.6); });
+  reg('pond', b => { const { w, d } = b; b.add(new T.CylinderGeometry(0.5, 0.5, 6, 32), mat('#8c8c88', 1), 0, 0, 0).scale.set(w / 2 + 6, 1, d / 2 + 6); const m = b.add(new T.CylinderGeometry(0.5, 0.5, 2, 32), mat('#2f8fc8', 0.04, 0.2, { transparent: true, opacity: 0.85 }), 0, 3, 0); m.scale.set(w - 10, 1, d - 10); b.sph(14, w * 0.2, 4, 0, mat('#8c8c88', 1), 1, 0.4, 1); for (let i = 0; i < 4; i++) b.cyl(7, 7, 0.6, -w * 0.2 + i * 14, 4, d * 0.1 - i * 8, mat('#5fa04e', 0.8), 14); });
+  reg('fountain', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; b.cyl(r, r, 30, 0, 0, 0, mat('#b9b6ae', 0.9), 32); b.cyl(r - 6, r - 6, 2, 0, 29, 0, mat('#2f8fc8', 0.05, 0.2, { transparent: true, opacity: 0.85 }), 32); b.cyl(6, 8, h * 0.5, 0, 30, 0, mat('#b9b6ae', 0.9), 14); b.cyl(r * 0.5, r * 0.3, 8, 0, h * 0.5, 0, mat('#b9b6ae', 0.9), 20); sprayAnim(b, { y: h * 0.62, n: 40, jets: 8, range: r * 0.55, height: 55, rot: 0, speed: 0.9, size: 1.1 }); });
+  reg('birdbath', b => { b.cyl(4, 6, b.h * 0.7, 0, 0, 0, mat('#b9b6ae', 0.9), 12); b.cyl(b.w / 2, 6, 6, 0, b.h * 0.7, 0, mat('#b9b6ae', 0.9), 22); b.cyl(b.w / 2 - 3, b.w / 2 - 3, 1, 0, b.h * 0.7 + 5, 0, mat('#6fb8e8', 0.05, 0.2, { transparent: true, opacity: 0.8 }), 22); });
+  reg('water_tap', b => { b.cyl(1.4, 1.4, b.h * 0.85, 0, 0, 0, mat(P.steel, 0.3, 0.8), 8); b.box(2, 2, 10, 0, b.h * 0.85, 3, mat(P.steel, 0.3, 0.8)); b.cyl(2.4, 2.4, 1.2, 0, b.h * 0.7, 0, b.lv('#3a6bd3', '#4fc3f7', 1), 10); });
+  reg('hose_reel', b => { const { w, d, h } = b; b.cyl(h * 0.42, h * 0.42, d * 0.7, 0, h * 0.5, 0, mat('#3aa376', 0.7), 24).rotation.x = Math.PI / 2; b.tor(h * 0.3, 2.5, 0, h * 0.5, 0, mat('#2f8a62', 0.7), 24); b.box(w, 2, d, 0, 0, 0, mat('#555')); [-1, 1].forEach(s2 => b.box(2, h, 2, s2 * w * 0.4, 0, 0, mat('#555'))); });
+  reg('cistern well', b => { const r = Math.min(b.w, b.d) / 2, well = b.it.type === 'well'; if (well) { b.cyl(r, r, b.h * 0.35, 0, 0, 0, mat('#a8a39a', 1), 22); [-1, 1].forEach(s2 => b.box(4, b.h * 0.6, 4, s2 * r * 0.8, b.h * 0.3, 0, mat('#6b4a32', 0.8))); const rf = b.box(r * 2.2, 3, r * 1.6, 0, b.h * 0.92, 0, mat('#8a4b3a', 0.8)); rf.rotation.z = 0; b.cyl(r * 0.85, r * 0.85, 1, 0, b.h * 0.3, 0, mat('#2b5f7d', 0.1, 0.2), 20); return; } b.cyl(r, r, b.h, 0, 0, 0, mat('#4a4f57', 0.5, 0.2), 28); b.cyl(r * 0.3, r * 0.3, 8, 0, b.h, 0, mat('#2b2e33'), 12); });
+  reg('stream', b => { const { w, d } = b; b.box(w, 4, d, 0, 0, 0, mat('#8c8c88', 1)); b.box(w - 8, 2, d - 10, 0, 3, 0, mat('#5fb4e6', 0.05, 0.2, { transparent: true, opacity: 0.85 })); });
+  reg('greenhouse', b => {
+    const { w, d, h } = b, fr = mat('#d9dde1', 0.4, 0.6), gl = b.glass(); b.box(w, 20, d, 0, 0, 0, mat('#8c8c88', 1));
+    b.box(w - 4, h * 0.62, d - 4, 0, 20, 0, gl); const sh = new T.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, h * 0.28); sh.closePath(); const geo = new T.ExtrudeGeometry(sh, { depth: d, bevelEnabled: false }); geo.translate(0, 0, -d / 2); const rf = b.add(geo, gl, 0, h * 0.62 + 20, 0); rf.castShadow = false; void rf;
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(3, h * 0.62, 3, x * (w / 2 - 2), 20, z * (d / 2 - 2), fr)); b.box(w, 3, 3, 0, h * 0.62 + 20, d / 2 - 1.5, fr); b.box(w, 3, 3, 0, h * 0.62 + 20, -d / 2 + 1.5, fr); for (let i = 0; i < 3; i++) b.box(3, h * 0.62, 3, -w / 2 + (i + 1) * w / 4, 20, d / 2 - 1.5, fr); b.box(w * 0.8, 6, 30, 0, 20, -d * 0.3, mat('#a97c50', 0.8)); b.sph(8, -w * 0.2, 36, -d * 0.3, mat('#5d9b52', 0.8));
+  });
+  reg('pergola gazebo', b => {
+    const { w, d, h } = b, wd = mat('#8c6a4a', 0.7), g2 = b.it.type === 'gazebo'; [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(12, h, 12, x * (w / 2 - 6), 0, z * (d / 2 - 6), wd));
+    [-1, 1].forEach(z => b.box(w, 12, 8, 0, h - 12, z * (d / 2 - 4), wd)); const n = 9; for (let i = 0; i < n; i++) b.box(6, 6, d + 40, -w / 2 + 10 + i * (w - 20) / (n - 1), h, 0, wd);
+    if (g2) b.add(new T.CylinderGeometry(2, Math.max(w, d) * 0.62, h * 0.18, 4, 1, false, Math.PI / 4), mat('#8a4b3a', 0.85), 0, h + 3, 0).rotation.y = 0;
+  });
+  reg('woodshed', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.8); b.box(w, 6, d, 0, 0, 0, wd); [[-1], [1]].forEach(([s2]) => b.box(6, h, d, s2 * (w / 2 - 3), 6, 0, wd)); b.box(w, h, 4, 0, 6, -d / 2 + 2, wd); const rf = b.box(w + 16, 4, d + 20, 0, h + 4, 4, mat('#5a3d2a', 0.8)); rf.rotation.x = -0.12; for (let i = 0; i < 24; i++) b.cyl(7, 7, d - 12, -w / 2 + 14 + (i % 12) * (w - 28) / 11, 14 + Math.floor(i / 12) * 15, 0, mat('#c8a27a', 0.8), 12).rotation.x = Math.PI / 2; });
+  reg('compost bin_shelter', b => { const { w, d, h } = b, wd = mat(b.it.type === 'compost' ? '#8a6a46' : '#6b7a68', 0.8); [[0, d / 2 - 2, w, 4], [0, -d / 2 + 2, w, 4]].forEach(([x, z, W, D]) => b.box(W, h, D, x, 0, z, wd)); [[w / 2 - 2, 0, 4, d - 8], [-w / 2 + 2, 0, 4, d - 8]].forEach(([x, z, W, D]) => b.box(W, h, D, x, 0, z, wd)); if (b.it.type === 'compost') b.box(w - 10, h * 0.7, d - 10, 0, 0, 0, mat('#4a3626', 1)); else { b.box(w, 4, d, 0, h, 0, mat('#4d5a4a', 0.8)); const n2 = Math.max(1, Math.round(w / 70)); for (let i = 0; i < n2; i++) b.rb(50, 70, 45, 4, -w / 2 + (i + 0.5) * w / n2, 0, 0, mat(['#2f5d3a', '#2b4a8a', '#c9a227'][i % 3], 0.6)); } });
+  reg('playhouse chicken_coop rabbit_hutch doghouse', b => {
+    const { w, d, h } = b, t = b.it.type, wl = mat(t === 'playhouse' ? '#e6c28a' : t === 'doghouse' ? '#b98a5a' : '#a97c50', 0.8), lift = t === 'chicken_coop' || t === 'rabbit_hutch' ? 28 : 0;
+    if (lift) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(5, lift, 5, x * (w / 2 - 4), 0, z * (d / 2 - 4), wl));
+    b.box(w, h * 0.65 - lift * 0.3, d, 0, lift, 0, wl); const sh = new T.Shape(); sh.moveTo(-w / 2 - 6, 0); sh.lineTo(w / 2 + 6, 0); sh.lineTo(0, h * 0.35); sh.closePath(); const geo = new T.ExtrudeGeometry(sh, { depth: d + 8, bevelEnabled: false }); geo.translate(0, 0, -(d + 8) / 2); b.add(geo, mat(t === 'playhouse' ? '#c0392b' : '#5a3d2a', 0.8), 0, h * 0.65 + lift * 0.7, 0).rotation.y = 0;
+    const dw = Math.min(30, w * 0.3); b.box(dw, h * 0.4, 1, 0, lift, d / 2 + 0.3, mat('#2a1f18', 0.9)); if (t === 'chicken_coop') b.box(10, 3, 22, w * 0.3, lift - 4, d / 2 + 10, mat('#7a5a3a')).rotation.x = 0.3;
+    if (t === 'rabbit_hutch') b.box(w * 0.4, h * 0.4, 1, w * 0.25, lift + 4, d / 2 + 0.3, mat('#9aa', 0.5, 0.5, { transparent: true, opacity: 0.4 }));
+  });
+  reg('hammock', b => { const { w, d, h } = b, wd = mat('#6b4a32', 0.8); [-1, 1].forEach(s2 => b.cyl(4, 4, h, 0, 0, s2 * (d / 2 - 6), wd, 10)); const m = b.add(new T.CylinderGeometry(1, 1, 1, 24, 1, true), mat('#f2d27a', 0.95, 0, { side: T.DoubleSide }), 0, h * 0.45, 0); m.scale.set(w * 0.4, w * 0.9, w * 0.4); m.rotation.x = Math.PI / 2; m.scale.set(w * 0.4, d * 0.9, w * 0.4); m.rotation.set(Math.PI / 2, 0, 0); m.position.y = h * 0.4; });
+  reg('bench_garden chair_garden', b => { const { w, d, h } = b, wd = mat('#a97c50', 0.7), bench = b.it.type === 'bench_garden', sh = h * 0.5; for (let i = 0; i < 4; i++) b.box(w, 2.5, d / 5, 0, sh, -d / 2 + (i + 0.5) * d / 4 * 0.9 + 4, wd); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(4, sh, 4, x * (w / 2 - 4), 0, z * (d / 2 - 5), wd)); for (let i = 0; i < 3; i++) { const m = b.box(w, 6, 2, 0, sh + 14 + i * 10, -d / 2 + 4 - i * 2, wd); m.rotation.x = -0.18; } if (bench) [-1, 1].forEach(s2 => b.box(4, 22, d * 0.8, s2 * (w / 2 - 2), sh + 3, 0, wd)); });
+  reg('swing_seat', b => { const { w, d, h } = b, m = mat('#4a4f57', 0.5, 0.5); [-1, 1].forEach(s2 => { const a = b.box(5, h, 5, s2 * (w / 2 - 3), 0, 0, m); a.rotation.z = 0; b.box(5, 5, d, s2 * (w / 2 - 3), 0, 0, m); }); b.box(w, 5, 5, 0, h - 5, 0, m); b.rb(w - 30, 18, d * 0.5, 6, 0, h * 0.28, 0, mat('#f1e3a8', 0.95)); b.rb(w - 30, 40, 14, 6, 0, h * 0.28 + 10, -d * 0.2, mat('#f1e3a8', 0.95)); const rf = b.box(w + 10, 4, d, 0, h, 0, mat('#2a7a5a', 0.9)); rf.rotation.z = 0; });
+  reg('slide', b => { const { w, d, h } = b, m = mat('#3a7bd5', 0.5), y = mat('#ffb300', 0.5); [-1, 1].forEach(s2 => b.box(4, h * 0.85, 4, s2 * (w / 2 - 3), 0, -d / 2 + 14, mat('#a97c50', 0.8))); b.box(w, 4, 40, 0, h * 0.7, -d / 2 + 22, mat('#a97c50', 0.8)); const L = Math.hypot(d - 40, h * 0.7), sl = b.box(w * 0.8, 3, L, 0, h * 0.35, 20, y); sl.rotation.x = Math.atan2(h * 0.7, d - 40); sl.position.set(0, h * 0.37, -d / 2 + 40 + (d - 40) / 2 - 6); sl.rotation.x = -Math.atan2(h * 0.7, d - 40) * -1; void m; });
+  reg('birdhouse bee_hotel', b => { const { w, d, h } = b, bee = b.it.type === 'bee_hotel'; if (bee) { b.box(w, 50, d, 0, 0, 0, mat('#a97c50', 0.85)); for (let i = 0; i < 18; i++) b.cyl(1, 1, 1, -w / 2 + 4 + (i % 6) * (w - 8) / 5, 4 + Math.floor(i / 6) * 14, d / 2, mat('#2a1f18'), 8).rotation.x = Math.PI / 2; b.box(w + 4, 3, d + 4, 0, 50, 0, mat('#5a3d2a')); return; } b.box(16, 20, 16, 0, 0, 0, mat('#d2a56a', 0.85)); b.box(24, 2, 22, 0, 19, 0, mat('#8a4b3a')).rotation.z = 0; b.cyl(3, 3, 1, 0, 10, 8.4, mat('#222'), 12).rotation.x = Math.PI / 2; });
+  reg('statue', b => { const r = Math.min(b.w, b.d) / 2, h = b.h; b.box(r * 1.6, h * 0.25, r * 1.6, 0, 0, 0, mat('#b9b6ae', 0.95)); b.cyl(r * 0.5, r * 0.65, h * 0.45, 0, h * 0.25, 0, mat('#cfcac0', 0.9), 14); b.sph(r * 0.4, 0, h * 0.82, 0, mat('#cfcac0', 0.9)); });
+  reg('outdoor_kitchen', b => { const { w, d, h } = b; b.box(w, h - 4, d, 0, 0, 0, mat('#6a7078', 0.7)); b.rb(w + 2, 4, d + 4, 1, 0, h - 4, 0, mat('#3a3d42', 0.35)); b.box(w * 0.32, 20, d * 0.55, -w * 0.28, h, 0, mat('#222', 0.5)); b.sph(d * 0.3, -w * 0.28, h + 14, 0, mat('#1e2024', 0.4, 0.5), 1, 0.5, 1); b.box(w * 0.2, 1, d * 0.4, w * 0.2, h, 0, mat('#aab0b7', 0.2, 0.9)); for (let i = 0; i < 3; i++) b.box(w / 3 - 3, h * 0.6, 1, -w / 2 + (i + 0.5) * w / 3, 8, d / 2, mat('#5b6169', 0.6)); });
+  reg('pizza_oven', b => { const { w, d, h } = b; b.box(w, h * 0.42, d, 0, 0, 0, mat('#8a8a84', 0.9)); b.add(new T.SphereGeometry(w * 0.5, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2), mat('#b5653a', 0.85), 0, h * 0.42, 0).scale.set(1, 0.8, d / w); b.box(w * 0.3, h * 0.22, 2, 0, h * 0.5, d * 0.46, b.lv('#1a1210', '#ff7a1a', 1.4)); b.cyl(6, 6, h * 0.3, 0, h * 0.82, -d * 0.2, mat('#555', 0.5, 0.6), 12); });
+  reg('wood_pile', b => { const { w, d, h } = b; const rows = Math.max(3, Math.floor(h / 15)), n = Math.max(4, Math.floor(w / 15)); for (let r = 0; r < rows; r++) for (let i = 0; i < n - (r % 2); i++) b.cyl(7, 7, d - 6, -w / 2 + 8 + i * 15 + (r % 2) * 7.5, 7 + r * 13, 0, mat((i + r) % 3 ? '#b88a5a' : '#9a6f44', 0.85), 12).rotation.x = Math.PI / 2; });
+  reg('wheelbarrow', b => { const { w, d, h } = b, m = mat('#3a7a5a', 0.5); const tub = b.rb(w * 0.9, h * 0.5, d * 0.5, 6, 0, h * 0.35, d * 0.12, m); tub.rotation.x = 0.12; b.cyl(h * 0.3, h * 0.3, 6, 0, 0, d * 0.42, mat('#1a1a1a', 0.9), 20).rotation.z = Math.PI / 2; b.cyl(h * 0.3, h * 0.3, 6, 0, 0, d * 0.42, mat('#1a1a1a', 0.9), 20).position.y = h * 0.3; [-1, 1].forEach(s2 => { b.box(3, 3, d * 0.55, s2 * w * 0.3, h * 0.28, -d * 0.2, mat('#a97c50')); b.box(3, h * 0.3, 3, s2 * w * 0.3, 0, -d * 0.4, mat('#555')); }); });
+  reg('solar_panel', b => { const { w, d, h } = b; const p = b.box(w, 4, d, 0, h * 0.5, 0, mat('#1d2d4a', 0.12, 0.4)); p.rotation.x = -0.45; for (let i = 1; i < 6; i++) { const l = b.box(0.5, 0.6, d, -w / 2 + i * w / 6, h * 0.5 + 2.2, 0, mat('#a9bcd8', 0.4, 0.6)); l.rotation.x = -0.45; } [-1, 1].forEach(s2 => b.box(4, h * 0.6, 4, s2 * w * 0.35, 0, d * 0.25, mat('#9aa0a6', 0.4, 0.8))); });
+  reg('privacy_screen', b => { const { w, d, h } = b, wd = mat('#b98a5a', 0.75); for (let i = 0; i <= 3; i++) b.box(7, h, 7, -w / 2 + i * w / 3, 0, 0, mat('#6b4a32', 0.8)); for (let i = 0; i < Math.round(h / 10); i++) b.box(w - 6, 8, d * 0.6, 0, i * 10 + 2, 0, mat(i % 2 ? '#c49a6a' : '#b98a5a', 0.8)); void wd; });
+  reg('garden_gate', b => { const { w, d, h } = b, m = mat('#8c6a4a', 0.7); [-1, 1].forEach(s2 => b.box(8, h, 8, s2 * (w / 2 - 4), 0, 0, mat('#6b4a32', 0.8))); b.box(w - 16, 6, 3, 0, h * 0.2, 0, m); b.box(w - 16, 6, 3, 0, h * 0.8, 0, m); for (let i = 0; i < 9; i++) b.box(6, h * 0.85, 2, -w / 2 + 14 + i * (w - 28) / 8, h * 0.1, 0, m); const dg = b.box(w - 16, 4, 3, 0, h * 0.5, 1, m); dg.rotation.z = 0.5; void d; });
+  reg('stone_wall', b => { const { w, d, h } = b; const rows = Math.max(3, Math.round(h / 20)); for (let r = 0; r < rows; r++) { const n = Math.max(3, Math.round(w / 40)); for (let i = 0; i < n; i++) b.rb(w / n - 1, h / rows - 1, d - (i + r) % 3 * 2, 2, -w / 2 + (i + 0.5 + (r % 2 ? 0.4 : 0)) * w / n - (r % 2 && i === n - 1 ? w / n * 0.4 : 0), r * h / rows, 0, mat(['#a9a39a', '#9a948b', '#b5afa5'][(i * 7 + r * 3) % 3], 0.95)); } });
+  reg('edging', b => b.rb(b.w, b.h, b.d, 1, 0, 0, 0, mat('#8e8e8a', 0.8)));
+  reg('path_stone patio', b => { const { w, d } = b, big = b.it.type === 'patio'; b.box(w, 2, d, 0, 0, 0, mat('#a8a39a', 1)); const s2 = big ? 60 : 50, nx = Math.max(1, Math.round(w / s2)), nz = Math.max(1, Math.round(d / (big ? 40 : s2))); for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) b.rb(w / nx - 2, 3, d / nz - 2, 0.6, -w / 2 + (i + 0.5) * w / nx, 0, -d / 2 + (j + 0.5) * d / nz, mat(((i * 3 + j * 5) % 3) ? '#c9c4ba' : '#bbb5aa', 0.9)); });
+  reg('path_gravel gravel_area', b => { b.box(b.w, 3, b.d, 0, 0, 0, mat('#d9d6cf', 1)); for (let i = 0; i < 60; i++) b.sph(2.2, ((i * 37) % 100) / 100 * (b.w - 8) - (b.w - 8) / 2, 3, ((i * 53) % 100) / 100 * (b.d - 8) - (b.d - 8) / 2, mat(i % 2 ? '#bdb8ae' : '#e8e5de', 1), 1, 0.5, 1); });
+  reg('stepping_stones', b => { const n = Math.max(3, Math.round(b.d / 55)); for (let i = 0; i < n; i++) { const s2 = b.cyl(22, 24, 4, ((i % 2) - 0.5) * 18, 0, -b.d / 2 + 28 + i * (b.d - 56) / Math.max(1, n - 1), mat('#a9a59c', 0.95), 14); s2.scale.z = 0.85; } });
+  reg('deck', b => { const { w, d } = b; b.box(w, 6, d, 0, 0, 0, mat('#6b4a32', 0.9)); const n = Math.max(2, Math.round(d / 14)); for (let i = 0; i < n; i++) b.box(w, 6, d / n - 0.8, 0, 6, -d / 2 + (i + 0.5) * d / n, mat(i % 2 ? '#b8895a' : '#a97c50', 0.75)); });
+  // Gartenbeleuchtung & Smart Garden
+  reg('lamp_solar', b => { b.cyl(0.8, 0.8, b.h * 0.7, 0, 0, 0, mat('#333', 0.5, 0.5), 8); b.sph(4.5, 0, b.h * 0.8, 0, b.lv('#f3f1e6', '#fff0b0', 1.5)); b.box(6, 0.6, 6, 0, b.h, 0, mat('#1d2d4a', 0.2, 0.4)); b.cyl(1.4, 3, 6, 0, 0, 0, mat('#333', 0.5, 0.5), 8); });
+  reg('lamp_post', b => { const h = b.h; b.cyl(8, 10, 6, 0, 0, 0, mat('#2d3238', 0.5, 0.5), 16); b.cyl(3, 4, h * 0.88, 0, 6, 0, mat('#2d3238', 0.5, 0.5), 12); b.cyl(10, 5, h * 0.1, 0, h * 0.9, 0, b.lv('#f3f1e6', '#ffe6a8', 1.3), 16); b.cyl(1, 11, 5, 0, h * 0.98, 0, mat('#2d3238', 0.5, 0.5), 16); });
+  reg('lamp_spike', b => { b.cyl(0.5, 0.5, 14, 0, 0, 0, mat('#555', 0.5, 0.6), 6); const c = b.cyl(4, 4, 12, 0, 14, 0, mat('#2d3238', 0.5, 0.5), 12); c.rotation.x = 0.4; b.cyl(3, 3, 1, 0, 20, 3.4, b.lv('#f3f1e6', '#fff0b8', 1.5), 12).rotation.x = Math.PI / 2 + 0.4; });
+  reg('lamp_flood', b => { const { w, d, h } = b; b.box(w * 0.4, h * 0.3, 8, 0, h * 0.55, -d / 2 + 4, mat('#2d3238', 0.5, 0.5)); b.rb(w, h * 0.6, 8, 2, 0, 0, 1, mat('#2d3238', 0.4, 0.5)); b.box(w - 4, h * 0.5 - 2, 0.6, 0, 2, 5.4, b.lv('#f3f1e6', '#fff6d0', 1.6)); });
+  reg('mower_robot', b => { const { w, d, h } = b; b.rb(w, h * 0.8, d, h * 0.35, 0, 3, 0, mat('#f0953b', 0.5)); b.rb(w * 0.7, h * 0.35, d * 0.5, 8, 0, h * 0.62, -d * 0.05, mat('#2a2d33', 0.4)); [-1, 1].forEach(s2 => b.cyl(7, 7, 4, s2 * w * 0.46, 0, -d * 0.2, mat('#1a1a1a', 0.9), 16).rotation.z = Math.PI / 2); b.cyl(7, 7, 4, 0, 0, 0, mat('#1a1a1a', 0.9), 16).visible = false; b.sph(1.4, w * 0.2, h * 0.9, d * 0.1, b.lv('#400', '#3de07a', 1.6)); });
+  reg('mower_station', b => { const { w, d, h } = b; b.rb(w, 4, d, 1.5, 0, 0, 0, mat('#3a3d42', 0.5)); b.rb(w * 0.8, h, d * 0.3, 2, 0, 4, -d * 0.32, mat('#f0953b', 0.5)); b.sph(1.2, 0, h - 2, -d * 0.16, b.lv('#400', '#3de07a', 1.6)); });
+  reg('sensor_soil', b => { b.box(2.2, b.h, 0.8, 0, 0, 0, mat('#eee', 0.5)); b.rb(7, 8, 3, 1, 0, b.h - 2, 0, mat('#2f6f4a', 0.5)); b.sph(0.8, 0, b.h + 3, 1.6, b.lv('#400', '#3de07a', 1.6)); });
+  reg('sprinkler', b => { b.cyl(3, 4, 4, 0, 0, 0, mat('#2a2d33', 0.5), 14); b.cyl(1.5, 1.5, 6, 0, 4, 0, mat('#3a7bd5', 0.5), 10); sprayAnim(b, { y: 11, n: 54, jets: 3, range: 230, height: 85, rot: 1.1, speed: 0.75 }); });
+  reg('valve_box', b => { const { w, d, h } = b; b.rb(w, h, d, 2, 0, 0, 0, mat('#2f6f4a', 0.6)); b.rb(w - 6, 2, d - 6, 1, 0, h, 0, mat('#255a3d', 0.6)); for (let i = 0; i < 3; i++) b.cyl(2, 2, 3, -w * 0.25 + i * w * 0.25, h, 0, b.lv('#2a3d63', '#4fc3f7', 1), 10); });
+  reg('pool_robot', b => { const { w, d, h } = b; b.rb(w, h, d, 5, 0, 2, 0, mat('#2b5aa8', 0.5)); [-1, 1].forEach(s2 => b.box(5, h * 0.6, d * 0.9, s2 * (w / 2 - 1), 0, 0, mat('#1a1a1a', 0.9))); b.sph(1.6, 0, h + 2, d * 0.2, b.lv('#400', '#3de07a', 1.6)); });
+  reg('pool_heater', b => { const { w, d, h } = b; b.rb(w, h, d, 3, 0, 0, 0, mat('#d5d9dd', 0.5)); b.cyl(h * 0.32, h * 0.32, 1, 0, h * 0.55, d / 2 + 0.2, mat('#1a1c20', 0.5), 24).rotation.x = Math.PI / 2; b.box(10, 4, 1, w * 0.3, h * 0.9, d / 2 + 0.3, b.lv('#1b2530', '#7fe3a0', 1)); });
+  reg('gate_motor', b => { const { w, d, h } = b; b.rb(w, h, d, 3, 0, 0, 0, mat('#2d3238', 0.5, 0.4)); b.cyl(3, 3, 3, w * 0.3, h, 0, mat('#777', 0.4, 0.7), 10); b.sph(1.2, -w * 0.3, h * 0.7, d / 2, b.lv('#400', '#ffb300', 1.6)); });
+  reg('cam_garden', b => { const { h } = b; b.cyl(1.2, 1.2, h * 0.8, 0, 0, 0, mat('#555', 0.5, 0.6), 8); b.cyl(5, 5, 14, 0, h * 0.8, 0, mat(P.white, 0.35), 18).rotation.x = Math.PI / 2 - 0.2; b.cyl(4, 4, 1, 0, h * 0.82, 8.2, b.lv('#0c0e10', '#6fd0ff', 1.2), 16).rotation.x = Math.PI / 2 - 0.2; });
+  reg('garden_speaker', b => { const r = Math.min(b.w, b.d) / 2; const rk = b.sph(r, 0, r * 0.55, 0, mat('#8c8a84', 0.95), 1, 0.65, 0.9); rk.castShadow = true; b.cyl(r * 0.28, r * 0.28, 1, 0, r * 0.9, r * 0.5, mat('#2a2d33', 0.6), 14).rotation.x = Math.PI / 2 - 0.5; b.sph(0.8, r * 0.4, r * 0.8, r * 0.55, b.lv('#222', '#4fd0ff', 1.6)); });
+  reg('sensor_garden_motion', b => { b.rb(8, 14, 6, 2, 0, 0, 0, mat(P.white, 0.4)); b.sph(3.2, 0, 9, 3.4, mat('#eef1f2', 0.2, 0, { transparent: true, opacity: 0.9 }), 1, 1, 0.5); b.sph(0.7, 2.5, 3, 3, b.lv('#400', '#3de07a', 1.6)); });
+
+
+  function sprayAnim(b, o) {
+    const grp = new T.Group(); grp.position.set(o.x || 0, o.y, o.z || 0); b.g.add(grp);
+    const dm = new T.MeshBasicMaterial({ color: 0x9bd8ff, transparent: true, opacity: 0.8, depthWrite: false }), geo = new T.SphereGeometry(o.size || 1.4, 6, 5), drops = [];
+    for (let i = 0; i < o.n; i++) { const mm = new T.Mesh(geo, dm); mm.visible = false; grp.add(mm); drops.push({ m: mm, ph: i / o.n, j: i % o.jets }); }
+    let ang = 0;
+    b.anim = { type: 'spray', step: (dt, on) => {
+      if (!on) { drops.forEach(d => { d.m.visible = false; }); return; }
+      ang += dt * (o.rot || 0);
+      drops.forEach(d => { d.ph = (d.ph + dt * (o.speed || 0.7)) % 1; const a = ang + d.j * 2 * Math.PI / o.jets, r = (o.range || 200) * d.ph, y = 4 * (o.height || 80) * d.ph * (1 - d.ph); d.m.visible = true; d.m.position.set(Math.cos(a) * r, y, Math.sin(a) * r); });
+    } };
+  }
+
   function build(THREE, it, w, d, h, col) {
     T = THREE;
     const fn = R[it.type];
@@ -1780,7 +1986,7 @@ const FPM = (() => {
     const b = mk(it, w, d, h, col);
     try { fn(b); } catch (e) { if (typeof console !== 'undefined') console.warn('3D-Modell ' + it.type + ':', e.message); return null; }
     if (!b.g.children.length) return null;
-    return { group: b.g, live: b.live };
+    return { group: b.g, live: b.live, anim: b.anim || null };
   }
   function reset(THREE) { T = THREE; cache = new Map(); }
   const has = (type) => !!R[type];
@@ -1825,21 +2031,31 @@ const FP3D = (() => {
     switch: [8, 105], switch_double: [8, 105], dimmer: [8, 105], button: [6, 105], scene_switch: [6, 105], smart_light_sw: [8, 105], lan_socket: [8, 30], tv_socket: [8, 30],
     camera: [14, 230], camera_ptz: [18, 230], doorbell_cam: [18, 130], sensor_motion: [10, 220], smoke: [6, -1], sensor_presence: [8, -1], sensor_temp: [8, 140], sensor_hum: [8, 140],
     speaker: [30, 100], smart_speaker: [22, 90], soundbar: [8, 50], smart_tv: [65, 80], monitor: [45, 75], pc: [45, 0], nas: [30, 0], server_rack: [190, 0], printer: [30, 75], printer3d: [45, 75],
-    blind: [10, 190], router: [10, 100], dongle: [10, 100], vacuum: [10, 0], lock: [10, 105], wallbox: [35, 110], meter_power: [30, 120], meter_gas: [30, 120],
+    blind: [130, 80], shutter_outdoor: [130, 80], curtain_motor: [230, 0], awning: [25, 220], router: [10, 100], dongle: [10, 100], vacuum: [10, 0], lock: [10, 105], wallbox: [35, 110], meter_power: [30, 120], meter_gas: [30, 120],
+    tree_fruit: [300, 0], tree_conifer: [450, 0], palm: [400, 0], bush_flower: [90, 0], planter: [60, 0], raised_bed: [80, 0], veggie_patch: [25, 0], meadow: [25, 0], rocks: [50, 0], hedge_corner: [150, 0], trellis: [200, 0], vineyard: [160, 0],
+    pond: [4, 0], fountain: [110, 0], birdbath: [80, 0], water_tap: [60, 0], hose_reel: [45, 0], cistern: [150, 0], well: [100, 0], stream: [4, 0], greenhouse: [240, 0], pergola: [250, 0], gazebo: [270, 0], woodshed: [200, 0], compost: [90, 0], bin_shelter: [140, 0],
+    playhouse: [190, 0], chicken_coop: [120, 0], rabbit_hutch: [90, 0], doghouse: [80, 0], hammock: [150, 0], bench_garden: [85, 0], chair_garden: [90, 0], swing_seat: [210, 0], slide: [200, 0], birdhouse: [30, 150], bee_hotel: [60, 120], statue: [80, 0], outdoor_kitchen: [95, 0], pizza_oven: [200, 0],
+    wood_pile: [120, 0], wheelbarrow: [60, 0], solar_panel: [80, 0], privacy_screen: [180, 0], garden_gate: [130, 0], stone_wall: [90, 0], edging: [12, 0], path_stone: [3, 0], path_gravel: [3, 0], stepping_stones: [4, 0], gravel_area: [3, 0], patio: [3, 0], deck: [12, 0],
+    lamp_solar: [40, 0], lamp_post: [350, 0], lamp_spike: [30, 0], lamp_flood: [20, 250], mower_robot: [25, 0], mower_station: [25, 0], sensor_soil: [25, 0], sprinkler: [12, 0], valve_box: [20, 0], pool_robot: [20, 0], pool_heater: [60, 0], gate_motor: [90, 0], cam_garden: [200, 0], garden_speaker: [30, 0], sensor_garden_motion: [16, 250],
     stairs: [260, 0], stairs_wide: [260, 0], stairs_L: [260, 0], stairs_U: [260, 0], stairs_spiral: [260, 0], stairs_spiral_small: [260, 0], stairs_outdoor: [100, 0], stairs_basement: [260, 0],
     plant: [90, 0], plant_big: [130, 0], plant_small: [30, 0], rug: [2, 0], rug_round: [2, 0], pillar: [250, 0], pillar_round: [250, 0], curtain: [240, 0], painting: [60, 140], playmat: [2, 0],
     car: [150, 0], carport: [2, 0], bike: [100, 0], terrace_table: [75, 0], lounger: [40, 0], grill: [95, 0], pool: [4, 0], hot_tub: [80, 0], tree: [350, 0], bush: [90, 0], hedge: [150, 0], fence: [110, 0],
     flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [3, 0], driveway: [2, 0],
     firepit: [40, 0], parasol: [230, 0], elevator: [250, 0], chimney: [250, 0], safe: [50, 0], fire_ext: [40, 10], electric_panel: [50, 150], niche: [250, 0], cable_duct: [250, 0],
   };
-  const CAT3 = { Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
-  const FLOOR_COL = { wood: '#c9a27a', tile: '#dfe3e6', stone: '#b8b2a7', carpet: '#b9a8c9', grass: '#8fc27a', concrete: '#b7bcc2' };
+  const CAT3 = { Garten: [60, 0],  Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
+  const FLOOR_COL = { wood: '#c9a27a', tile: '#dfe3e6', stone: '#b8b2a7', carpet: '#b9a8c9', grass: '#8fc27a', concrete: '#b7bcc2', gravel: '#cfcac0', pavers: '#b9b2a8', deck: '#b8895a', sand: '#e6d6a8', soil: '#6b4f3a', water: '#3f9fd1' };
   const LOOKS = {
     day: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true },
     dark: { bg: '#0f1626', sky: ['#070b16', '#121b2f', '#1d2840'], ground: '#1a2433', wall: '#cfc9bd', edge: null, amb: 0.35, hemi: 0.55, hs: '#6f86b8', hg: '#1b2230', sunc: '#8fa6d8', sun: 0.8, pl: 900, neon: false, real: true },
     neon: { bg: '#070a12', ground: '#0c1019', wall: '#141a2b', edge: '#26e6ff', amb: 0.8, hemi: 0.8, hs: '#ffffff', hg: '#8899aa', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true },
   };
 
+
+  const ROBOTS = new Set(['vacuum', 'mower_robot', 'pool_robot']);
+  const ROBOT_SPEED = { vacuum: 20, mower_robot: 26, pool_robot: 14 };
+  const ROBOT_ON = new Set(['cleaning', 'mowing', 'returning', 'washing', 'spot_cleaning', 'segment_cleaning', 'zone_cleaning', 'running', 'active', 'mowing_lawn']);
+  const inPoly = (px, pz, pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const xi = pts[i][0], zi = pts[i][1], xj = pts[j][0], zj = pts[j][1]; if ((zi > pz) !== (zj > pz) && px < (xj - xi) * (pz - zi) / (zj - zi) + xi) c = !c; } return c; };
 
   function dims3(it) {
     const t = typeById(it.type) || {};
@@ -1953,11 +2169,11 @@ const FP3D = (() => {
     }
 
     // ---------- Aufbau ----------
-    let wallGroups = [];
+    let wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = [];
+      items = []; pickables = []; wallGroups = []; robots = []; solar = null; selBox = null;
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
@@ -1982,7 +2198,8 @@ const FP3D = (() => {
 
     function buildFloor(f, idx, y0, Hw, L3, isTop) {
       const g = new T.Group(); g.position.y = y0; world.add(g);
-      const wallMat = new T.MeshStandardMaterial({ color: colorOf(S().wallColor3 || L3.wall), roughness: 0.9, metalness: 0 });
+      const garden = f.kind === 'garden';
+      const wallMat = new T.MeshStandardMaterial({ color: colorOf(garden ? '#a97c50' : (o.wallColor || S().wallColor3 || L3.wall)), roughness: 0.9, metalness: 0 });
       const glassMat = new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
       const frameMat = new T.MeshStandardMaterial({ color: look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.neon ? 0x0a4a55 : 0x000000 });
       const doorMat = new T.MeshStandardMaterial({ color: look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
@@ -2022,8 +2239,8 @@ const FP3D = (() => {
         if (L < 1) return;
         const ux = dx / L, uy = dy / L, t = wl.t || S().wallThickness || 15, ry = -Math.atan2(dy, dx), ext = t / 2;
         wg = new T.Group(); g.add(wg);
-        { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
-        const ops = openingsFor(wl, f);
+        if (!garden) { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
+        const ops = garden ? [] : openingsFor(wl, f);
         const seg = (a, b, h, y) => { // Teilstück [a,b] entlang der Wand
           const len = b - a; if (len < 0.5) return;
           const mid = (a + b) / 2;
@@ -2107,29 +2324,199 @@ const FP3D = (() => {
         else if (it.icon && it.icon.startsWith('img:')) { imgTex(it.icon.slice(4), tx => iconPlane(tx, isz, isz)); }
         else if (it.icon && it.shape !== 'none' && h > 3) iconPlane(emojiTex(it.icon), isz, isz);
         else if (it.icon && it.shape === 'none') { const sp = new T.Sprite(new T.SpriteMaterial({ map: emojiTex(it.icon), transparent: true, depthTest: false })); sp.scale.set(Math.max(20, isz), Math.max(20, isz), 1); sp.position.y = h + 12; sp.renderOrder = 15; ig.add(sp); }
-        const rec = { it, group: ig, body, mat, h, z0, live: model ? model.live : null, labelName: null, labelVal: null, valTxt: '', pool: null, light: null, baseColor: mat.color.clone(), floorY: y0 };
+        const rec = { it, group: ig, body, mat, h, z0, live: model ? model.live : null, anim: model ? model.anim : null, labelName: null, labelVal: null, valTxt: '', pool: null, light: null, baseColor: mat.color.clone(), floorY: y0 };
         items.push(rec);
+        if (ROBOTS.has(it.type) && it.roam !== 'off') setupRobot(rec, f);
       });
       return g;
+    }
+
+    // ---------- Roboter (Saug-/Mäh-/Poolroboter fahren umher) ----------
+    function setupRobot(rec, f) {
+      const it = rec.it; let area = null;
+      if (it.type === 'pool_robot') { const pl = f.items.find(x => x.type === 'pool' && Math.abs(it.x - x.x) <= x.w / 2 && Math.abs(it.y - x.y) <= x.h / 2); if (pl) area = { rect: [pl.x - pl.w / 2 + 25, pl.y - pl.h / 2 + 25, pl.x + pl.w / 2 - 25, pl.y + pl.h / 2 - 25] }; }
+      if (!area) { const rs = (f.rooms || []).filter(r => r.pts && r.pts.length > 2 && inPoly(it.x, it.y, r.pts)); if (rs.length) area = { poly: rs[rs.length - 1].pts }; }
+      if (!area) { const b = contentBounds(f); area = { rect: [b.x, b.y, b.x + b.w, b.y + b.h] }; }
+      const obst = f.items.filter(x => x !== it && !ROBOTS.has(x.type) && !['door', 'window', 'text', 'none'].includes(x.shape)).map(x => { const [hh, zz] = dims3(x); return { x, hh, zz }; }).filter(a => a.hh > 14 && a.zz >= 0 && a.zz < 40).map(a => a.x);
+      rec.robot = { x: it.x, z: it.y, hd: Math.random() * 6.283, vh: 0, area, obst, rad: Math.max(8, Math.min(it.w, it.h) / 2), speed: ROBOT_SPEED[it.type] || 18, since: 0, straight: 150 + Math.random() * 250, wait: 0 };
+      rec.robot.vh = rec.robot.hd;
+    }
+    function robotFree(r, px, pz) {
+      const a = r.area, m = r.rad * 0.8;
+      const pts = [[px, pz], [px + m, pz], [px - m, pz], [px, pz + m], [px, pz - m]];
+      for (const [qx, qz] of pts) {
+        if (a.poly ? !inPoly(qx, qz, a.poly) : (qx < a.rect[0] || qx > a.rect[2] || qz < a.rect[1] || qz > a.rect[3])) return false;
+      }
+      for (const o2 of r.obst) {
+        const dx = px - o2.x, dz = pz - o2.y, rr = -(o2.rot || 0) * Math.PI / 180, c = Math.cos(rr), sn = Math.sin(rr), lx = dx * c - dz * sn, lz = dx * sn + dz * c;
+        if (Math.abs(lx) < o2.w / 2 + m && Math.abs(lz) < o2.h / 2 + m) return false;
+      }
+      return true;
+    }
+    function robotActive(it) {
+      if (it.roam === 'always') return true;
+      if (!it.entity) return false;
+      const st = states[it.entity]; if (!st) return false;
+      return isActive(st) || ROBOT_ON.has(st.state);
+    }
+    function animateRobots(dt) {
+      let busy = false;
+      items.forEach(rec => {
+        const r = rec.robot; if (!r || rec.dragging) return;
+        if (!robotActive(rec.it)) return;
+        busy = true;
+        const step = r.speed * dt;
+        const nx = r.x + Math.cos(r.hd) * step, nz = r.z + Math.sin(r.hd) * step;
+        if (robotFree(r, nx, nz)) {
+          r.x = nx; r.z = nz; r.since += step;
+          if (r.since > r.straight) { r.hd += (Math.random() - 0.5) * 1.4; r.since = 0; r.straight = 120 + Math.random() * 300; }
+        } else {
+          let found = false;
+          for (let k = 0; k < 10 && !found; k++) { const h2 = r.hd + Math.PI * (0.45 + Math.random() * 1.1); if (robotFree(r, r.x + Math.cos(h2) * step * 4, r.z + Math.sin(h2) * step * 4)) { r.hd = h2; found = true; } }
+          if (!found) r.hd += 0.5;
+          r.since = 0;
+        }
+        let d = r.hd - r.vh; d = Math.atan2(Math.sin(d), Math.cos(d)); r.vh += d * Math.min(1, dt * 5);
+        rec.group.position.x = r.x; rec.group.position.z = r.z; rec.group.rotation.y = Math.PI / 2 - r.vh;
+      });
+      return busy;
+    }
+
+    // ---------- Solaranlage auf dem Dach ----------
+    function buildSolar(P) {
+      const { roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch } = P;
+      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1);
+      const PW = 100, PH = 170, GAP = 3;
+      const tex = canvasTex(128, 256, (g, w2, h2) => { g.fillStyle = '#12213d'; g.fillRect(0, 0, w2, h2); const gr = g.createLinearGradient(0, 0, w2, h2); gr.addColorStop(0, 'rgba(90,140,220,.35)'); gr.addColorStop(1, 'rgba(10,20,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); g.strokeStyle = 'rgba(190,210,240,.55)'; g.lineWidth = 2; for (let i = 0; i <= 6; i++) { g.beginPath(); g.moveTo(i * w2 / 6, 0); g.lineTo(i * w2 / 6, h2); g.stroke(); } for (let j = 0; j <= 10; j++) { g.beginPath(); g.moveTo(0, j * h2 / 10); g.lineTo(w2, j * h2 / 10); g.stroke(); } });
+      const topM = new T.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: 0.1 });
+      const frameM = new T.MeshStandardMaterial({ color: 0xcfd4d9, roughness: 0.4, metalness: 0.8 });
+      const pivot = new T.Group(); pivot.position.set(cx2, by, cz2); if (roofMode !== 'flat') pivot.rotation.y = alongX ? Math.PI / 2 : 0; world.add(pivot);
+      const mkPanel = (dx, dz) => { const g = new T.Group(); const f2 = new T.Mesh(new T.BoxGeometry(dx, 3.2, dz), frameM); f2.castShadow = true; const tp = new T.Mesh(new T.PlaneGeometry(dx - 4, dz - 4), topM); tp.rotation.x = -Math.PI / 2; tp.position.y = 1.7; g.add(f2, tp); return g; };
+      const spots = []; // [group-position, rotation]
+      if (roofMode === 'flat') {
+        const aw = W - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, ad = D - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, tilt = 0.4, pitchD = PH * Math.cos(tilt) + 55;
+        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.max(1, Math.round(max * fill));
+        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); spots.push({ x: -aw / 2 + PW / 2 + c * (PW + GAP) + (aw - cols * (PW + GAP) + GAP) / 2, y: 7 + PH * Math.sin(tilt) / 2 + 8, z: -ad / 2 + PH / 2 + r * pitchD, rx: side * tilt, rz: 0, flat: true }); }
+      } else {
+        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), ux = -side * (across / 2) / Ls, uy = rh / Ls, nx = side * rh / Ls, ny = (across / 2) / Ls;
+        const ex = side * across / 2, s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.max(1, Math.round(max * fill));
+        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols), sc = s0 + PH / 2 + r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: -regionLen / 2 + PW / 2 + c * (PW + GAP) + (regionLen - cols * (PW + GAP) + GAP) / 2, rz: -side * alpha, rx: 0, flat: false }); }
+      }
+      const centers = [];
+      spots.forEach(sp => { const g = sp.flat ? mkPanel(PW, PH) : mkPanel(PH, PW); g.position.set(sp.x, sp.y, sp.z); g.rotation.set(sp.rx || 0, 0, sp.rz || 0); pivot.add(g); });
+      pivot.updateMatrixWorld(true);
+      pivot.children.forEach(ch => { const v = new T.Vector3(); ch.getWorldPosition(v); centers.push(v); });
+      const dest = new T.Vector3(cx2, by - wallH() * 0.45, cz2);
+      const sprMat = () => new T.SpriteMaterial({ map: glowTex(), color: 0xffd54f, blending: T.AdditiveBlending, transparent: true, depthTest: false, depthWrite: false });
+      const parts = []; for (let i = 0; i < 18; i++) { const sp2 = new T.Sprite(sprMat()); sp2.renderOrder = 40; sp2.visible = false; world.add(sp2); parts.push({ sp: sp2, t: i / 18, from: centers[Math.floor(Math.random() * centers.length)] }); }
+      const hub = new T.Sprite(sprMat()); hub.material.color.set(0xffa000); hub.renderOrder = 41; hub.position.copy(dest); hub.scale.set(60, 60, 1); world.add(hub);
+      solar = { centers, dest, parts, hub, topM };
+    }
+    function animateSolar(dt, now) {
+      const sl = solar; if (!sl) return false;
+      let pf = 1; const ent = S().solarEntity;
+      if (ent) { const st = states[ent]; let v = st ? parseFloat(st.state) : NaN; if (st && st.attributes && /^kW$/i.test(st.attributes.unit_of_measurement || '')) v *= 1000; const mx = Number(S().solarMax3) || 5000; pf = isFinite(v) && v > 0 ? Math.max(0.12, Math.min(1, v / mx)) : 0; }
+      sl.topM.emissiveIntensity = 0.06 + 0.7 * pf;
+      const n = Math.ceil(pf * sl.parts.length), speed = 0.28 + 0.6 * pf;
+      sl.parts.forEach((p, i) => {
+        if (i >= n) { p.sp.visible = false; return; }
+        p.t += dt * speed; if (p.t >= 1) { p.t -= 1; p.from = sl.centers[Math.floor(Math.random() * sl.centers.length)]; }
+        const k = p.t, e = k * k * (3 - 2 * k);
+        p.sp.visible = true; p.sp.position.set(p.from.x + (sl.dest.x - p.from.x) * e, p.from.y + (sl.dest.y - p.from.y) * e + Math.sin(Math.PI * k) * 25, p.from.z + (sl.dest.z - p.from.z) * e);
+        const sc = 26 * (1 - 0.5 * k); p.sp.scale.set(sc, sc, 1); p.sp.material.opacity = Math.min(1, k * 6) * Math.min(1, (1 - k) * 5);
+      });
+      sl.hub.visible = pf > 0; sl.hub.scale.setScalar(50 + 14 * Math.sin(now * 0.006)); sl.hub.material.opacity = 0.35 + 0.4 * pf;
+      return pf > 0;
+    }
+    const coverCache = new Map();
+    function coverTarget(s) {
+      if (!s) return null; const a = s.attributes || {};
+      if (a.current_position != null && isFinite(a.current_position)) return Math.max(0, Math.min(1, a.current_position / 100));
+      if (s.state === 'open' || s.state === 'opening') return 1; if (s.state === 'closed' || s.state === 'closing') return 0; return null;
+    }
+    function animateRecs(dt) {
+      let busy = false;
+      items.forEach(rec => {
+        const a = rec.anim; if (!a) return; const it = rec.it, s = it.entity ? states[it.entity] : null;
+        if (a.type === 'cover') {
+          const tg = coverTarget(s); if (tg == null) return;
+          let cv = rec.cv != null ? rec.cv : (coverCache.has(it.id) ? coverCache.get(it.id) : tg);
+          const d = tg - cv; if (Math.abs(d) > 0.002) { cv += Math.sign(d) * Math.min(Math.abs(d), dt * 0.3); busy = true; } else cv = tg;
+          rec.cv = cv; coverCache.set(it.id, cv); a.set(cv);
+        } else {
+          const act = !!s && isActive(s), r = a.step(dt, act); if (act || r || a.wasOn) busy = true; a.wasOn = act;
+        }
+      });
+      return busy;
+    }
+    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; return b; }
+
+    // ---------- Auswahl-Rahmen ----------
+    function applySel() {
+      const id = o.getSel ? o.getSel() : null;
+      if (selBox && selBox.userData.id === id) return;
+      if (selBox) { if (selBox.parent) selBox.parent.remove(selBox); selBox.geometry.dispose(); selBox = null; dirty = true; }
+      if (!id) return;
+      const r = items.find(x => x.it.id === id); if (!r) return;
+      const hh = Math.max(r.h, 8) + 4;
+      selBox = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(r.it.w + 4, hh, r.it.h + 4)), new T.LineBasicMaterial({ color: 0x03a9f4, depthTest: false, transparent: true }));
+      selBox.renderOrder = 30; selBox.position.y = hh / 2 - 2; selBox.userData.id = id; r.group.add(selBox); dirty = true;
     }
 
     function buildAll() {
       clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
       const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
       const slab = wallH() + 25, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
-      const show = o.allFloors ? floors.map((f, i) => i) : floors.map((f, i) => i).filter(i => i <= curIdx);
+      const levels = floors.map((f, i) => i).filter(i => floors[i].kind !== 'garden'), gardens = floors.map((f, i) => i).filter(i => floors[i].kind === 'garden');
+      const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', lvCur = curIsGarden ? levels.length - 1 : levels.indexOf(curIdx);
+      const show = o.allFloors || curIsGarden ? levels : levels.filter((i, k) => k <= lvCur);
+      groundY = curIsGarden ? -1 : Math.max(0, lvCur) * slab;
       let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, maxY = 0;
-      show.forEach(i => {
+      const grow = (b) => { minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); };
+      show.forEach((i, k) => {
         const f = floors[i];
-        buildFloor(f, i, i * slab, Hw, L3, i === show[show.length - 1]);
-        const b = contentBounds(f);
-        minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); maxY = Math.max(maxY, i * slab + wallH());
+        buildFloor(f, i, k * slab, Hw, L3, k === show.length - 1);
+        grow(contentBounds(f)); maxY = Math.max(maxY, k * slab + wallH());
       });
+      gardens.forEach(i => { const f = floors[i]; buildFloor(f, i, -1, 110, L3, false); if (curIsGarden && i === curIdx) grow(contentBounds(f)); else if (!show.length) grow(contentBounds(f)); });
+      const roofMode = o.roof || S().roof3 || 'none';
+      if (roofMode !== 'none' && show.length) {
+        const ti = show[show.length - 1], tf = floors[ti], slabIdx = show.length - 1;
+        let rx0 = 1e9, rx1 = -1e9, rz0 = 1e9, rz1 = -1e9;
+        (tf.walls || []).forEach(w2 => { rx0 = Math.min(rx0, w2.x1, w2.x2); rx1 = Math.max(rx1, w2.x1, w2.x2); rz0 = Math.min(rz0, w2.y1, w2.y2); rz1 = Math.max(rz1, w2.y1, w2.y2); });
+        if (rx0 > rx1) { const b2 = contentBounds(tf); rx0 = b2.x; rx1 = b2.x + b2.w; rz0 = b2.y; rz1 = b2.y + b2.h; }
+        const ov = Math.max(0, Number(S().roofOver3 != null ? S().roofOver3 : 40)), pitch = Math.min(60, Math.max(5, Number(S().roofPitch3) || 30)) * Math.PI / 180;
+        const W = rx1 - rx0 + 2 * ov, D = rz1 - rz0 + 2 * ov, cx2 = (rx0 + rx1) / 2, cz2 = (rz0 + rz1) / 2, by = slabIdx * slab + wallH();
+        const rmat = new T.MeshStandardMaterial({ color: colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        const alongX = W >= D, across = alongX ? D : W, len = alongX ? W : D;
+        let rm = null, rh = 12;
+        if (roofMode === 'flat') {
+          rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
+        } else {
+          rh = (across / 2) * Math.tan(pitch);
+          if (roofMode === 'gable') {
+            const sh = new T.Shape(); sh.moveTo(-across / 2, 0); sh.lineTo(across / 2, 0); sh.lineTo(0, rh); sh.closePath();
+            const geo = new T.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); geo.translate(0, 0, -len / 2);
+            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
+          } else { // Walmdach
+            const hw = across / 2, hl = len / 2, rl = Math.max(0, hl - hw), P = [], tri = (a, b2, c) => P.push(...a, ...b2, ...c);
+            const A = [-hw, 0, -hl], B = [hw, 0, -hl], Cc = [hw, 0, hl], Dd = [-hw, 0, hl], R1 = [0, rh, -rl], R2 = [0, rh, rl];
+            tri(A, B, R1); tri(Cc, Dd, R2); tri(B, Cc, R2); tri(B, R2, R1); tri(Dd, A, R1); tri(Dd, R1, R2);
+            const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(P, 3)); geo.computeVertexNormals();
+            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
+          }
+        }
+        rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
+        if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
+        if (S().solar3) buildSolar({ roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch });
+        maxY = Math.max(maxY, by + rh);
+      }
       if (minX > maxX) { minX = -200; maxX = 200; minZ = -200; maxZ = 200; }
       const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, R = Math.max(maxX - minX, maxZ - minZ, 300) / 2;
       radius = Math.hypot(maxX - minX, maxZ - minZ, maxY) / 2;
       // Boden/Umgebung
-      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(L3.ground), roughness: 1 }));
+      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(o.ground || S().ground3 || L3.ground), roughness: 1 }));
       gm.rotation.x = -Math.PI / 2; gm.position.set(cx, -16, cz); gm.receiveShadow = true; world.add(gm);
       const bg = colorOf(L3.bg);
       if (L3.sky) { const sk = 'sky|' + lookKey(); let tx = texCache.get(sk); if (!tx) { tx = canvasTex(8, 256, (g, w2, h2) => { const gr = g.createLinearGradient(0, 0, 0, h2); gr.addColorStop(0, L3.sky[0]); gr.addColorStop(0.55, L3.sky[1]); gr.addColorStop(1, L3.sky[2]); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); }); texCache.set(sk, tx); } scene.background = tx; } else scene.background = bg;
@@ -2191,6 +2578,8 @@ const FP3D = (() => {
           if (txt) { r.labelName = textSprite(txt, S().labelSize * 1.15, { dark: !!look.neon || o.dark() }); r.group.add(r.labelName); }
           r.lblKey = lblKey;
         }
+        if (r.labelName) r.labelName.material.rotation = -(Number(it.labelRot) || 0) * Math.PI / 180;
+        if (r.labelVal) r.labelVal.material.rotation = -(Number(it.valueRot) || 0) * Math.PI / 180;
         if (r.labelName) r.labelName.position.set(0, r.h + S().labelSize * 1.1 + 6, 0);
         if (r.valTxt !== val) {
           if (r.labelVal) { r.group.remove(r.labelVal); r.labelVal.material.dispose(); r.labelVal = null; }
@@ -2218,6 +2607,14 @@ const FP3D = (() => {
       const hit = ray.intersectObjects(pickables, false)[0];
       return hit ? hit.object.userData.itemId : null;
     }
+    function groundPoint(e, gy) {
+      const r = cv.getBoundingClientRect();
+      v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(v2, camera);
+      const ro = ray.ray.origin, rd = ray.ray.direction; if (Math.abs(rd.y) < 1e-6) return null;
+      const t = (gy - ro.y) / rd.y; if (t < 0) return null;
+      return { x: ro.x + rd.x * t, z: ro.z + rd.z * t };
+    }
     function panBy(dx, dy) {
       const k = cam.dist * 0.0012, r = [Math.cos(cam.az), -Math.sin(cam.az)], u = [-Math.sin(cam.az), -Math.cos(cam.az)];
       cam.tx += -r[0] * dx * k + u[0] * dy * k; cam.tz += -r[1] * dx * k + u[1] * dy * k;
@@ -2229,7 +2626,10 @@ const FP3D = (() => {
       if (ptrs.size === 1) {
         const mousePan = e.pointerType === 'mouse' && (e.button === 1 || e.button === 2 || e.shiftKey);
         gesture = { t: mousePan ? 'pan' : 'orbit' };
-        tap = { x: e.clientX, y: e.clientY, id: e.button === 0 || e.pointerType !== 'mouse' ? pick(e) : null, moved: false, long: false, time: Date.now() };
+        gesture.base = true;
+        const placing = !!(o.placing && o.placing());
+        tap = { x: e.clientX, y: e.clientY, id: !placing && (e.button === 0 || e.pointerType !== 'mouse') ? pick(e) : null, moved: false, long: false, time: Date.now() };
+        if (tap.id && o.canDrag && o.canDrag(tap.id)) { const rec = items.find(r => r.it.id === tap.id), gp = rec && groundPoint(e, rec.floorY); if (rec && gp) gesture = { t: 'drag', rec, off: { x: gp.x - rec.group.position.x, z: gp.z - rec.group.position.z }, dragging: false }; }
         clearTimeout(tapTimer);
         if (tap.id) tapTimer = setTimeout(() => { if (tap && !tap.moved) { tap.long = true; o.onTap && o.onTap(tap.id, true); } }, 550);
       } else if (ptrs.size === 2) {
@@ -2245,6 +2645,13 @@ const FP3D = (() => {
       p.x = e.clientX; p.y = e.clientY;
       if (tap && !tap.moved && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) { tap.moved = true; clearTimeout(tapTimer); }
       if (!gesture) return;
+      if (gesture.t === 'drag') {
+        if (ptrs.size === 1 && tap && tap.moved) {
+          const gp = groundPoint(e, gesture.rec.floorY);
+          if (gp) { let nx = gp.x - gesture.off.x, nz = gp.z - gesture.off.z; if (o.snap) { nx = o.snap(nx); nz = o.snap(nz); } const rc = gesture.rec; rc.group.position.x = nx; rc.group.position.z = nz; rc.nx = nx; rc.nz = nz; rc.dragging = true; gesture.dragging = true; if (rc.robot) { rc.robot.x = nx; rc.robot.z = nz; } dirty = true; }
+        }
+        return;
+      }
       if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; cam.pol -= dy * 0.006; limit(); dirty = true; } }
       else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
       else if (gesture.t === 'pinch' && ptrs.size === 2) {
@@ -2258,7 +2665,8 @@ const FP3D = (() => {
       ptrs.delete(e.pointerId); cv.style.cursor = 'grab';
       if (ptrs.size === 0) {
         clearTimeout(tapTimer);
-        if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(); }
+        if (gesture && gesture.t === 'drag' && gesture.dragging) { const rc = gesture.rec; rc.dragging = false; tap = null; gesture = null; if (o.onDragEnd) o.onDragEnd(rc.it.id, rc.nx, rc.nz); return; }
+        if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(groundPoint(e, groundY)); }
         tap = null; gesture = null;
       } else if (ptrs.size === 1) { gesture = { t: 'orbit' }; if (tap) tap.moved = true; }
     };
@@ -2293,12 +2701,13 @@ const FP3D = (() => {
     function frame() {
       raf = 0; if (destroyed) return;
       if (animateWalls()) dirty = true;
+      if (solar || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
       raf = requestAnimationFrame(frame);
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
@@ -2312,6 +2721,7 @@ const FP3D = (() => {
       if (destroyed) return;
       resize();
       if (!build(false)) { const ls = stateSig(); if (ls !== liveSig) { liveSig = ls; applyLive(); } }
+      applySel();
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
     function set(k, v) { o[k] = v; build(true); }
@@ -2321,7 +2731,7 @@ const FP3D = (() => {
     return { update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
-  return { load, create, dims3 };
+  return { load, create, dims3, ROBOTS };
 })();
 
 /* ---- card.src.js ---- */
@@ -2456,7 +2866,7 @@ class FloorplanStudioCard extends HTMLElement {
     const w = (b.w + pad * 2) * rc + (b.h + pad * 2) * rs, h = (b.w + pad * 2) * rs + (b.h + pad * 2) * rc;
     const x0 = ccx - w / 2, y0 = ccy - h / 2;
     const ctx = { glows: new Map(), glowOut: [] };
-    const rooms = f.rooms.map(r => {
+    const rooms = gardenBaseMarkup(f) + f.rooms.map(r => {
       let m = roomMarkup(r);
       if (r.entity) m = m.replace('<g data-k="room"', '<g class="act" data-k="room"');
       return m;
@@ -2502,7 +2912,7 @@ class FloorplanStudioCard extends HTMLElement {
       this._v3 = FP3D.create(st, {
         getFloor: () => this._floor,
         look: c.look3d || s.look3d || 'auto', walls: c.walls3d || s.walls3d || 'auto', allFloors: c.all3d != null ? !!c.all3d : !!s.all3d,
-        dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
+        roof: c.roof3d || '', wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl',
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update();

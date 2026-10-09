@@ -155,7 +155,9 @@ pre.code { background: var(--bg2, rgba(127,127,127,.12)); padding: 8px; border-r
 .hud3 .chk { background: var(--field); border: 1px solid var(--line); border-radius: 8px; height: 34px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; }
 #app.view-3d #svg, #app.view-3d .zoom, #app.view-3d #drawBar, #app.view-3d #empty { display: none !important; }
 #app.view-3d #tools button:not([data-tool="select"]) { opacity: .4; pointer-events: none; }
-#app.view-3d #library { opacity: .45; pointer-events: none; }
+
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
 
 .hud3 select{width:auto;min-width:0}
+
+#app.view-3d #library { opacity: 1; pointer-events: auto; }

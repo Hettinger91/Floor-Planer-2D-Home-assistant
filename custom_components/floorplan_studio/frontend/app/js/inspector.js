@@ -123,6 +123,7 @@ function renderItemInspector(box, it) {
     { k: 'x', t: 'num', l: 'X (cm)', step: 1 }, { k: 'y', t: 'num', l: 'Y (cm)', step: 1 },
     { k: 'w', t: 'num', l: 'Breite (cm)', min: 1 }, { k: 'h', t: 'num', l: 'Tiefe (cm)', min: 1 },
     { k: 'rot', t: 'num', l: 'Drehung (°)', step: 1 },
+    { k: 'roam', t: 'select', l: 'Roboter fährt in 3D umher', o: [['auto', 'Nur wenn Entität aktiv'], ['always', 'Immer (auch ohne Entität)'], ['off', 'Nie']] },
     { k: 'h3', t: 'num', l: '3D-Höhe (cm) · 0 = auto', min: 0, step: 5 },
     { k: 'z3', t: 'num', l: '3D-Höhe über Boden (cm) · 0 = auto', min: 0, step: 5 },
   ];
@@ -133,7 +134,7 @@ function renderItemInspector(box, it) {
     (isText || isWin ? '' : section('Leuchten (Glow)', glowSpecs.map(specHtml).join(''))) +
     (isText ? '' : section('Home Assistant', ha.map(specHtml).join(''))) +
     section('Aussehen', look.map(specHtml).join('')) +
-    section('Position & Größe', pair(P('x'), P('y')) + (isText ? '' : pair(P('w'), P('h'))) + P('rot') + (isText || isWin ? '' : pair(P('h3'), P('z3')))) +
+    section('Position & Größe', pair(P('x'), P('y')) + (isText ? '' : pair(P('w'), P('h'))) + P('rot') + (isText || isWin ? '' : pair(P('h3'), P('z3'))) + (typeof FP3D !== 'undefined' && FP3D.ROBOTS.has(it.type) ? P('roam') : '')) +
     actionsHtml([['front', 'Nach vorn'], ['back', 'Nach hinten'], ['dup', 'Duplizieren'], ['tpl', 'Als Vorlage speichern'], ['del', 'Löschen', 'danger']]);
   wire(box, it, specs.filter(s => !(isText && ['entity', 'glow', 'glowStyle', 'glowR', 'glowStr', 'onColor', 'tap', 'svc', 'svcData'].includes(s.k))), {
     onInput: k => {
@@ -261,14 +262,29 @@ function renderFloorInspector(box) {
     { k: 'showArea', t: 'check', l: 'Raumflächen anzeigen' },
     { k: 'labelSize', t: 'range', l: 'Schriftgröße im Plan', min: 8, max: 40, step: 1 },
     { k: 'wallThickness', t: 'num', l: 'Standard-Wanddicke (cm)', min: 2 },
-    { k: 'wallH3', t: 'num', l: 'Wandhöhe in 3D (cm)', min: 180, step: 10 },
-    { k: 'wallColor', t: 'color', l: 'Wandfarbe', def: '#2b3240' },
+    { k: 'wallColor', t: 'color', l: 'Wandfarbe (2D)', def: '#2b3240' },
     { k: 'roomOpacity', t: 'range', l: 'Raumfüllung', min: 0.05, max: 0.8, step: 0.05 },
     { k: 'theme', t: 'select', l: 'Darstellung', o: [['auto', 'Automatisch'], ['light', 'Hell'], ['dark', 'Dunkel']] },
     { k: 'viewRot', t: 'num', l: 'Ausrichtung (°) – gilt auch im Dashboard', min: -180, max: 180 },
     { k: 'symStyle', t: 'select', l: 'Symbol-Stil der Objekte', o: [['b', 'Modern-neutral (Standard)'], ['a', 'Klassisch (Architektenplan)'], ['c', 'Farbig, dezent'], ['emoji', 'Emojis']] },
     { k: 'itemShadow', t: 'check', l: 'Schatten unter Objekten' },
     { k: 'liveTap', t: 'select', l: 'Live: Tippen', o: [['toggle', 'Schaltet (lang drücken = Details)'], ['details', 'Öffnet Details (lang drücken = schalten)']] },
+  ];
+  const s3 = [
+    { k: 'wallColor3', t: 'color', l: 'Wandfarbe', def: '#f3f0ea' },
+    { k: 'wallH3', t: 'num', l: 'Wandhöhe (cm)', min: 180, step: 10 },
+    { k: 'roof3', t: 'select', l: 'Dach', o: [['none', 'Kein Dach'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']] },
+    { k: 'roofColor3', t: 'color', l: 'Dachfarbe', def: '#8a4b3a' },
+    { k: 'roofPitch3', t: 'num', l: 'Dachneigung (°)', min: 5, max: 60 },
+    { k: 'roofOver3', t: 'num', l: 'Dachüberstand (cm)', min: 0 },
+    { k: 'solar3', t: 'check', l: 'Solaranlage auf dem Dach (mit Energie-Animation)' },
+    { k: 'solarEntity', t: 'entity', l: 'Solar-Leistung (Entität, optional – steuert die Animation)' },
+    { k: 'solarMax3', t: 'num', l: 'Solar-Maximalleistung (W)', min: 100, step: 100 },
+    { k: 'solarFill3', t: 'num', l: 'Dachbelegung (%)', min: 10, max: 100, step: 10 },
+    { k: 'solarSide3', t: 'select', l: 'Dachseite', o: [['A', 'Seite A'], ['B', 'Seite B']] },
+    { k: 'ground3', t: 'color', l: 'Bodenfarbe außen (Wiese)', def: '#93b07f' },
+    { k: 'look3d', t: 'select', l: 'Look', o: [['auto', 'Automatisch'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon']] },
+    { k: 'walls3d', t: 'select', l: 'Wände', o: [['auto', 'Automatisch (Kamera-Ausschnitt)'], ['full', 'Voll'], ['half', 'Halb'], ['flat', 'Flach']] },
   ];
   const numSel = ['grid'];
   box.innerHTML = `<div class="ihead"><span class="ico">⌂</span><b>Etage & Einstellungen</b></div>` +
@@ -278,10 +294,13 @@ function renderFloorInspector(box) {
       (hasBg ? '<button class="btn" data-act="calib">Maßstab kalibrieren</button><button class="btn" data-act="bgdel">Bild entfernen</button>' : '') + '</div>' +
       `<div class="actions"><button class="btn" data-act="fdup">Etage duplizieren</button><button class="btn" data-act="fren">Umbenennen</button><button class="btn danger" data-act="fdel">Etage löschen</button></div>`) +
     section('Ansicht & Raster', ss.map(specHtml).join('')) +
+    section('3D-Ansicht', s3.map(specHtml).join('')) +
     actionsHtml([['fit', 'Alles anzeigen'], ['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]);
   wire(box, f, fs, { onInput: () => renderFloorTabs() });
   if (hasBg) wire(box, f.bg, bg);
   wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
+  wire(box, st, s3, { onInput: () => render(), onChange: () => render() });
+  bindPick(box);
   bindActs(box, {
     bgup: async () => {
       const file = await pickFile('image/*');
@@ -310,10 +329,10 @@ function imgSize(url) { return new Promise((res, rej) => { const i = new Image()
 function renderFloorTabs() {
   const nav = $('#floors');
   if (!nav || !plan) return;
-  nav.innerHTML = plan.floors.map(f => `<button class="tab${f.id === floorId ? ' on' : ''}" data-id="${f.id}">${esc(f.name)}</button>`).join('') + '<button class="tab add" title="Etage hinzufügen">+</button>';
+  nav.innerHTML = plan.floors.map(f => `<button class="tab${f.id === floorId ? ' on' : ''}" data-id="${f.id}">${f.kind === 'garden' ? '🌿 ' : ''}${esc(f.name)}</button>`).join('') + '<button class="tab add garden" title="Garten hinzufügen">🌿+</button><button class="tab add" title="Etage hinzufügen">+</button>';
   $$('.tab', nav).forEach(b => {
     b.onclick = () => {
-      if (b.classList.contains('add')) return addFloor();
+      if (b.classList.contains('add')) return addFloor(b.classList.contains('garden') ? 'garden' : '');
       switchFloor(b.dataset.id);
     };
     b.ondblclick = () => { if (!b.classList.contains('add')) renameFloor(); };
@@ -326,9 +345,15 @@ function switchFloor(id) {
   if (!V().fitted) fitView();
   renderAll();
 }
-function addFloor() {
-  const f = newFloor('Etage ' + (plan.floors.length + 1));
-  plan.floors.push(f); commit(); switchFloor(f.id); setTimeout(renameFloor, 50);
+function addFloor(kind) {
+  const f = newFloor(kind === 'garden' ? 'Garten' : 'Etage ' + (plan.floors.filter(x => x.kind !== 'garden').length + 1), kind);
+  if (kind === 'garden') {
+    const bs = plan.floors.filter(x => x.kind !== 'garden').map(contentBounds).filter(b => !b.empty);
+    const x0 = bs.length ? Math.min(...bs.map(b => b.x)) - 600 : 0, y0 = bs.length ? Math.min(...bs.map(b => b.y)) - 600 : 0;
+    const x1 = bs.length ? Math.max(...bs.map(b => b.x + b.w)) + 600 : 1600, y1 = bs.length ? Math.max(...bs.map(b => b.y + b.h)) + 600 : 1200;
+    f.rooms.push({ id: uid(), name: 'Rasen', color: '#8fc27a', floor: 'grass', entity: '', pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] });
+  }
+  plan.floors.push(f); commit(); switchFloor(f.id); if (!kind) setTimeout(renameFloor, 50);
 }
 async function renameFloor() {
   const f = curFloor(), n = await ask('Etage umbenennen', 'Name', f.name);

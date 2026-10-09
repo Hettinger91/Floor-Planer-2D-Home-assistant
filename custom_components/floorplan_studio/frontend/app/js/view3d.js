@@ -36,21 +36,31 @@ const FP3D = (() => {
     switch: [8, 105], switch_double: [8, 105], dimmer: [8, 105], button: [6, 105], scene_switch: [6, 105], smart_light_sw: [8, 105], lan_socket: [8, 30], tv_socket: [8, 30],
     camera: [14, 230], camera_ptz: [18, 230], doorbell_cam: [18, 130], sensor_motion: [10, 220], smoke: [6, -1], sensor_presence: [8, -1], sensor_temp: [8, 140], sensor_hum: [8, 140],
     speaker: [30, 100], smart_speaker: [22, 90], soundbar: [8, 50], smart_tv: [65, 80], monitor: [45, 75], pc: [45, 0], nas: [30, 0], server_rack: [190, 0], printer: [30, 75], printer3d: [45, 75],
-    blind: [10, 190], router: [10, 100], dongle: [10, 100], vacuum: [10, 0], lock: [10, 105], wallbox: [35, 110], meter_power: [30, 120], meter_gas: [30, 120],
+    blind: [130, 80], shutter_outdoor: [130, 80], curtain_motor: [230, 0], awning: [25, 220], router: [10, 100], dongle: [10, 100], vacuum: [10, 0], lock: [10, 105], wallbox: [35, 110], meter_power: [30, 120], meter_gas: [30, 120],
+    tree_fruit: [300, 0], tree_conifer: [450, 0], palm: [400, 0], bush_flower: [90, 0], planter: [60, 0], raised_bed: [80, 0], veggie_patch: [25, 0], meadow: [25, 0], rocks: [50, 0], hedge_corner: [150, 0], trellis: [200, 0], vineyard: [160, 0],
+    pond: [4, 0], fountain: [110, 0], birdbath: [80, 0], water_tap: [60, 0], hose_reel: [45, 0], cistern: [150, 0], well: [100, 0], stream: [4, 0], greenhouse: [240, 0], pergola: [250, 0], gazebo: [270, 0], woodshed: [200, 0], compost: [90, 0], bin_shelter: [140, 0],
+    playhouse: [190, 0], chicken_coop: [120, 0], rabbit_hutch: [90, 0], doghouse: [80, 0], hammock: [150, 0], bench_garden: [85, 0], chair_garden: [90, 0], swing_seat: [210, 0], slide: [200, 0], birdhouse: [30, 150], bee_hotel: [60, 120], statue: [80, 0], outdoor_kitchen: [95, 0], pizza_oven: [200, 0],
+    wood_pile: [120, 0], wheelbarrow: [60, 0], solar_panel: [80, 0], privacy_screen: [180, 0], garden_gate: [130, 0], stone_wall: [90, 0], edging: [12, 0], path_stone: [3, 0], path_gravel: [3, 0], stepping_stones: [4, 0], gravel_area: [3, 0], patio: [3, 0], deck: [12, 0],
+    lamp_solar: [40, 0], lamp_post: [350, 0], lamp_spike: [30, 0], lamp_flood: [20, 250], mower_robot: [25, 0], mower_station: [25, 0], sensor_soil: [25, 0], sprinkler: [12, 0], valve_box: [20, 0], pool_robot: [20, 0], pool_heater: [60, 0], gate_motor: [90, 0], cam_garden: [200, 0], garden_speaker: [30, 0], sensor_garden_motion: [16, 250],
     stairs: [260, 0], stairs_wide: [260, 0], stairs_L: [260, 0], stairs_U: [260, 0], stairs_spiral: [260, 0], stairs_spiral_small: [260, 0], stairs_outdoor: [100, 0], stairs_basement: [260, 0],
     plant: [90, 0], plant_big: [130, 0], plant_small: [30, 0], rug: [2, 0], rug_round: [2, 0], pillar: [250, 0], pillar_round: [250, 0], curtain: [240, 0], painting: [60, 140], playmat: [2, 0],
     car: [150, 0], carport: [2, 0], bike: [100, 0], terrace_table: [75, 0], lounger: [40, 0], grill: [95, 0], pool: [4, 0], hot_tub: [80, 0], tree: [350, 0], bush: [90, 0], hedge: [150, 0], fence: [110, 0],
     flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [3, 0], driveway: [2, 0],
     firepit: [40, 0], parasol: [230, 0], elevator: [250, 0], chimney: [250, 0], safe: [50, 0], fire_ext: [40, 10], electric_panel: [50, 150], niche: [250, 0], cable_duct: [250, 0],
   };
-  const CAT3 = { Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
-  const FLOOR_COL = { wood: '#c9a27a', tile: '#dfe3e6', stone: '#b8b2a7', carpet: '#b9a8c9', grass: '#8fc27a', concrete: '#b7bcc2' };
+  const CAT3 = { Garten: [60, 0],  Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
+  const FLOOR_COL = { wood: '#c9a27a', tile: '#dfe3e6', stone: '#b8b2a7', carpet: '#b9a8c9', grass: '#8fc27a', concrete: '#b7bcc2', gravel: '#cfcac0', pavers: '#b9b2a8', deck: '#b8895a', sand: '#e6d6a8', soil: '#6b4f3a', water: '#3f9fd1' };
   const LOOKS = {
     day: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true },
     dark: { bg: '#0f1626', sky: ['#070b16', '#121b2f', '#1d2840'], ground: '#1a2433', wall: '#cfc9bd', edge: null, amb: 0.35, hemi: 0.55, hs: '#6f86b8', hg: '#1b2230', sunc: '#8fa6d8', sun: 0.8, pl: 900, neon: false, real: true },
     neon: { bg: '#070a12', ground: '#0c1019', wall: '#141a2b', edge: '#26e6ff', amb: 0.8, hemi: 0.8, hs: '#ffffff', hg: '#8899aa', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true },
   };
 
+
+  const ROBOTS = new Set(['vacuum', 'mower_robot', 'pool_robot']);
+  const ROBOT_SPEED = { vacuum: 20, mower_robot: 26, pool_robot: 14 };
+  const ROBOT_ON = new Set(['cleaning', 'mowing', 'returning', 'washing', 'spot_cleaning', 'segment_cleaning', 'zone_cleaning', 'running', 'active', 'mowing_lawn']);
+  const inPoly = (px, pz, pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const xi = pts[i][0], zi = pts[i][1], xj = pts[j][0], zj = pts[j][1]; if ((zi > pz) !== (zj > pz) && px < (xj - xi) * (pz - zi) / (zj - zi) + xi) c = !c; } return c; };
 
   function dims3(it) {
     const t = typeById(it.type) || {};
@@ -164,11 +174,11 @@ const FP3D = (() => {
     }
 
     // ---------- Aufbau ----------
-    let wallGroups = [];
+    let wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = [];
+      items = []; pickables = []; wallGroups = []; robots = []; solar = null; selBox = null;
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
@@ -193,7 +203,8 @@ const FP3D = (() => {
 
     function buildFloor(f, idx, y0, Hw, L3, isTop) {
       const g = new T.Group(); g.position.y = y0; world.add(g);
-      const wallMat = new T.MeshStandardMaterial({ color: colorOf(S().wallColor3 || L3.wall), roughness: 0.9, metalness: 0 });
+      const garden = f.kind === 'garden';
+      const wallMat = new T.MeshStandardMaterial({ color: colorOf(garden ? '#a97c50' : (o.wallColor || S().wallColor3 || L3.wall)), roughness: 0.9, metalness: 0 });
       const glassMat = new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
       const frameMat = new T.MeshStandardMaterial({ color: look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.neon ? 0x0a4a55 : 0x000000 });
       const doorMat = new T.MeshStandardMaterial({ color: look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
@@ -233,8 +244,8 @@ const FP3D = (() => {
         if (L < 1) return;
         const ux = dx / L, uy = dy / L, t = wl.t || S().wallThickness || 15, ry = -Math.atan2(dy, dx), ext = t / 2;
         wg = new T.Group(); g.add(wg);
-        { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
-        const ops = openingsFor(wl, f);
+        if (!garden) { let nx = -uy, nz = ux; const mx = (wl.x1 + wl.x2) / 2 - cxm, mz = (wl.y1 + wl.y2) / 2 - czm; if (nx * mx + nz * mz < 0) { nx = -nx; nz = -nz; } wg.userData.n = [nx, nz]; wallGroups.push(wg); }
+        const ops = garden ? [] : openingsFor(wl, f);
         const seg = (a, b, h, y) => { // Teilstück [a,b] entlang der Wand
           const len = b - a; if (len < 0.5) return;
           const mid = (a + b) / 2;
@@ -318,29 +329,199 @@ const FP3D = (() => {
         else if (it.icon && it.icon.startsWith('img:')) { imgTex(it.icon.slice(4), tx => iconPlane(tx, isz, isz)); }
         else if (it.icon && it.shape !== 'none' && h > 3) iconPlane(emojiTex(it.icon), isz, isz);
         else if (it.icon && it.shape === 'none') { const sp = new T.Sprite(new T.SpriteMaterial({ map: emojiTex(it.icon), transparent: true, depthTest: false })); sp.scale.set(Math.max(20, isz), Math.max(20, isz), 1); sp.position.y = h + 12; sp.renderOrder = 15; ig.add(sp); }
-        const rec = { it, group: ig, body, mat, h, z0, live: model ? model.live : null, labelName: null, labelVal: null, valTxt: '', pool: null, light: null, baseColor: mat.color.clone(), floorY: y0 };
+        const rec = { it, group: ig, body, mat, h, z0, live: model ? model.live : null, anim: model ? model.anim : null, labelName: null, labelVal: null, valTxt: '', pool: null, light: null, baseColor: mat.color.clone(), floorY: y0 };
         items.push(rec);
+        if (ROBOTS.has(it.type) && it.roam !== 'off') setupRobot(rec, f);
       });
       return g;
+    }
+
+    // ---------- Roboter (Saug-/Mäh-/Poolroboter fahren umher) ----------
+    function setupRobot(rec, f) {
+      const it = rec.it; let area = null;
+      if (it.type === 'pool_robot') { const pl = f.items.find(x => x.type === 'pool' && Math.abs(it.x - x.x) <= x.w / 2 && Math.abs(it.y - x.y) <= x.h / 2); if (pl) area = { rect: [pl.x - pl.w / 2 + 25, pl.y - pl.h / 2 + 25, pl.x + pl.w / 2 - 25, pl.y + pl.h / 2 - 25] }; }
+      if (!area) { const rs = (f.rooms || []).filter(r => r.pts && r.pts.length > 2 && inPoly(it.x, it.y, r.pts)); if (rs.length) area = { poly: rs[rs.length - 1].pts }; }
+      if (!area) { const b = contentBounds(f); area = { rect: [b.x, b.y, b.x + b.w, b.y + b.h] }; }
+      const obst = f.items.filter(x => x !== it && !ROBOTS.has(x.type) && !['door', 'window', 'text', 'none'].includes(x.shape)).map(x => { const [hh, zz] = dims3(x); return { x, hh, zz }; }).filter(a => a.hh > 14 && a.zz >= 0 && a.zz < 40).map(a => a.x);
+      rec.robot = { x: it.x, z: it.y, hd: Math.random() * 6.283, vh: 0, area, obst, rad: Math.max(8, Math.min(it.w, it.h) / 2), speed: ROBOT_SPEED[it.type] || 18, since: 0, straight: 150 + Math.random() * 250, wait: 0 };
+      rec.robot.vh = rec.robot.hd;
+    }
+    function robotFree(r, px, pz) {
+      const a = r.area, m = r.rad * 0.8;
+      const pts = [[px, pz], [px + m, pz], [px - m, pz], [px, pz + m], [px, pz - m]];
+      for (const [qx, qz] of pts) {
+        if (a.poly ? !inPoly(qx, qz, a.poly) : (qx < a.rect[0] || qx > a.rect[2] || qz < a.rect[1] || qz > a.rect[3])) return false;
+      }
+      for (const o2 of r.obst) {
+        const dx = px - o2.x, dz = pz - o2.y, rr = -(o2.rot || 0) * Math.PI / 180, c = Math.cos(rr), sn = Math.sin(rr), lx = dx * c - dz * sn, lz = dx * sn + dz * c;
+        if (Math.abs(lx) < o2.w / 2 + m && Math.abs(lz) < o2.h / 2 + m) return false;
+      }
+      return true;
+    }
+    function robotActive(it) {
+      if (it.roam === 'always') return true;
+      if (!it.entity) return false;
+      const st = states[it.entity]; if (!st) return false;
+      return isActive(st) || ROBOT_ON.has(st.state);
+    }
+    function animateRobots(dt) {
+      let busy = false;
+      items.forEach(rec => {
+        const r = rec.robot; if (!r || rec.dragging) return;
+        if (!robotActive(rec.it)) return;
+        busy = true;
+        const step = r.speed * dt;
+        const nx = r.x + Math.cos(r.hd) * step, nz = r.z + Math.sin(r.hd) * step;
+        if (robotFree(r, nx, nz)) {
+          r.x = nx; r.z = nz; r.since += step;
+          if (r.since > r.straight) { r.hd += (Math.random() - 0.5) * 1.4; r.since = 0; r.straight = 120 + Math.random() * 300; }
+        } else {
+          let found = false;
+          for (let k = 0; k < 10 && !found; k++) { const h2 = r.hd + Math.PI * (0.45 + Math.random() * 1.1); if (robotFree(r, r.x + Math.cos(h2) * step * 4, r.z + Math.sin(h2) * step * 4)) { r.hd = h2; found = true; } }
+          if (!found) r.hd += 0.5;
+          r.since = 0;
+        }
+        let d = r.hd - r.vh; d = Math.atan2(Math.sin(d), Math.cos(d)); r.vh += d * Math.min(1, dt * 5);
+        rec.group.position.x = r.x; rec.group.position.z = r.z; rec.group.rotation.y = Math.PI / 2 - r.vh;
+      });
+      return busy;
+    }
+
+    // ---------- Solaranlage auf dem Dach ----------
+    function buildSolar(P) {
+      const { roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch } = P;
+      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1);
+      const PW = 100, PH = 170, GAP = 3;
+      const tex = canvasTex(128, 256, (g, w2, h2) => { g.fillStyle = '#12213d'; g.fillRect(0, 0, w2, h2); const gr = g.createLinearGradient(0, 0, w2, h2); gr.addColorStop(0, 'rgba(90,140,220,.35)'); gr.addColorStop(1, 'rgba(10,20,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); g.strokeStyle = 'rgba(190,210,240,.55)'; g.lineWidth = 2; for (let i = 0; i <= 6; i++) { g.beginPath(); g.moveTo(i * w2 / 6, 0); g.lineTo(i * w2 / 6, h2); g.stroke(); } for (let j = 0; j <= 10; j++) { g.beginPath(); g.moveTo(0, j * h2 / 10); g.lineTo(w2, j * h2 / 10); g.stroke(); } });
+      const topM = new T.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: 0.1 });
+      const frameM = new T.MeshStandardMaterial({ color: 0xcfd4d9, roughness: 0.4, metalness: 0.8 });
+      const pivot = new T.Group(); pivot.position.set(cx2, by, cz2); if (roofMode !== 'flat') pivot.rotation.y = alongX ? Math.PI / 2 : 0; world.add(pivot);
+      const mkPanel = (dx, dz) => { const g = new T.Group(); const f2 = new T.Mesh(new T.BoxGeometry(dx, 3.2, dz), frameM); f2.castShadow = true; const tp = new T.Mesh(new T.PlaneGeometry(dx - 4, dz - 4), topM); tp.rotation.x = -Math.PI / 2; tp.position.y = 1.7; g.add(f2, tp); return g; };
+      const spots = []; // [group-position, rotation]
+      if (roofMode === 'flat') {
+        const aw = W - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, ad = D - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, tilt = 0.4, pitchD = PH * Math.cos(tilt) + 55;
+        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.max(1, Math.round(max * fill));
+        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); spots.push({ x: -aw / 2 + PW / 2 + c * (PW + GAP) + (aw - cols * (PW + GAP) + GAP) / 2, y: 7 + PH * Math.sin(tilt) / 2 + 8, z: -ad / 2 + PH / 2 + r * pitchD, rx: side * tilt, rz: 0, flat: true }); }
+      } else {
+        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), ux = -side * (across / 2) / Ls, uy = rh / Ls, nx = side * rh / Ls, ny = (across / 2) / Ls;
+        const ex = side * across / 2, s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.max(1, Math.round(max * fill));
+        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols), sc = s0 + PH / 2 + r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: -regionLen / 2 + PW / 2 + c * (PW + GAP) + (regionLen - cols * (PW + GAP) + GAP) / 2, rz: -side * alpha, rx: 0, flat: false }); }
+      }
+      const centers = [];
+      spots.forEach(sp => { const g = sp.flat ? mkPanel(PW, PH) : mkPanel(PH, PW); g.position.set(sp.x, sp.y, sp.z); g.rotation.set(sp.rx || 0, 0, sp.rz || 0); pivot.add(g); });
+      pivot.updateMatrixWorld(true);
+      pivot.children.forEach(ch => { const v = new T.Vector3(); ch.getWorldPosition(v); centers.push(v); });
+      const dest = new T.Vector3(cx2, by - wallH() * 0.45, cz2);
+      const sprMat = () => new T.SpriteMaterial({ map: glowTex(), color: 0xffd54f, blending: T.AdditiveBlending, transparent: true, depthTest: false, depthWrite: false });
+      const parts = []; for (let i = 0; i < 18; i++) { const sp2 = new T.Sprite(sprMat()); sp2.renderOrder = 40; sp2.visible = false; world.add(sp2); parts.push({ sp: sp2, t: i / 18, from: centers[Math.floor(Math.random() * centers.length)] }); }
+      const hub = new T.Sprite(sprMat()); hub.material.color.set(0xffa000); hub.renderOrder = 41; hub.position.copy(dest); hub.scale.set(60, 60, 1); world.add(hub);
+      solar = { centers, dest, parts, hub, topM };
+    }
+    function animateSolar(dt, now) {
+      const sl = solar; if (!sl) return false;
+      let pf = 1; const ent = S().solarEntity;
+      if (ent) { const st = states[ent]; let v = st ? parseFloat(st.state) : NaN; if (st && st.attributes && /^kW$/i.test(st.attributes.unit_of_measurement || '')) v *= 1000; const mx = Number(S().solarMax3) || 5000; pf = isFinite(v) && v > 0 ? Math.max(0.12, Math.min(1, v / mx)) : 0; }
+      sl.topM.emissiveIntensity = 0.06 + 0.7 * pf;
+      const n = Math.ceil(pf * sl.parts.length), speed = 0.28 + 0.6 * pf;
+      sl.parts.forEach((p, i) => {
+        if (i >= n) { p.sp.visible = false; return; }
+        p.t += dt * speed; if (p.t >= 1) { p.t -= 1; p.from = sl.centers[Math.floor(Math.random() * sl.centers.length)]; }
+        const k = p.t, e = k * k * (3 - 2 * k);
+        p.sp.visible = true; p.sp.position.set(p.from.x + (sl.dest.x - p.from.x) * e, p.from.y + (sl.dest.y - p.from.y) * e + Math.sin(Math.PI * k) * 25, p.from.z + (sl.dest.z - p.from.z) * e);
+        const sc = 26 * (1 - 0.5 * k); p.sp.scale.set(sc, sc, 1); p.sp.material.opacity = Math.min(1, k * 6) * Math.min(1, (1 - k) * 5);
+      });
+      sl.hub.visible = pf > 0; sl.hub.scale.setScalar(50 + 14 * Math.sin(now * 0.006)); sl.hub.material.opacity = 0.35 + 0.4 * pf;
+      return pf > 0;
+    }
+    const coverCache = new Map();
+    function coverTarget(s) {
+      if (!s) return null; const a = s.attributes || {};
+      if (a.current_position != null && isFinite(a.current_position)) return Math.max(0, Math.min(1, a.current_position / 100));
+      if (s.state === 'open' || s.state === 'opening') return 1; if (s.state === 'closed' || s.state === 'closing') return 0; return null;
+    }
+    function animateRecs(dt) {
+      let busy = false;
+      items.forEach(rec => {
+        const a = rec.anim; if (!a) return; const it = rec.it, s = it.entity ? states[it.entity] : null;
+        if (a.type === 'cover') {
+          const tg = coverTarget(s); if (tg == null) return;
+          let cv = rec.cv != null ? rec.cv : (coverCache.has(it.id) ? coverCache.get(it.id) : tg);
+          const d = tg - cv; if (Math.abs(d) > 0.002) { cv += Math.sign(d) * Math.min(Math.abs(d), dt * 0.3); busy = true; } else cv = tg;
+          rec.cv = cv; coverCache.set(it.id, cv); a.set(cv);
+        } else {
+          const act = !!s && isActive(s), r = a.step(dt, act); if (act || r || a.wasOn) busy = true; a.wasOn = act;
+        }
+      });
+      return busy;
+    }
+    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; return b; }
+
+    // ---------- Auswahl-Rahmen ----------
+    function applySel() {
+      const id = o.getSel ? o.getSel() : null;
+      if (selBox && selBox.userData.id === id) return;
+      if (selBox) { if (selBox.parent) selBox.parent.remove(selBox); selBox.geometry.dispose(); selBox = null; dirty = true; }
+      if (!id) return;
+      const r = items.find(x => x.it.id === id); if (!r) return;
+      const hh = Math.max(r.h, 8) + 4;
+      selBox = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(r.it.w + 4, hh, r.it.h + 4)), new T.LineBasicMaterial({ color: 0x03a9f4, depthTest: false, transparent: true }));
+      selBox.renderOrder = 30; selBox.position.y = hh / 2 - 2; selBox.userData.id = id; r.group.add(selBox); dirty = true;
     }
 
     function buildAll() {
       clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
       const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
       const slab = wallH() + 25, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
-      const show = o.allFloors ? floors.map((f, i) => i) : floors.map((f, i) => i).filter(i => i <= curIdx);
+      const levels = floors.map((f, i) => i).filter(i => floors[i].kind !== 'garden'), gardens = floors.map((f, i) => i).filter(i => floors[i].kind === 'garden');
+      const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', lvCur = curIsGarden ? levels.length - 1 : levels.indexOf(curIdx);
+      const show = o.allFloors || curIsGarden ? levels : levels.filter((i, k) => k <= lvCur);
+      groundY = curIsGarden ? -1 : Math.max(0, lvCur) * slab;
       let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, maxY = 0;
-      show.forEach(i => {
+      const grow = (b) => { minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); };
+      show.forEach((i, k) => {
         const f = floors[i];
-        buildFloor(f, i, i * slab, Hw, L3, i === show[show.length - 1]);
-        const b = contentBounds(f);
-        minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); maxY = Math.max(maxY, i * slab + wallH());
+        buildFloor(f, i, k * slab, Hw, L3, k === show.length - 1);
+        grow(contentBounds(f)); maxY = Math.max(maxY, k * slab + wallH());
       });
+      gardens.forEach(i => { const f = floors[i]; buildFloor(f, i, -1, 110, L3, false); if (curIsGarden && i === curIdx) grow(contentBounds(f)); else if (!show.length) grow(contentBounds(f)); });
+      const roofMode = o.roof || S().roof3 || 'none';
+      if (roofMode !== 'none' && show.length) {
+        const ti = show[show.length - 1], tf = floors[ti], slabIdx = show.length - 1;
+        let rx0 = 1e9, rx1 = -1e9, rz0 = 1e9, rz1 = -1e9;
+        (tf.walls || []).forEach(w2 => { rx0 = Math.min(rx0, w2.x1, w2.x2); rx1 = Math.max(rx1, w2.x1, w2.x2); rz0 = Math.min(rz0, w2.y1, w2.y2); rz1 = Math.max(rz1, w2.y1, w2.y2); });
+        if (rx0 > rx1) { const b2 = contentBounds(tf); rx0 = b2.x; rx1 = b2.x + b2.w; rz0 = b2.y; rz1 = b2.y + b2.h; }
+        const ov = Math.max(0, Number(S().roofOver3 != null ? S().roofOver3 : 40)), pitch = Math.min(60, Math.max(5, Number(S().roofPitch3) || 30)) * Math.PI / 180;
+        const W = rx1 - rx0 + 2 * ov, D = rz1 - rz0 + 2 * ov, cx2 = (rx0 + rx1) / 2, cz2 = (rz0 + rz1) / 2, by = slabIdx * slab + wallH();
+        const rmat = new T.MeshStandardMaterial({ color: colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        const alongX = W >= D, across = alongX ? D : W, len = alongX ? W : D;
+        let rm = null, rh = 12;
+        if (roofMode === 'flat') {
+          rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
+        } else {
+          rh = (across / 2) * Math.tan(pitch);
+          if (roofMode === 'gable') {
+            const sh = new T.Shape(); sh.moveTo(-across / 2, 0); sh.lineTo(across / 2, 0); sh.lineTo(0, rh); sh.closePath();
+            const geo = new T.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); geo.translate(0, 0, -len / 2);
+            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
+          } else { // Walmdach
+            const hw = across / 2, hl = len / 2, rl = Math.max(0, hl - hw), P = [], tri = (a, b2, c) => P.push(...a, ...b2, ...c);
+            const A = [-hw, 0, -hl], B = [hw, 0, -hl], Cc = [hw, 0, hl], Dd = [-hw, 0, hl], R1 = [0, rh, -rl], R2 = [0, rh, rl];
+            tri(A, B, R1); tri(Cc, Dd, R2); tri(B, Cc, R2); tri(B, R2, R1); tri(Dd, A, R1); tri(Dd, R1, R2);
+            const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(P, 3)); geo.computeVertexNormals();
+            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
+          }
+        }
+        rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
+        if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
+        if (S().solar3) buildSolar({ roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch });
+        maxY = Math.max(maxY, by + rh);
+      }
       if (minX > maxX) { minX = -200; maxX = 200; minZ = -200; maxZ = 200; }
       const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, R = Math.max(maxX - minX, maxZ - minZ, 300) / 2;
       radius = Math.hypot(maxX - minX, maxZ - minZ, maxY) / 2;
       // Boden/Umgebung
-      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(L3.ground), roughness: 1 }));
+      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(o.ground || S().ground3 || L3.ground), roughness: 1 }));
       gm.rotation.x = -Math.PI / 2; gm.position.set(cx, -16, cz); gm.receiveShadow = true; world.add(gm);
       const bg = colorOf(L3.bg);
       if (L3.sky) { const sk = 'sky|' + lookKey(); let tx = texCache.get(sk); if (!tx) { tx = canvasTex(8, 256, (g, w2, h2) => { const gr = g.createLinearGradient(0, 0, 0, h2); gr.addColorStop(0, L3.sky[0]); gr.addColorStop(0.55, L3.sky[1]); gr.addColorStop(1, L3.sky[2]); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); }); texCache.set(sk, tx); } scene.background = tx; } else scene.background = bg;
@@ -402,6 +583,8 @@ const FP3D = (() => {
           if (txt) { r.labelName = textSprite(txt, S().labelSize * 1.15, { dark: !!look.neon || o.dark() }); r.group.add(r.labelName); }
           r.lblKey = lblKey;
         }
+        if (r.labelName) r.labelName.material.rotation = -(Number(it.labelRot) || 0) * Math.PI / 180;
+        if (r.labelVal) r.labelVal.material.rotation = -(Number(it.valueRot) || 0) * Math.PI / 180;
         if (r.labelName) r.labelName.position.set(0, r.h + S().labelSize * 1.1 + 6, 0);
         if (r.valTxt !== val) {
           if (r.labelVal) { r.group.remove(r.labelVal); r.labelVal.material.dispose(); r.labelVal = null; }
@@ -429,6 +612,14 @@ const FP3D = (() => {
       const hit = ray.intersectObjects(pickables, false)[0];
       return hit ? hit.object.userData.itemId : null;
     }
+    function groundPoint(e, gy) {
+      const r = cv.getBoundingClientRect();
+      v2.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(v2, camera);
+      const ro = ray.ray.origin, rd = ray.ray.direction; if (Math.abs(rd.y) < 1e-6) return null;
+      const t = (gy - ro.y) / rd.y; if (t < 0) return null;
+      return { x: ro.x + rd.x * t, z: ro.z + rd.z * t };
+    }
     function panBy(dx, dy) {
       const k = cam.dist * 0.0012, r = [Math.cos(cam.az), -Math.sin(cam.az)], u = [-Math.sin(cam.az), -Math.cos(cam.az)];
       cam.tx += -r[0] * dx * k + u[0] * dy * k; cam.tz += -r[1] * dx * k + u[1] * dy * k;
@@ -440,7 +631,10 @@ const FP3D = (() => {
       if (ptrs.size === 1) {
         const mousePan = e.pointerType === 'mouse' && (e.button === 1 || e.button === 2 || e.shiftKey);
         gesture = { t: mousePan ? 'pan' : 'orbit' };
-        tap = { x: e.clientX, y: e.clientY, id: e.button === 0 || e.pointerType !== 'mouse' ? pick(e) : null, moved: false, long: false, time: Date.now() };
+        gesture.base = true;
+        const placing = !!(o.placing && o.placing());
+        tap = { x: e.clientX, y: e.clientY, id: !placing && (e.button === 0 || e.pointerType !== 'mouse') ? pick(e) : null, moved: false, long: false, time: Date.now() };
+        if (tap.id && o.canDrag && o.canDrag(tap.id)) { const rec = items.find(r => r.it.id === tap.id), gp = rec && groundPoint(e, rec.floorY); if (rec && gp) gesture = { t: 'drag', rec, off: { x: gp.x - rec.group.position.x, z: gp.z - rec.group.position.z }, dragging: false }; }
         clearTimeout(tapTimer);
         if (tap.id) tapTimer = setTimeout(() => { if (tap && !tap.moved) { tap.long = true; o.onTap && o.onTap(tap.id, true); } }, 550);
       } else if (ptrs.size === 2) {
@@ -456,6 +650,13 @@ const FP3D = (() => {
       p.x = e.clientX; p.y = e.clientY;
       if (tap && !tap.moved && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) { tap.moved = true; clearTimeout(tapTimer); }
       if (!gesture) return;
+      if (gesture.t === 'drag') {
+        if (ptrs.size === 1 && tap && tap.moved) {
+          const gp = groundPoint(e, gesture.rec.floorY);
+          if (gp) { let nx = gp.x - gesture.off.x, nz = gp.z - gesture.off.z; if (o.snap) { nx = o.snap(nx); nz = o.snap(nz); } const rc = gesture.rec; rc.group.position.x = nx; rc.group.position.z = nz; rc.nx = nx; rc.nz = nz; rc.dragging = true; gesture.dragging = true; if (rc.robot) { rc.robot.x = nx; rc.robot.z = nz; } dirty = true; }
+        }
+        return;
+      }
       if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; cam.pol -= dy * 0.006; limit(); dirty = true; } }
       else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
       else if (gesture.t === 'pinch' && ptrs.size === 2) {
@@ -469,7 +670,8 @@ const FP3D = (() => {
       ptrs.delete(e.pointerId); cv.style.cursor = 'grab';
       if (ptrs.size === 0) {
         clearTimeout(tapTimer);
-        if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(); }
+        if (gesture && gesture.t === 'drag' && gesture.dragging) { const rc = gesture.rec; rc.dragging = false; tap = null; gesture = null; if (o.onDragEnd) o.onDragEnd(rc.it.id, rc.nx, rc.nz); return; }
+        if (tap && !tap.moved && !tap.long && e.type === 'pointerup' && Date.now() - tap.time < 700) { if (tap.id && o.onTap) o.onTap(tap.id, false); else if (o.onEmptyTap) o.onEmptyTap(groundPoint(e, groundY)); }
         tap = null; gesture = null;
       } else if (ptrs.size === 1) { gesture = { t: 'orbit' }; if (tap) tap.moved = true; }
     };
@@ -504,12 +706,13 @@ const FP3D = (() => {
     function frame() {
       raf = 0; if (destroyed) return;
       if (animateWalls()) dirty = true;
+      if (solar || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
       raf = requestAnimationFrame(frame);
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
@@ -523,6 +726,7 @@ const FP3D = (() => {
       if (destroyed) return;
       resize();
       if (!build(false)) { const ls = stateSig(); if (ls !== liveSig) { liveSig = ls; applyLive(); } }
+      applySel();
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
     function set(k, v) { o[k] = v; build(true); }
@@ -532,5 +736,5 @@ const FP3D = (() => {
     return { update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
-  return { load, create, dims3 };
+  return { load, create, dims3, ROBOTS };
 })();
