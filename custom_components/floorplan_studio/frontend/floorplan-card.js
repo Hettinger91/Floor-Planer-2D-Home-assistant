@@ -2853,6 +2853,10 @@ const FP3D = (() => {
       camera.position.set(cam.tx + cam.dist * sp * Math.sin(cam.az), cam.ty + cam.dist * cp, cam.tz + cam.dist * sp * Math.cos(cam.az));
       camera.lookAt(cam.tx, cam.ty, cam.tz);
     }
+    const pct = document.createElement('div');
+    pct.style.cssText = 'position:absolute;display:none;pointer-events:none;z-index:5;padding:3px 9px;border-radius:12px;background:rgba(20,20,20,.82);color:#fff;font:600 14px system-ui,sans-serif;white-space:nowrap';
+    root.appendChild(pct);
+    function showPct(e, v) { const r = cv.getBoundingClientRect(), rr = root.getBoundingClientRect(); pct.textContent = Math.round(v * 100) + ' %'; pct.style.display = 'block'; pct.style.left = Math.min(rr.width - 60, e.clientX - rr.left + 22) + 'px'; pct.style.top = Math.max(0, e.clientY - rr.top - 34) + 'px'; }
     const ptrs = new Map(); let gesture = null, tap = null, tapTimer = 0;
     const ray = new T.Raycaster(), v2 = new T.Vector2();
     // ---------- Rollladen/Garagentore per Ziehen öffnen und schließen ----------
@@ -2925,7 +2929,7 @@ const FP3D = (() => {
       if (tap && !tap.moved && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 8) { tap.moved = true; clearTimeout(tapTimer); }
       if (!gesture) return;
       if (gesture.t === 'cover') {
-        if (ptrs.size === 1 && tap && tap.moved) { gesture.v = coverSet(gesture.rec, gesture.v0 - (e.clientY - gesture.y0) / gesture.px); gesture.rec.dragging = true; }
+        if (ptrs.size === 1 && tap && tap.moved) { gesture.v = coverSet(gesture.rec, gesture.v0 - (e.clientY - gesture.y0) / gesture.px); gesture.rec.dragging = true; showPct(e, gesture.v); }
         return;
       }
       if (gesture.t === 'drag') {
@@ -2945,7 +2949,7 @@ const FP3D = (() => {
       }
     });
     const up = e => {
-      ptrs.delete(e.pointerId); cv.style.cursor = 'grab';
+      ptrs.delete(e.pointerId); cv.style.cursor = 'grab'; pct.style.display = 'none';
       if (ptrs.size === 0) {
         clearTimeout(tapTimer);
         if (gesture && gesture.t === 'cover') { const g2 = gesture; g2.rec.dragging = false; if (g2.v != null) { tap = null; gesture = null; if (o.onCover) o.onCover(g2.rec.it, g2.v); return; } }
