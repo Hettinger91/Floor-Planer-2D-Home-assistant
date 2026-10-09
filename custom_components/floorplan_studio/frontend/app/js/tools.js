@@ -45,6 +45,7 @@ function toWorld(e) {
 function zoomAt(cx, cy, factor) {
   const v = V(), k = clamp(v.k * factor, 0.02, 6);
   const wp = s2w(v, cx, cy);
+  v.touched = true;
   anchorView(v, k, v.a || 0, wp.x, wp.y, cx, cy);
   render();
 }
@@ -124,6 +125,7 @@ function updatePinch() {
   // kleine Wackler beim Zoomen ignorieren, erst ab ~6° dreht die Ansicht
   const rot = Math.abs(da) < 6 && !pinch.rotating ? 0 : (pinch.rotating = true, da);
   const ang = normAngle(snapAngle(normAngle((pinch.v.a || 0) + rot)));
+  v.touched = true;
   anchorView(v, k, ang, wp.x, wp.y, cx - r.left, cy - r.top);
   if (ang !== (pinch.v.a || 0)) syncViews(v);
   render();
@@ -285,7 +287,7 @@ function onMove(e) {
   const free = e.altKey, g = S().grid;
   switch (drag.t) {
     case 'rotview': { const v = V(); anchorView(v, v.k, normAngle(snapAngle(drag.a0 + dxs * 0.35)), drag.wp.x, drag.wp.y, drag.ax, drag.ay); syncViews(v); render(); break; }
-    case 'pan': { const v = V(); v.tx = drag.tx + dxs; v.ty = drag.ty + dys; render(); break; }
+    case 'pan': { const v = V(); v.touched = true; v.tx = drag.tx + dxs; v.ty = drag.ty + dys; render(); break; }
     case 'live': case 'liveRoom':
       if (Math.hypot(dxs, dys) > 8) { clearTimeout(drag.timer); startPan({ clientX: e.clientX, clientY: e.clientY }, false); drag.moved = true; }
       break;
@@ -454,13 +456,22 @@ function bindStage() {
   document.addEventListener('keydown', onKey);
   document.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
   window.addEventListener('resize', render);
+  // Bühne wurde (z. B. beim Einblenden des Panels) deutlich größer/kleiner: automatisch neu einpassen, solange der Nutzer nichts verschoben hat
+  if (window.ResizeObserver) new ResizeObserver(() => {
+    if (!plan) return;
+    const v = V(), { w, h } = stageSize();
+    if (w < 50 || h < 50) return;
+    if (v.fitted && !v.touched && (Math.abs(w - v.fitW) > v.fitW * 0.25 || Math.abs(h - v.fitH) > v.fitH * 0.25)) fitView(); else render();
+  }).observe($('#stage'));
 
   // Drag & Drop aus der Bibliothek
   const stage = $('#stage');
   stage.addEventListener('dragover', e => e.preventDefault());
   stage.addEventListener('drop', e => {
     e.preventDefault();
-    const id = (e.dataTransfer.getData('text/plain') || '').replace(/^fp:/, '');
+    const raw = e.dataTransfer.getData('text/plain') || '';
+    if (raw.startsWith('fp-ent:') && mode === 'edit') { placeEntities([raw.slice(7)], snapPt(toWorld(e), { noPoints: true })); return; }
+    const id = raw.replace(/^fp:/, '');
     const t = typeById(id);
     if (!t || mode !== 'edit') return;
     placeItem(t, snapPt(toWorld(e), { noPoints: true }), true);

@@ -9,7 +9,7 @@ function specHtml(s) {
     case 'range': return `<label class="fld"><span>${l}</span><input type="range" min="${s.min}" max="${s.max}" step="${s.step || 1}" data-f="${s.k}"></label>`;
     case 'color': return `<label class="fld"><span>${l}</span><span class="colorrow"><input type="color" data-f="${s.k}"><button type="button" class="mini" data-clear="${s.k}">Standard</button></span></label>`;
     case 'area': return `<label class="fld"><span>${l}</span><textarea rows="${s.rows || 3}" data-f="${s.k}" placeholder="${esc(s.ph || '')}"></textarea></label>`;
-    case 'entity': return `<label class="fld"><span>${l}</span><input list="entlist" data-f="${s.k}" placeholder="z. B. light.wohnzimmer" autocomplete="off" autocapitalize="off" spellcheck="false"></label><div class="hint" id="entinfo"></div>`;
+    case 'entity': return `<label class="fld"><span>${l}</span><span class="colorrow"><input list="entlist" data-f="${s.k}" placeholder="z. B. light.wohnzimmer" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="mini" data-pick="${s.k}">Auswählen …</button></span></label><div class="hint" id="entinfo"></div>`;
     case 'icon': return `<label class="fld"><span>${l}</span><span class="colorrow"><input type="text" data-f="${s.k}" placeholder="Emoji oder leer"><button type="button" class="mini" data-upicon="${s.k}">Bild …</button></span></label>`;
     default: return `<label class="fld"><span>${l}</span><input type="text" data-f="${s.k}" placeholder="${esc(s.ph || '')}"></label>`;
   }
@@ -121,7 +121,7 @@ function renderItemInspector(box, it) {
     onChange: k => { if (k === 'tap' || k === 'shape') renderInspector(); },
   });
   const entInp = $('[data-f="entity"]', box);
-  if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); loadEntities().then(updateEntInfo); }
+  if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); loadEntities().then(updateEntInfo); bindPick(box); }
   const svcRow = $('[data-f="svc"]', box);
   if (svcRow) { const show = it.tap === 'service'; svcRow.closest('.fld').hidden = !show; $('[data-f="svcData"]', box).closest('.fld').hidden = !show; }
   updateEntInfo();
@@ -183,7 +183,7 @@ function renderRoomInspector(box, r) {
     actionsHtml([['walls', 'Wände entlang des Raums'], ['dup', 'Duplizieren'], ['del', 'Löschen', 'danger']]);
   wire(box, r, specs, { onChange: k => { if (k === 'floor') renderInspector(); }, onInput: k => { if (k === 'entity') { r.entity = r.entity.trim(); pollStates(); } } });
   const entInp = $('[data-f="entity"]', box);
-  if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); }
+  if (entInp) { entInp.addEventListener('focus', () => loadEntities().then(updateEntInfo)); entInp.addEventListener('input', updateEntInfo); bindPick(box); }
   updateEntInfo();
   bindActs(box, { walls: () => wallsFromRoom(r), dup: duplicateSel, del: deleteSel });
 }
@@ -387,7 +387,8 @@ function showDashboard() {
     msg.textContent = 'Arbeite …';
     try {
       const r = await HOST.publishDashboard({ title: $('#dbTitle', wrap).value.trim() || 'Grundriss', path: $('#dbPath', wrap).value.trim(), sidebar: $('#dbSide', wrap).checked });
-      msg.textContent = (r && r.created ? 'Dashboard angelegt: ' : 'Dashboard aktualisiert: ') + (r && r.path ? '/' + r.path : '');
+      msg.textContent = (r && r.created ? 'Dashboard angelegt: ' : 'Dashboard aktualisiert: ') + (r && r.path ? '/' + r.path : '') +
+        (r && r.cardLoaded === false ? ' – Hinweis: Das Karten-Modul ist in diesem Browser-Tab noch nicht geladen' + (r.cardError ? ' (' + r.cardError + ')' : '') + '. Bitte Seite komplett neu laden (Strg/Cmd+Shift+R).' : '');
     } catch (e) { msg.textContent = 'Fehler: ' + ((e && e.message) || e); }
   };
   modal({ title: 'Dashboard', body: wrap, actions: [{ label: 'Schließen', value: null }] });

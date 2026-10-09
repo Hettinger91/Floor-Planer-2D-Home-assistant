@@ -134,3 +134,14 @@ dialog.wide { width: min(92vw, 640px); } dialog::backdrop { background: rgba(0, 
 }
 .readonly #modeEdit, .readonly #btnLib, .readonly #btnInsp { display: none; }
 pre.code { background: var(--bg2, rgba(127,127,127,.12)); padding: 8px; border-radius: 8px; font-size: 12px; overflow-x: auto; white-space: pre; margin: 4px 0; }
+
+#leftTabs { margin: 6px 0; display: flex; } #leftTabs button { flex: 1; }
+.eb-f { display: flex; gap: 6px; margin: 6px 0; } .eb-f select { flex: 1; min-width: 0; }
+.eb-list { max-height: 52vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
+#entPane .eb-list { max-height: calc(100vh - 360px); min-height: 160px; }
+.eb-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px; }
+.eb-row:hover { background: var(--field); } .eb-row.used { opacity: .6; }
+.eb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; } .eb-t b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eb-t i { font-style: normal; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eb-s { color: var(--muted); font-size: 12px; white-space: nowrap; } .eb-q { width: 100%; box-sizing: border-box; }
+.colorrow input:not([type=color]) { flex: 1; min-width: 0; } .colorrow .mini { white-space: nowrap; flex: none; }

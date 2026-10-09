@@ -16,6 +16,8 @@ function bindUi() {
   $('#btnInsp').onclick = () => { document.body.classList.toggle('show-right'); document.body.classList.remove('show-left'); };
   $('#scrim').onclick = () => document.body.classList.remove('show-left', 'show-right');
   $('#libSearch').oninput = renderLibrary;
+  $('#tabObj').onclick = () => setLeftTab(false);
+  $('#tabEnt').onclick = () => setLeftTab(true);
   $('#btnNewType').onclick = () => editType(null);
   $('#optRectWalls').onchange = e => { S().rectWalls = e.target.checked; commit(); };
   $('#emptyRect').onclick = () => setTool('rect');
@@ -73,6 +75,7 @@ async function boot() {
   if (fromLocal && haInfo.admin !== false) scheduleSave();
   loadEntities();
   if (haInfo.admin === false) { document.body.classList.add('readonly'); setMode('live'); }
+  if (HOST.toggleSidebar && haInfo.narrow) { const b = $('#btnSide'); b.hidden = false; b.onclick = () => HOST.toggleSidebar(); }
   HOST.onChange(onHostEvent);
 }
 

@@ -1,6 +1,14 @@
 /* Floorplan Studio – Seitenleisten-Panel. Hostet den Editor in einem same-origin iframe
    und stellt ihm über window.fpHost den Zugriff auf hass bereit. */
 const FP_BASE = new URL('./app/', import.meta.url).href;
+// Die Dashboard-Karte wird normalerweise von Home Assistant beim Seitenstart geladen. Wurde die Seite vor dem
+// Einrichten der Integration geöffnet, fehlt sie – deshalb laden wir sie hier zusätzlich (doppeltes Laden ist harmlos).
+let cardError = '';
+try {
+  const cardUrl = new URL(import.meta.url);
+  cardUrl.pathname = cardUrl.pathname.replace(/[^/]*$/, 'floorplan-card.js');
+  import(cardUrl.href).catch(e => { cardError = String((e && e.message) || e); console.error('[floorplan-studio] Karte konnte nicht geladen werden', e); });
+} catch (e) { cardError = String((e && e.message) || e); }
 
 class FloorplanStudioPanel extends HTMLElement {
   constructor() {
@@ -31,10 +39,10 @@ class FloorplanStudioPanel extends HTMLElement {
   _frameWin() { return this._frame && this._frame.contentWindow; }
 
   _init() {
-    this.style.cssText = 'display:block;height:100%;width:100%;';
+    this.style.cssText = 'display:block;position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;';
     this.innerHTML = '';
     const f = document.createElement('iframe');
-    f.style.cssText = 'border:0;width:100%;height:100%;display:block;background:transparent;';
+    f.style.cssText = 'position:absolute;inset:0;border:0;width:100%;height:100%;display:block;background:transparent;';
     f.setAttribute('allow', 'clipboard-write');
     this._frame = f;
     window.fpHost = this._makeHost();
@@ -50,13 +58,23 @@ class FloorplanStudioPanel extends HTMLElement {
     const wrapErr = e => { const x = new Error((e && e.message) || 'Fehler'); x.code = e && e.code; return x; };
     return {
       demo: false,
-      info: () => ({ ha: true, allowControl: true, admin: self._isAdmin(), dark: !!(self._hass.themes && self._hass.themes.darkMode) }),
+      toggleSidebar: () => self.dispatchEvent(new CustomEvent('hass-toggle-menu', { bubbles: true, composed: true })),
+      info: () => ({ ha: true, allowControl: true, narrow: !!self._narrow, admin: self._isAdmin(), dark: !!(self._hass.themes && self._hass.themes.darkMode) }),
       getPlan: async () => { const r = await ws({ type: 'floorplan_studio/get' }); self._lastRev = r.rev; return r; },
       savePlan: async (rev, plan, force) => {
         try { const r = await ws({ type: 'floorplan_studio/save', rev, plan, force: !!force }); self._lastRev = r.rev; return r; }
         catch (e) { throw wrapErr(e); }
       },
       states: () => self._hass.states,
+      entities: () => {
+        const h = self._hass, areas = h.areas || {}, devs = h.devices || {}, ents = h.entities || {};
+        return Object.keys(h.states).map(id => {
+          const s = h.states[id], reg = ents[id];
+          let area = '';
+          if (reg) { const aid = reg.area_id || (reg.device_id && devs[reg.device_id] && devs[reg.device_id].area_id); if (aid && areas[aid]) area = areas[aid].name; }
+          return { id, name: (s.attributes && s.attributes.friendly_name) || '', state: s.state, area, dc: (s.attributes && s.attributes.device_class) || '' };
+        });
+      },
       callService: (d, s, data) => self._hass.callService(d, s, data),
       moreInfo: entityId => self.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
       upload: async file => {
@@ -101,7 +119,7 @@ class FloorplanStudioPanel extends HTMLElement {
       type: 'lovelace/config/save', url_path: path,
       config: { [MARK]: true, title, views: [{ title, path: 'plan', panel: true, cards: [{ type: 'custom:floorplan-studio-card' }] }] },
     });
-    return { created, path };
+    return { created, path, cardLoaded: !!customElements.get('floorplan-studio-card'), cardError };
   }
 
   disconnectedCallback() {

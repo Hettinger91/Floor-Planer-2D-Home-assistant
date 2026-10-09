@@ -10,6 +10,7 @@
 <body>
 <div id="app" class="mode-edit">
   <header id="top">
+    <button id="btnSide" class="ibtn" title="Menü von Home Assistant" hidden>☰</button>
     <button id="btnLib" class="ibtn only-mobile" title="Objekte">☰</button>
     <div class="brand"><span class="logo">⌂</span><b>Grundriss</b></div>
     <nav id="floors"></nav>
@@ -32,11 +33,15 @@
       <button data-tool="hand" title="Ansicht verschieben (H / Leertaste)"><b>✋</b><span>Hand</span></button>
     </div>
     <label class="chk small"><input type="checkbox" id="optRectWalls"> Rechteckraum mit Wänden</label>
-    <div class="lib-head">
-      <input id="libSearch" type="search" placeholder="Objekte suchen …">
-      <button id="btnNewType" class="mini" title="Eigenes Objekt anlegen">+ Eigenes</button>
+    <div class="seg" id="leftTabs"><button id="tabObj" class="on">Objekte</button><button id="tabEnt">Entitäten</button></div>
+    <div id="objPane">
+      <div class="lib-head">
+        <input id="libSearch" type="search" placeholder="Objekte suchen …">
+        <button id="btnNewType" class="mini" title="Eigenes Objekt anlegen">+ Eigenes</button>
+      </div>
+      <div id="library"></div>
     </div>
-    <div id="library"></div>
+    <div id="entPane" hidden></div>
   </aside>
 
   <main id="stage">
@@ -89,6 +94,7 @@
 <script src="js/ha.js"></script>
 <script src="js/render.js"></script>
 <script src="js/tools.js"></script>
+<script src="js/entities.js"></script>
 <script src="js/inspector.js"></script>
 <script src="js/main.js"></script>
 </body>

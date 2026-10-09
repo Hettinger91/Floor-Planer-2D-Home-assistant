@@ -42,6 +42,7 @@ function rotateViewBy(da, sx, sy) {
   const v = V(), { w, h } = stageSize();
   if (sx == null) { sx = w / 2; sy = h / 2; }
   const wp = s2w(v, sx, sy);
+  v.touched = true;
   anchorView(v, v.k, normAngle(snapAngle(normAngle((v.a || 0) + da))), wp.x, wp.y, sx, sy);
   syncViews(v);
   render();
@@ -228,6 +229,6 @@ function fitView() {
   const bw = b.w * c + b.h * s, bh = b.w * s + b.h * c;
   const k = clamp(Math.min((w - pad * 2) / bw, (h - pad * 2) / bh), 0.03, 3);
   anchorView(v, k, v.a || 0, b.x + b.w / 2, b.y + b.h / 2, w / 2, h / 2);
-  v.fitted = true;
+  v.fitted = true; v.touched = false; v.fitW = w; v.fitH = h;
   render();
 }

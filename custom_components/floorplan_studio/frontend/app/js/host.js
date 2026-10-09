@@ -11,6 +11,7 @@ function makeDemoHost() {
     getPlan: async () => { const s = localStorage.getItem(key); return { rev, plan: s ? JSON.parse(s) : null }; },
     savePlan: async (r, p) => { localStorage.setItem(key, JSON.stringify(p)); rev += 1; return { rev }; },
     states: () => ({}),
+    entities: () => [],
     callService: async () => { },
     moreInfo: () => { },
     upload: file => new Promise(res => { const fr = new FileReader(); fr.onload = () => res({ url: fr.result }); fr.readAsDataURL(file); }),

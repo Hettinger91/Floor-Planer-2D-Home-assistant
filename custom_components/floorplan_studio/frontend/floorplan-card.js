@@ -337,6 +337,7 @@ function rotateViewBy(da, sx, sy) {
   const v = V(), { w, h } = stageSize();
   if (sx == null) { sx = w / 2; sy = h / 2; }
   const wp = s2w(v, sx, sy);
+  v.touched = true;
   anchorView(v, v.k, normAngle(snapAngle(normAngle((v.a || 0) + da))), wp.x, wp.y, sx, sy);
   syncViews(v);
   render();
@@ -523,7 +524,7 @@ function fitView() {
   const bw = b.w * c + b.h * s, bh = b.w * s + b.h * c;
   const k = clamp(Math.min((w - pad * 2) / bw, (h - pad * 2) / bh), 0.03, 3);
   anchorView(v, k, v.a || 0, b.x + b.w / 2, b.y + b.h / 2, w / 2, h / 2);
-  v.fitted = true;
+  v.fitted = true; v.touched = false; v.fitW = w; v.fitH = h;
   render();
 }
 
@@ -581,6 +582,7 @@ async function loadEntities() {
   let all = {};
   try { all = HOST.states() || {}; } catch (_) { /* egal */ }
   entities = Object.keys(all).sort().map(id => ({ e: id, n: (all[id].attributes && all[id].attributes.friendly_name) || '', s: all[id].state }));
+  try { if (HOST.entities) { const m = new Map(HOST.entities().map(x => [x.id, x])); entities.forEach(x => { const r = m.get(x.e); if (r) { x.a = r.area; x.dc = r.dc; } }); } } catch (_) { /* egal */ }
   $('#entlist').innerHTML = entities.map(e => `<option value="${esc(e.e)}">${esc(e.n)}</option>`).join('');
 }
 
