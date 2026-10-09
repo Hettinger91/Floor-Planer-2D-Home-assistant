@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Draw your floor plan and use it as a live dashboard. No settings required."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio is already set up."
+    }
+  }
+}
