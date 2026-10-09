@@ -74,12 +74,12 @@ const FP3D = (() => {
     const T = window.THREE_LITE;
     const o = Object.assign({ look: 'auto', walls: 'full', allFloors: false, dark: () => false, wheel: 'always', shadows: true }, opts);
     const root = document.createElement('div');
-    root.style.cssText = 'position:absolute;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none';
+    root.style.cssText = 'position:absolute;inset:0;overflow:hidden;touch-action:' + (o.touchScroll ? 'pan-y' : 'none') + ';user-select:none;-webkit-user-select:none';
     container.appendChild(root);
     let renderer;
     try { renderer = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false }); }
     catch (e) { root.remove(); throw new Error('WebGL ist nicht verfügbar'); }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, o.lowPower ? 1.5 : 2));
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.shadowMap.enabled = !!o.shadows;
     renderer.shadowMap.type = T.PCFShadowMap;
@@ -676,7 +676,7 @@ const FP3D = (() => {
         }
         return;
       }
-      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; cam.pol -= dy * 0.006; limit(); dirty = true; } }
+      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; if (!(o.touchScroll && e.pointerType === 'touch')) cam.pol -= dy * 0.006; limit(); dirty = true; } }
       else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
       else if (gesture.t === 'pinch' && ptrs.size === 2) {
         const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
@@ -712,7 +712,8 @@ const FP3D = (() => {
     }
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null; if (ro) ro.observe(root);
 
-    let raf = 0;
+    let raf = 0, visible = true;
+    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(es => { const v = es[es.length - 1].isIntersecting; if (v && !visible) dirty = true; visible = v; }) : null; if (io) io.observe(root);
     function animateWalls() {
       if (o.walls !== 'auto' || !wallGroups.length) return false;
       const dx = Math.sin(cam.az), dz = Math.cos(cam.az); let busy = false;
@@ -724,6 +725,7 @@ const FP3D = (() => {
     }
     function frame() {
       raf = 0; if (destroyed) return;
+      if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
       if (animateWalls()) dirty = true;
       if (solar || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
@@ -749,7 +751,7 @@ const FP3D = (() => {
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
     function set(k, v) { o[k] = v; build(true); }
-    function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
+    function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
     return { robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
