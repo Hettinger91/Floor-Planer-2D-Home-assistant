@@ -66,6 +66,7 @@ Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** unten rech
 * Rollläden, Markisen, Vorhangmotoren fahren animiert hoch/runter passend zum Cover-Zustand (Position oder offen/geschlossen); Rasensprenger und Springbrunnen sprühen, solange die Entität an ist; Deckenventilator dreht sich
 * Höhen pro Objekt im Inspektor („3D-Höhe“, „Höhe über Boden“), Wandhöhe pro Etage
 * Karten-Optionen: `look3d`, `walls3d`, `all3d`, `height3d` (px)
+* Layout: `layout: auto` (Standard: bei ≥ 640 px Kartenbreite Etagen/2D-3D/Wandansicht als Seitenleiste links, sonst als Leiste oben), `side` oder `top`. Tipp: Ansichtstyp „Panel (1 Karte)“ oder Sections-Karte mit voller Breite (12 Spalten) + `height3d` für eine große Darstellung.
 
 3D-Darstellung mit [three.js](https://threejs.org) (MIT, gebündelt in `frontend/vendor/`, Lizenz in `THREE-LICENSE.txt`).
 
