@@ -353,6 +353,16 @@ function addFloor(kind) {
     const x1 = bs.length ? Math.max(...bs.map(b => b.x + b.w)) + 600 : 1600, y1 = bs.length ? Math.max(...bs.map(b => b.y + b.h)) + 600 : 1200;
     f.rooms.push({ id: uid(), name: 'Rasen', color: '#8fc27a', floor: 'grass', entity: '', pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]] });
   }
+  if (!kind) {
+    // Neue Etage übernimmt Wände + Räume der ersten Etage (deckungsgleich gestapelt)
+    const base = plan.floors.find(x => x.kind !== 'garden');
+    if (base) {
+      const c = deepClone({ walls: base.walls, rooms: base.rooms });
+      c.walls.forEach(w => { w.id = uid(); });
+      c.rooms.forEach(r => { r.id = uid(); r.entity = ''; });
+      f.walls = c.walls; f.rooms = c.rooms;
+    }
+  }
   plan.floors.push(f); commit(); switchFloor(f.id); if (!kind) setTimeout(renameFloor, 50);
 }
 async function renameFloor() {

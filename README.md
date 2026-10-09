@@ -95,3 +95,6 @@ Der Editor liegt in `custom_components/floorplan_studio/frontend/app`. Die Dashb
 ```
 python3 tools/build_card.py
 ```
+
+* Neue Etagen übernehmen Wände und Räume der ersten Etage (deckungsgleich). Die Karte hat nur noch einen 2D/3D-Umschalter; in 3D dreht man 360° per Maus/Touch (Ziehen), Zoom per Pinch bzw. Strg+Mausrad.
+* Saugroboter fahren in Bahnen hin und her (Hindernisse werden umfahren); Mähroboter fahren nur auf Rasenflächen im Garten, nie ins Haus, auf Terrasse/Kies/Wasser oder über Objekte.

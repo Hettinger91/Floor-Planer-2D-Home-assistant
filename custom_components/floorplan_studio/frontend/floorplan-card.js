@@ -2333,19 +2333,31 @@ const FP3D = (() => {
 
     // ---------- Roboter (Saug-/Mäh-/Poolroboter fahren umher) ----------
     function setupRobot(rec, f) {
-      const it = rec.it; let area = null;
+      const it = rec.it; let area = null, excl = [];
+      const mower = it.type === 'mower_robot';
       if (it.type === 'pool_robot') { const pl = f.items.find(x => x.type === 'pool' && Math.abs(it.x - x.x) <= x.w / 2 && Math.abs(it.y - x.y) <= x.h / 2); if (pl) area = { rect: [pl.x - pl.w / 2 + 25, pl.y - pl.h / 2 + 25, pl.x + pl.w / 2 - 25, pl.y + pl.h / 2 - 25] }; }
+      if (mower) {
+        // nur Rasenflächen im Garten, nie auf Terrasse/Kies/Wasser und nicht ins Haus
+        const rs = (f.rooms || []).filter(r => r.pts && r.pts.length > 2);
+        const grass = rs.filter(r => (r.floor || 'grass') === 'grass' && r.floor === 'grass');
+        const g0 = grass.filter(r => inPoly(it.x, it.y, r.pts)); const use = g0.length ? g0 : grass;
+        if (use.length) area = { polys: use.map(r => r.pts) };
+        rs.filter(r => r.floor && r.floor !== 'grass').forEach(r => excl.push(r.pts));
+        (plan.floors || []).filter(x => x.kind !== 'garden').forEach(x => (x.rooms || []).forEach(r => { if (r.pts && r.pts.length > 2) excl.push(r.pts); }));
+        (plan.floors || []).filter(x => x.kind !== 'garden').forEach(x => (x.walls || []).forEach(w => { const t = (w.t || 10) / 2 + 2, dx = w.x2 - w.x1, dy = w.y2 - w.y1, l = Math.hypot(dx, dy) || 1, nx = -dy / l * t, ny = dx / l * t; excl.push([[w.x1 + nx, w.y1 + ny], [w.x2 + nx, w.y2 + ny], [w.x2 - nx, w.y2 - ny], [w.x1 - nx, w.y1 - ny]]); }));
+      }
       if (!area) { const rs = (f.rooms || []).filter(r => r.pts && r.pts.length > 2 && inPoly(it.x, it.y, r.pts)); if (rs.length) area = { poly: rs[rs.length - 1].pts }; }
       if (!area) { const b = contentBounds(f); area = { rect: [b.x, b.y, b.x + b.w, b.y + b.h] }; }
-      const obst = f.items.filter(x => x !== it && !ROBOTS.has(x.type) && !['door', 'window', 'text', 'none'].includes(x.shape)).map(x => { const [hh, zz] = dims3(x); return { x, hh, zz }; }).filter(a => a.hh > 14 && a.zz >= 0 && a.zz < 40).map(a => a.x);
-      rec.robot = { x: it.x, z: it.y, hd: Math.random() * 6.283, vh: 0, area, obst, rad: Math.max(8, Math.min(it.w, it.h) / 2), speed: ROBOT_SPEED[it.type] || 18, since: 0, straight: 150 + Math.random() * 250, wait: 0 };
+      const obst = f.items.filter(x => x !== it && !ROBOTS.has(x.type) && !['door', 'window', 'text', 'none'].includes(x.shape)).map(x => { const [hh, zz] = dims3(x); return { x, hh, zz }; }).filter(a => mower ? true : (a.hh > 14 && a.zz >= 0 && a.zz < 40)).map(a => a.x);
+      rec.robot = { x: it.x, z: it.y, hd: [0, Math.PI / 2, Math.PI, -Math.PI / 2][Math.floor(Math.random() * 4)], vh: 0, area, excl, obst, mower, rad: Math.max(8, Math.min(it.w, it.h) / 2), speed: ROBOT_SPEED[it.type] || 18, wait: 0, mode: 'go', side: 1, run: 0, fails: 0 };
       rec.robot.vh = rec.robot.hd;
     }
     function robotFree(r, px, pz) {
-      const a = r.area, m = r.rad * 0.8;
-      const pts = [[px, pz], [px + m, pz], [px - m, pz], [px, pz + m], [px, pz - m]];
+      const a = r.area, m = r.rad * 0.8 + (r.mower ? 12 : 0);
+      const pts = [[px, pz], [px + m, pz], [px - m, pz], [px, pz + m], [px, pz - m], [px + m * .7, pz + m * .7], [px - m * .7, pz + m * .7], [px + m * .7, pz - m * .7], [px - m * .7, pz - m * .7]];
       for (const [qx, qz] of pts) {
-        if (a.poly ? !inPoly(qx, qz, a.poly) : (qx < a.rect[0] || qx > a.rect[2] || qz < a.rect[1] || qz > a.rect[3])) return false;
+        if (a.polys ? !a.polys.some(p => inPoly(qx, qz, p)) : a.poly ? !inPoly(qx, qz, a.poly) : (qx < a.rect[0] || qx > a.rect[2] || qz < a.rect[1] || qz > a.rect[3])) return false;
+        if (r.excl) for (const p of r.excl) if (inPoly(qx, qz, p)) return false;
       }
       for (const o2 of r.obst) {
         const dx = px - o2.x, dz = pz - o2.y, rr = -(o2.rot || 0) * Math.PI / 180, c = Math.cos(rr), sn = Math.sin(rr), lx = dx * c - dz * sn, lz = dx * sn + dz * c;
@@ -2366,17 +2378,23 @@ const FP3D = (() => {
         if (!robotActive(rec.it)) return;
         busy = true;
         const step = r.speed * dt;
-        const nx = r.x + Math.cos(r.hd) * step, nz = r.z + Math.sin(r.hd) * step;
-        if (robotFree(r, nx, nz)) {
-          r.x = nx; r.z = nz; r.since += step;
-          if (r.since > r.straight) { r.hd += (Math.random() - 0.5) * 1.4; r.since = 0; r.straight = 120 + Math.random() * 300; }
-        } else {
-          let found = false;
-          for (let k = 0; k < 10 && !found; k++) { const h2 = r.hd + Math.PI * (0.45 + Math.random() * 1.1); if (robotFree(r, r.x + Math.cos(h2) * step * 4, r.z + Math.sin(h2) * step * 4)) { r.hd = h2; found = true; } }
-          if (!found) r.hd += 0.5;
-          r.since = 0;
+        if (r.wait > 0) r.wait -= dt;
+        else {
+          const nx = r.x + Math.cos(r.hd) * step, nz = r.z + Math.sin(r.hd) * step;
+          if (robotFree(r, nx, nz)) {
+            r.x = nx; r.z = nz; r.run += step;
+            if (r.mode === 'shift') { r.left -= step; if (r.left <= 0) { r.mode = 'go'; r.hd = r.base + Math.PI; r.wait = 0.2; r.run = 0; r.fails = 0; } }
+          } else if (r.mode === 'go') {
+            // Bahnende: seitlich versetzen, dann in Gegenrichtung zurück (Bahnen hin und her)
+            if (r.run < r.rad && r.fails < 2) { r.side = -r.side; r.fails++; }
+            r.base = r.hd; r.mode = 'shift'; r.left = r.rad * 2.2; r.hd = r.base + r.side * Math.PI / 2; r.wait = 0.2;
+            if (r.fails >= 2) { r.mode = 'go'; r.hd = r.base + Math.PI; r.fails = 0; r.run = 0; }
+          } else {
+            // Versatz blockiert -> zurück in Gegenrichtung, nächste Bahn auf der anderen Seite
+            r.mode = 'go'; r.hd = r.base + Math.PI; r.side = -r.side; r.wait = 0.2; r.run = 0;
+          }
         }
-        let d = r.hd - r.vh; d = Math.atan2(Math.sin(d), Math.cos(d)); r.vh += d * Math.min(1, dt * 5);
+        let d = r.hd - r.vh; d = Math.atan2(Math.sin(d), Math.cos(d)); r.vh += d * Math.min(1, dt * 12);
         rec.group.position.x = r.x; rec.group.position.z = r.z; rec.group.rotation.y = Math.PI / 2 - r.vh;
       });
       return busy;
@@ -2728,7 +2746,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };
@@ -2881,7 +2899,7 @@ class FloorplanStudioCard extends HTMLElement {
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const body = empty
       ? '<div class="msg">Der Grundriss ist noch leer. Öffne das Panel „Grundriss“ in der Seitenleiste, um ihn zu zeichnen.</div>'
-      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button>' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht">3D</button>' : '') + '</div>' : ''}</div>`;
+      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl">' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht" style="width:auto;padding:0 10px">3D</button>' : '') + '</div>' : ''}</div>`;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}${body}</ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._v = null; this._sig = ''; this._draw(); }; });
     const svg = root.querySelector('svg');
@@ -2901,7 +2919,7 @@ class FloorplanStudioCard extends HTMLElement {
     const tabs = !this._cfg.floor && this._plan.floors.length > 1
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const hgt = Number(this._cfg.height3d) || 420;
-    const ctl = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="reset" title="Zurücksetzen">⤢</button>';
+    const ctl = '<button data-v="2d" title="2D-Ansicht" style="width:auto;padding:0 10px">2D</button>';
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}<div class="wrap"><div class="stage3" style="height:${hgt}px"></div><div class="ctl">${ctl}</div></div></ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._sig = ''; this._draw(); }; });
     const st = root.querySelector('.stage3'), myKey = key;

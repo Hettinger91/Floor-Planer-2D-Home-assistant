@@ -144,7 +144,7 @@ class FloorplanStudioCard extends HTMLElement {
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const body = empty
       ? '<div class="msg">Der Grundriss ist noch leer. Öffne das Panel „Grundriss“ in der Seitenleiste, um ihn zu zeichnen.</div>'
-      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl"><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="out" title="Verkleinern">−</button><button data-v="in" title="Vergrößern">+</button><button data-v="reset" title="Zurücksetzen">⤢</button>' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht">3D</button>' : '') + '</div>' : ''}</div>`;
+      : `<div class="wrap"><svg class="${gest ? 'gest' : ''}" viewBox="${x0} ${y0} ${w} ${h}" font-family="var(--paper-font-body1_-_font-family, system-ui, sans-serif)"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter>${defs}</defs><g id="vw" transform="${this._vt(ccx, ccy)}"><g transform="rotate(${rotDeg} ${ccx} ${ccy})">${f.bg && f.bg.url ? bgMarkup({ bg: { ...f.bg, locked: true } }) : ''}${rooms}${walls}${items}</g></g></svg>${gest ? '<div class="ctl">' + (this._cfg.view3d !== false ? '<button data-v="3d" title="3D-Ansicht" style="width:auto;padding:0 10px">3D</button>' : '') + '</div>' : ''}</div>`;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}${body}</ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._v = null; this._sig = ''; this._draw(); }; });
     const svg = root.querySelector('svg');
@@ -164,7 +164,7 @@ class FloorplanStudioCard extends HTMLElement {
     const tabs = !this._cfg.floor && this._plan.floors.length > 1
       ? `<div class="tabs">${this._plan.floors.map(fl => `<button data-floor="${esc(fl.id)}" class="${fl.id === this._floor ? 'on' : ''}">${esc(fl.name)}</button>`).join('')}</div>` : '';
     const hgt = Number(this._cfg.height3d) || 420;
-    const ctl = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-v="ccw" title="Drehen">⟲</button><button data-v="cw" title="Drehen">⟳</button><button data-v="reset" title="Zurücksetzen">⤢</button>';
+    const ctl = '<button data-v="2d" title="2D-Ansicht" style="width:auto;padding:0 10px">2D</button>';
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}${tabs}<div class="wrap"><div class="stage3" style="height:${hgt}px"></div><div class="ctl">${ctl}</div></div></ha-card>`;
     root.querySelectorAll('.tabs button').forEach(bt => { bt.onclick = () => { this._floor = bt.dataset.floor; this._sig = ''; this._draw(); }; });
     const st = root.querySelector('.stage3'), myKey = key;
