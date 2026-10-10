@@ -94,7 +94,17 @@ summary { cursor: pointer; font-weight: 600; font-size: 12px; text-transform: up
 
 .ihead { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 15px; } .ihead .ico { font-size: 22px; }
 .sec { border-top: 1px solid var(--line); padding: 8px 0 4px; } .sec:first-of-type { border-top: 0; }
-.sec h4 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.sec { padding: 0; margin: 0; }
+.sec > summary { list-style: none; justify-content: flex-start; align-items: center; gap: 6px; padding: 10px 2px; font-size: 11px; letter-spacing: .06em; position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.sec > summary::-webkit-details-marker { display: none; }
+.sec > summary::before { content: '▸'; font-size: 11px; transition: transform .15s; display: inline-block; width: 10px; }
+.sec[open] > summary::before { transform: rotate(90deg); }
+.sec > summary:hover { color: var(--text, inherit); }
+.secbody { padding: 0 0 8px; }
+details[data-cat] > summary::before { content: '▸'; display: inline-block; width: 12px; transition: transform .15s; }
+details[data-cat][open] > summary::before { transform: rotate(90deg); }
+details[data-cat] > summary { justify-content: flex-start; gap: 4px; } details[data-cat] > summary span { margin-left: auto; font-weight: 400; }
+details[data-cat] > summary::-webkit-details-marker { display: none; }
 .fld { display: block; margin: 0 0 8px; } .fld > span:first-child { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .colorrow { display: flex; gap: 6px; align-items: center; }

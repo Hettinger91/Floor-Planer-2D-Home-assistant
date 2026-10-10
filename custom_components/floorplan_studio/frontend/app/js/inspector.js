@@ -79,7 +79,10 @@ function renderInspector() {
   if (sel.k === 'bg') return renderFloorInspector(box);
 }
 
-function section(title, inner) { if (unitM()) title = title.replace('(cm)', '(m)'); return `<section class="sec"><h4>${esc(title)}</h4>${inner}</section>`; }
+// Einklappbare Abschnitte; der Zustand wird gemerkt (je Titel)
+const secStore = { get(k, d) { try { const v = localStorage.getItem('fp.sec.' + k); return v == null ? d : v === '1'; } catch (_) { return d; } }, set(k, v) { try { localStorage.setItem('fp.sec.' + k, v ? '1' : '0'); } catch (_) { /* egal */ } } };
+function section(title, inner, open) { const key = title; if (unitM()) title = title.replace('(cm)', '(m)'); return `<details class="sec" data-sec="${esc(key)}"${secStore.get(key, open !== false) ? ' open' : ''}><summary>${esc(title)}</summary><div class="secbody">${inner}</div></details>`; }
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.matches && d.matches('details.sec[data-sec]')) secStore.set(d.dataset.sec, d.open); }, true);
 function actionsHtml(list) { return `<div class="actions">${list.map(([id, l, c]) => `<button type="button" class="btn ${c || ''}" data-act="${id}">${esc(l)}</button>`).join('')}</div>`; }
 function bindActs(root, map) { $$('[data-act]', root).forEach(b => { b.onclick = () => map[b.dataset.act] && map[b.dataset.act](); }); }
 function pair(a, b) { return `<div class="row2">${a}${b}</div>`; }
@@ -131,10 +134,11 @@ function renderItemInspector(box, it) {
   const specs = [...g, ...glowSpecs, ...ha, ...look, ...pos];
   const P = k => specHtml(pos.find(s => s.k === k));
   box.innerHTML = `<div class="ihead"><span class="ico">${esc(it.icon && !it.icon.startsWith('img:') ? it.icon : '▫')}</span><b>${esc((t && t.name) || 'Objekt')}</b></div>` +
-    section('Allgemein', g.map(specHtml).join('')) +
-    (isText || isWin ? '' : section('Leuchten (Glow)', glowSpecs.map(specHtml).join(''))) +
+    section('Allgemein', g.filter(x => ['label', 'showLabel', 'fs'].includes(x.k)).map(specHtml).join('')) +
+    (g.some(x => ['labelEnt', 'showValue', 'valueRot', 'labelRot'].includes(x.k)) ? section('Beschriftung', g.filter(x => !['label', 'showLabel', 'fs'].includes(x.k)).map(specHtml).join(''), false) : '') +
+    (isText || isWin ? '' : section('Leuchten (Glow)', glowSpecs.map(specHtml).join(''), false)) +
     (isText ? '' : section('Home Assistant', ha.map(specHtml).join(''))) +
-    section('Aussehen', look.map(specHtml).join('')) +
+    section('Aussehen', look.map(specHtml).join(''), false) +
     section('Position & Größe', pair(P('x'), P('y')) + (isText ? '' : pair(P('w'), P('h'))) + P('rot') + (isText || isWin ? '' : pair(P('h3'), P('z3'))) + (typeof FP3D !== 'undefined' && FP3D.ROBOTS.has(it.type) ? P('roam') : '')) +
     actionsHtml([['front', 'Nach vorn'], ['back', 'Nach hinten'], ['dup', 'Duplizieren'], ['tpl', 'Als Vorlage speichern'], ['del', 'Löschen', 'danger']]);
   wire(box, it, specs.filter(s => !(isText && ['entity', 'glow', 'glowStyle', 'glowR', 'glowStr', 'onColor', 'tap', 'svc', 'svcData'].includes(s.k))), {
@@ -296,9 +300,10 @@ function renderFloorInspector(box) {
       `<div class="actions"><button class="btn" data-act="bgup">${hasBg ? 'Bild ersetzen' : 'Bild als Vorlage laden'}</button>` +
       (hasBg ? '<button class="btn" data-act="calib">Maßstab kalibrieren</button><button class="btn" data-act="bgdel">Bild entfernen</button>' : '') + '</div>' +
       `<div class="actions"><button class="btn" data-act="fdup">Etage duplizieren</button><button class="btn" data-act="fren">Umbenennen</button><button class="btn danger" data-act="fdel">Etage löschen</button></div>`) +
-    section('Ansicht & Raster', ss.map(specHtml).join('')) +
-    section('3D-Ansicht', s3.map(specHtml).join('')) +
-    actionsHtml([['fit', 'Alles anzeigen'], ['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]);
+    section('Raster & Anzeige', ['unit', 'grid', 'snap', 'showGrid', 'showDims', 'showRoomNames', 'showArea', 'labelSize'].map(k => specHtml(ss.find(x => x.k === k))).join('') + actionsHtml([['fit', 'Alles anzeigen']])) +
+    section('Darstellung', ['theme', 'wallColor', 'wallThickness', 'roomOpacity', 'symStyle', 'itemShadow', 'viewRot'].map(k => specHtml(ss.find(x => x.k === k))).join('') + actionsHtml([['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]), false) +
+    section('Sprache & Bedienung', ['lang', 'liveTap'].map(k => specHtml(ss.find(x => x.k === k))).join(''), false) +
+    section('3D-Ansicht', s3.map(specHtml).join(''), false);
   wire(box, f, fs, { onInput: () => renderFloorTabs() });
   if (hasBg) wire(box, f.bg, bg);
   wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'lang') applyLang(); if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
@@ -395,12 +400,14 @@ function renderLibrary() {
     cats.get(t.cat).push(t);
   });
   const box = $('#library');
-  box.innerHTML = [...cats].map(([cat, list]) => `<details open><summary>${esc(cat)}<span>${list.length}</span></summary><div class="libgrid">` +
+  const firstCat = [...cats.keys()][0];
+  box.innerHTML = [...cats].map(([cat, list]) => `<details data-cat="${esc(cat)}"${q || secStore.get('cat.' + cat, cat === firstCat) ? ' open' : ''}><summary>${esc(cat)}<span>${list.length}</span></summary><div class="libgrid">` +
     list.map(t => {
       const thumb = symThumb(t);
       const ico = t.image ? `<img src="${esc(t.image)}" alt="">` : thumb || ((t.icon && t.icon.startsWith('img:')) ? `<img src="${esc(t.icon.slice(4))}" alt="">` : esc(t.icon || (t.shape === 'door' ? '🚪' : t.shape === 'window' ? '🪟' : '▫')));
       return `<button class="lib" draggable="true" data-id="${esc(t.id)}" title="${esc(t.name)} (${fmtN(t.w / 100, 2)}×${fmtN(t.h / 100, 2)} m)"><span class="ico" style="background:${thumb ? 'transparent' : esc(t.color || '#eceff1')}">${ico}</span><span class="nm">${esc(t.name)}</span><i class="ed" data-ed="${esc(t.id)}" title="Vorlage bearbeiten">✎</i></button>`;
     }).join('') + '</div></details>').join('') || '<p class="hint">Nichts gefunden.</p>';
+  $$('details[data-cat]', box).forEach(d => d.addEventListener('toggle', () => { if (!q) secStore.set('cat.' + d.dataset.cat, d.open); }));
   $$('.lib', box).forEach(b => {
     const t = typeById(b.dataset.id);
     b.onclick = e => {

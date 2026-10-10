@@ -52,7 +52,8 @@ Oben in der Etagenleiste **🌿+** = Garten-Ebene hinzufügen: Rasenfläche, bla
 
 ## 3D-Ansicht
 
-Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** unten rechts (`view3d: false` blendet ihn aus, `mode3d: true` startet direkt in 3D).
+Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** in der Seitenleiste (`view3d: false` blendet ihn aus, `mode3d: true` startet direkt in 3D).
+**Editor:** Die Seitenleisten sind in einklappbare Abschnitte gegliedert (Zustand wird gemerkt); Objektkategorien sind eingeklappt, bei der Suche automatisch offen.
 
 * Realistischer Look (Tag/Nacht): Himmel, Sonnenlicht mit Schatten, Rasen, Bodenmuster, Wände mit Fenster-/Türöffnungen
 * Über 270 echte 3D-Modelle (Möbel, Küche, Bad, Heizung, Lampen, Steckdosen/Schalter, Kameras, Sensoren, Geräte, Treppen, Auto, Bäume, Pool …); Smart-Home-Teile leuchten bzw. zeigen ihren Zustand
