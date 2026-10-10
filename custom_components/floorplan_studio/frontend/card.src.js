@@ -73,7 +73,7 @@ class FloorplanStudioCard extends HTMLElement {
   getCardSize() { return this._m3 ? 6 : 5; }
   getGridOptions() { return { columns: 12, rows: "auto", min_columns: 6, min_rows: 3 }; }
   getLayoutOptions() { return { grid_columns: 12, grid_rows: 'auto' }; }
-  setConfig(c) { this._cfg = c || {}; if (this._cfg.weather3d) window.FP_WEATHER = this._cfg.weather3d; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._w3 = null; this._a3 = null; this._bp = null; this._tl = null; this._kill3(); this._pickFloor(); this._draw(); try { this._lang().catch(() => { }); } catch (_) { /* egal */ } }
+  setConfig(c) { this._cfg = c || {}; if (this._cfg.weather3d) window.FP_WEATHER = this._cfg.weather3d; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._w3 = null; this._a3 = null; this._bp = null; this._kill3(); this._pickFloor(); this._draw(); try { this._lang().catch(() => { }); } catch (_) { /* egal */ } }
   _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
@@ -203,7 +203,7 @@ class FloorplanStudioCard extends HTMLElement {
     let vb = '';
     if (is3) {
       const w = this._w3 || 'auto', wl = { auto: 'Wände: auto', full: 'Wände: voll', half: 'Wände: halb', flat: 'Wände: aus' }[w];
-      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button>' + `<button data-t="1" class="${this._tl ? 'on' : ''}" title="Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)">Neigen ↕</button>` + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
+      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
     } else if (c.view3d !== false && c.gestures !== false) vb = '<button data-v="3d" title="3D-Ansicht">3D</button>';
     if (vb || fb) vb += `<button data-bp="1" class="${this._bpOn() ? 'on' : ''}" title="Blueprint-Ansicht (Bauplan-Stil)">Blueprint</button>`;
     if (!fb && !vb) return '';
@@ -219,7 +219,6 @@ class FloorplanStudioCard extends HTMLElement {
         if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.bp) { this._bp = !this._bpOn(); b.classList.toggle('on', this._bp); const mn = root.querySelector('.main'); if (mn) mn.classList.toggle('bp', this._bp); if (this._v3) this._v3.set('look', this._look3()); return; }
         if (!this._v3) return;
-        if (b.dataset.t) { this._tl = !this._tl; b.classList.toggle('on', this._tl); this._v3.applyTouch(); return; }
         if (b.dataset.w) {
           const o = ['auto', 'full', 'half', 'flat']; this._w3 = o[(o.indexOf(this._w3 || 'auto') + 1) % 4];
           this._v3.set('walls', this._w3); b.textContent = FPI.tr ? FPI.tr('Wände: ' + ({ auto: 'auto', full: 'voll', half: 'halb', flat: 'aus' }[this._w3])) : b.textContent;
@@ -241,7 +240,6 @@ class FloorplanStudioCard extends HTMLElement {
     const c0 = this._cfg, s0 = this._plan.settings || {};
     if (this._w3 == null) this._w3 = c0.walls3d || s0.walls3d || 'auto';
     if (this._a3 == null) this._a3 = c0.all3d != null ? !!c0.all3d : !!s0.all3d;
-    if (this._tl == null) this._tl = c0.tilt3d != null ? !!c0.tilt3d : this.getBoundingClientRect().width >= 640;
     const rail = this._rail(true);
     const hgt = Number(this._cfg.height3d) || 0;
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}<div class="body ${this._lay()}">${rail}<div class="main${this._bpOn() ? ' bp' : ''}"><div class="wrap"><div class="stage3${hgt ? ' fixed' : ''}"${hgt ? ` style="height:${hgt}px"` : ''}></div></div></div></div></ha-card>`;
@@ -254,7 +252,7 @@ class FloorplanStudioCard extends HTMLElement {
       this._v3 = FP3D.create(st, {
         getFloor: () => this._floor,
         look: this._look3(), walls: this._w3 || 'auto', allFloors: !!this._a3,
-        roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => !!this._tl, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
+        roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => c.tilt3d !== false, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update();

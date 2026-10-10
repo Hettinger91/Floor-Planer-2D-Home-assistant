@@ -1,7 +1,7 @@
 """Konstanten für Floorplan Studio."""
 
 DOMAIN = "floorplan_studio"
-VERSION = "1.0.8"
+VERSION = "1.0.85"
 
 STATIC_URL = "/floorplan_studio_static"
 MEDIA_URL = "/floorplan_studio_media"
