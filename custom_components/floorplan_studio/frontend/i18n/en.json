@@ -765,5 +765,9 @@
  "Alle Etagen": "All floors",
  "Alle Etagen anzeigen": "Show all floors",
  "Raster & Anzeige": "Grid & display",
- "Sprache & Bedienung": "Language & controls"
+ "Sprache & Bedienung": "Language & controls",
+ "Neigen ↕": "Tilt ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "Vertical tilt by touch (blocks page scrolling over the image)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "Blueprint view (plan style)",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "Blueprint view (plan style)"
 }

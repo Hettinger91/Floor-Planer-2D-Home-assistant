@@ -765,5 +765,9 @@
  "Alle Etagen": "Kaikki kerrokset",
  "Alle Etagen anzeigen": "Näytä kaikki kerrokset",
  "Raster & Anzeige": "Ruudukko ja näyttö",
- "Sprache & Bedienung": "Kieli ja ohjaus"
+ "Sprache & Bedienung": "Kieli ja ohjaus",
+ "Neigen ↕": "Kallista ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "Pystykallistus kosketuksella (estää vierityksen kuvan päällä)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "Blueprint-näkymä",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "Blueprint-näkymä"
 }

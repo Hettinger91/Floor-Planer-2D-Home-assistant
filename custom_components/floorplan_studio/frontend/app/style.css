@@ -171,3 +171,4 @@ pre.code { background: var(--bg2, rgba(127,127,127,.12)); padding: 8px; border-r
 .hud3 select{width:auto;min-width:0}
 
 #app.view-3d #library { opacity: 1; pointer-events: auto; }
+.ibtn.txt { font-size: 12px; }

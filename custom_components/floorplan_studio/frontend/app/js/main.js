@@ -6,7 +6,14 @@ function renderAll() {
   render();
 }
 
+function applyBp() {
+  const on = !!(plan && plan.settings && (plan.settings.blueprint || plan.settings.look3d === 'blueprint'));
+  $('#stage').classList.toggle('bp', on); $('#btnBp').classList.toggle('on', on);
+  if (typeof v3 !== 'undefined' && v3) { v3.set('look', on ? 'blueprint' : (S().look3d || 'auto')); const sel = $('#v3look'); if (sel) sel.value = on ? 'blueprint' : (S().look3d || 'auto'); }
+}
 function bindUi() {
+  if (!document.getElementById('bpcss')) { const st = document.createElement('style'); st.id = 'bpcss'; st.textContent = BP_CSS; document.head.appendChild(st); }
+  $('#btnBp').onclick = () => { S().blueprint = !S().blueprint; commit(); applyBp(); };
   $('#btnUndo').onclick = undo;
   $('#btnRedo').onclick = redo;
   $('#v2Btn').onclick = () => set3D(false);
@@ -73,7 +80,7 @@ async function boot() {
   floorId = plan.floors.some(f => f.id === saved) ? saved : plan.floors[0].id;
   histReset();
   $('#optRectWalls').checked = !!S().rectWalls;
-  applyTheme();
+  applyTheme(); applyBp();
   await applyLang();
   syncStates();
   renderAll();

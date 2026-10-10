@@ -765,5 +765,9 @@
  "Alle Etagen": "Все этажи",
  "Alle Etagen anzeigen": "Показать все этажи",
  "Raster & Anzeige": "Сетка и отображение",
- "Sprache & Bedienung": "Язык и управление"
+ "Sprache & Bedienung": "Язык и управление",
+ "Neigen ↕": "Наклон ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "Вертикальный наклон касанием (блокирует прокрутку над изображением)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "Вид «чертёж»",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "Вид «чертёж»"
 }

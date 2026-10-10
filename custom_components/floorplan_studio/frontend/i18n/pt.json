@@ -765,5 +765,9 @@
  "Alle Etagen": "Todos os andares",
  "Alle Etagen anzeigen": "Mostrar todos os andares",
  "Raster & Anzeige": "Grelha e visualização",
- "Sprache & Bedienung": "Idioma e controlo"
+ "Sprache & Bedienung": "Idioma e controlo",
+ "Neigen ↕": "Inclinar ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "Inclinação vertical com toque (bloqueia o scroll sobre a imagem)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "Vista blueprint (planta)",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "Vista blueprint (planta)"
 }

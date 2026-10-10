@@ -765,5 +765,9 @@
  "Alle Etagen": "Wszystkie piętra",
  "Alle Etagen anzeigen": "Pokaż wszystkie piętra",
  "Raster & Anzeige": "Siatka i wyświetlanie",
- "Sprache & Bedienung": "Język i obsługa"
+ "Sprache & Bedienung": "Język i obsługa",
+ "Neigen ↕": "Pochyl ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "Pionowe pochylanie dotykiem (blokuje przewijanie strony nad obrazem)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "Widok blueprint (plan)",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "Widok blueprint (plan)"
 }

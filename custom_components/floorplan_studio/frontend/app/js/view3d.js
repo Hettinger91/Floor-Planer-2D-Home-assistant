@@ -53,6 +53,7 @@ const FP3D = (() => {
   const LOOKS = {
     day: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true },
     dark: { bg: '#0f1626', sky: ['#070b16', '#121b2f', '#1d2840'], ground: '#1a2433', wall: '#cfc9bd', edge: null, amb: 0.35, hemi: 0.55, hs: '#6f86b8', hg: '#1b2230', sunc: '#8fa6d8', sun: 0.8, pl: 900, neon: false, real: true },
+    blueprint: { bg: '#0b3b75', ground: '#0d4a94', wall: '#1456a8', edge: '#e6f3ff', amb: 0.9, hemi: 0.9, hs: '#ffffff', hg: '#9dc4f0', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true, bp: true },
     neon: { bg: '#070a12', ground: '#0c1019', wall: '#141a2b', edge: '#26e6ff', amb: 0.8, hemi: 0.8, hs: '#ffffff', hg: '#8899aa', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true },
   };
 
@@ -74,7 +75,9 @@ const FP3D = (() => {
     const T = window.THREE_LITE;
     const o = Object.assign({ look: 'auto', walls: 'full', allFloors: false, dark: () => false, wheel: 'always', shadows: true }, opts);
     const root = document.createElement('div');
-    root.style.cssText = 'position:absolute;inset:0;overflow:hidden;touch-action:' + (o.touchScroll ? 'pan-y' : 'none') + ';user-select:none;-webkit-user-select:none';
+    root.style.cssText = 'position:absolute;inset:0;overflow:hidden;user-select:none;-webkit-user-select:none';
+    const applyTouch = () => { root.style.touchAction = o.touchScroll && !(o.touchTilt && o.touchTilt()) ? 'pan-y' : 'none'; };
+    applyTouch();
     container.appendChild(root);
     let renderer;
     try { renderer = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false }); }
@@ -289,8 +292,8 @@ const FP3D = (() => {
       const garden = f.kind === 'garden';
       const wallMat = new T.MeshStandardMaterial({ color: colorOf(garden ? '#a97c50' : (o.wallColor || S().wallColor3 || L3.wall)), roughness: 0.9, metalness: 0 });
       const glassMat = new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
-      const frameMat = new T.MeshStandardMaterial({ color: look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.neon ? 0x0a4a55 : 0x000000 });
-      const doorMat = new T.MeshStandardMaterial({ color: look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
+      const frameMat = new T.MeshStandardMaterial({ color: look.bp ? 0xe6f3ff : look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.bp ? 0x1a4a80 : look.neon ? 0x0a4a55 : 0x000000 });
+      const doorMat = new T.MeshStandardMaterial({ color: look.bp ? 0x1d5fae : look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
       const edgeMat = L3.edge ? new T.LineBasicMaterial({ color: L3.edge, transparent: true, opacity: 0.85 }) : null;
       let wg = g; const fc = contentBounds(f); const cxm = fc.x + fc.w / 2, czm = fc.y + fc.h / 2;
       const addWallBox = (len, h, t, cx, cy, cz, ry) => {
@@ -305,18 +308,18 @@ const FP3D = (() => {
         const sh = new T.Shape(); r.pts.forEach((p, i) => (i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1])));
         const col = r.floor && FLOOR_COL[r.floor] ? FLOOR_COL[r.floor] : (r.color || '#90caf9');
         const mat = new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide });
-        if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.neon ? 0x0b1020 : 0xffffff), look.neon ? 0.55 : 0.45);
+        if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.bp ? 0x0b3b75 : look.neon ? 0x0b1020 : 0xffffff), look.bp ? 0.7 : look.neon ? 0.55 : 0.45);
         const geo = new T.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
         const m = new T.Mesh(geo, mat); m.rotation.x = Math.PI / 2; m.position.y = 0; m.receiveShadow = true; g.add(m);
         const fd = typeof FLOORS !== 'undefined' ? FLOORS[r.floor] : null;
         if (fd) {
-          const sc = r.floorScale > 0 ? r.floorScale : 1, rc = r.color || '#90caf9', key = 'f|' + r.floor + '|' + sc + '|' + rc + '|' + (look.neon ? 1 : 0);
+          const sc = r.floorScale > 0 ? r.floorScale : 1, rc = r.color || '#90caf9', key = 'f|' + r.floor + '|' + sc + '|' + rc + '|' + (look.bp ? 2 : look.neon ? 1 : 0);
           const apply = (t) => { t = t.clone(); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(1 / (fd[0] * sc), 1 / (fd[1] * sc)); t.rotation = (r.floorRot || 0) * Math.PI / 180; t.needsUpdate = true; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; dirty = true; };
           const hit = texCache.get(key);
           if (hit) apply(hit);
           else {
             const bx = -fd[0] / 2, by = -fd[1] / 2;
-            svgTex(`<defs><pattern id="p" patternUnits="userSpaceOnUse" x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}">${fd[2]}</pattern></defs><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${look.neon ? '#141b2e' : '#ffffff'}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${rc}" fill-opacity="${look.neon ? 0.45 : 0.62}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="url(#p)"/>`, fd[0], fd[1], t => { texCache.set(key, t); apply(t); });
+            svgTex(`<defs><pattern id="p" patternUnits="userSpaceOnUse" x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}">${fd[2]}</pattern></defs><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${look.bp ? '#0e4a93' : look.neon ? '#141b2e' : '#ffffff'}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="${rc}" fill-opacity="${look.neon ? 0.45 : 0.62}"/><rect x="${bx}" y="${by}" width="${fd[0]}" height="${fd[1]}" fill="url(#p)"/>`, fd[0], fd[1], t => { texCache.set(key, t); apply(t); });
           }
         }
       });
@@ -369,7 +372,7 @@ const FP3D = (() => {
         const ig = new T.Group(); ig.position.set(it.x, z0, it.y); ig.rotation.y = -(it.rot || 0) * Math.PI / 180; g.add(ig);
         const col = colorOf(it.color || (typeById(it.type) || {}).color, '#cfd8dc');
         const mat = new T.MeshStandardMaterial({ color: col, roughness: 0.75, metalness: 0.05, emissive: 0x000000 });
-        if (look.neon) mat.color.lerp(new T.Color(0x1a2338), 0.55);
+        if (look.neon) mat.color.lerp(new T.Color(look.bp ? 0x1f6fc2 : 0x1a2338), look.bp ? 0.65 : 0.55);
         let geo;
         if (it.shape === 'ellipse') { geo = new T.CylinderGeometry(1, 1, h, 28); }
         else geo = new T.BoxGeometry(it.w, h, it.h);
@@ -736,7 +739,7 @@ const FP3D = (() => {
       const k = cam.dist * 0.0012, r = [Math.cos(cam.az), -Math.sin(cam.az)], u = [-Math.sin(cam.az), -Math.cos(cam.az)];
       cam.tx += -r[0] * dx * k + u[0] * dy * k; cam.tz += -r[1] * dx * k + u[1] * dy * k;
     }
-    const limit = () => { cam.pol = Math.min(1.5, Math.max(0.08, cam.pol)); cam.dist = Math.min(radius * 8, Math.max(80, cam.dist)); };
+    const limit = () => { cam.pol = Math.min(1.53, Math.max(0.02, cam.pol)); cam.dist = Math.min(radius * 8, Math.max(80, cam.dist)); };
     cv.addEventListener('pointerdown', e => {
       try { cv.setPointerCapture(e.pointerId); } catch (_) { /* egal */ }
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -774,7 +777,7 @@ const FP3D = (() => {
         }
         return;
       }
-      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; if (!(o.touchScroll && e.pointerType === 'touch')) cam.pol -= dy * 0.006; limit(); dirty = true; } }
+      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; if (!(o.touchScroll && e.pointerType === 'touch' && !(o.touchTilt && o.touchTilt()))) cam.pol -= dy * (e.pointerType === 'touch' ? 0.009 : 0.0075); limit(); dirty = true; } }
       else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
       else if (gesture.t === 'pinch' && ptrs.size === 2) {
         const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
@@ -849,11 +852,11 @@ const FP3D = (() => {
       applySel();
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
-    function set(k, v) { o[k] = v; build(true); }
+    function set(k, v) { o[k] = v; if (k === 'touchTilt') { applyTouch(); return; } build(true); }
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };

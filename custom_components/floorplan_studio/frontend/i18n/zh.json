@@ -765,5 +765,9 @@
  "Alle Etagen": "所有楼层",
  "Alle Etagen anzeigen": "显示所有楼层",
  "Raster & Anzeige": "网格与显示",
- "Sprache & Bedienung": "语言与操作"
+ "Sprache & Bedienung": "语言与操作",
+ "Neigen ↕": "倾斜 ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "触摸垂直倾斜（会阻止在图像上滚动页面）",
+ "Blueprint-Ansicht (Bauplan-Stil)": "蓝图视图",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "蓝图视图"
 }

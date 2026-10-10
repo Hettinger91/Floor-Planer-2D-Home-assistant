@@ -365,3 +365,15 @@ async function exportSvgString(f, withBg = true) {
   const body = f.rooms.map(r => roomMarkup(r)).join('') + f.walls.map(wl => wallMarkup(wl, false, { k: 1 })).join('') + f.items.map(i => itemMarkup(i, ctx)).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0} ${y0} ${w} ${h}" width="${w}" height="${h}" font-family="system-ui,sans-serif"><defs><filter id="fpShadow" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".3"/></filter></defs><rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="${C.canvas}"/>${bg}${body}</svg>`;
 }
+
+// ---------- Blueprint-Stil (2D): reines CSS, überschreibt die Füllungen/Linien des Plans ----------
+const BP_CSS = `
+.bp svg { background: #0c3f82 !important; }
+.bp svg #gridL * , .bp svg #gridL { stroke: #8fc0f5 !important; stroke-opacity: .28 !important; }
+.bp svg polygon { fill: #ffffff !important; fill-opacity: .06 !important; stroke: #cfe6ff !important; stroke-opacity: .55 !important; stroke-width: 1.2 !important; }
+.bp svg line[pointer-events="none"] { stroke: #eaf4ff !important; }
+.bp svg .item :is(rect, ellipse, path, circle, polyline, polygon, line) { fill: #dcecff !important; fill-opacity: .08 !important; stroke: #eaf4ff !important; stroke-opacity: 1 !important; filter: none !important; }
+.bp svg .item [fill="none"], .bp svg .item line, .bp svg .item polyline { fill: none !important; }
+.bp svg text { fill: #eaf4ff !important; stroke: none !important; }
+.bp svg .item g[filter] { filter: none !important; }
+`;

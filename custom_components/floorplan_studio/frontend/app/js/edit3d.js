@@ -14,7 +14,7 @@ function v3Hud() {
   hud.className = 'hud3';
   const opt = (arr, cur) => arr.map(([v, l]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${l}</option>`).join('');
   hud.innerHTML =
-    `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon']], S().look3d || 'auto')}</select>` +
+    `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon'], ['blueprint', 'Blueprint']], S().look3d || 'auto')}</select>` +
     `<select id="v3walls" title="Wände">${opt([['auto', 'Wände: automatisch'], ['full', 'Wände: voll'], ['half', 'Wände: halb'], ['flat', 'Wände: flach']], S().walls3d || 'auto')}</select>` +
     `<select id="v3roof" title="Dach">${opt([['none', 'Dach: aus'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']], S().roof3 || 'none')}</select>` +
     `<label class="chk" title="Wandfarbe">Wand <input type="color" id="v3wc" value="${S().wallColor3 || '#f3f0ea'}"></label>` +
@@ -23,7 +23,7 @@ function v3Hud() {
     `<button class="ibtn" id="v3rl" title="Drehen">⟲</button><button class="ibtn" id="v3rr" title="Drehen">⟳</button>` +
     `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>`;
   st.appendChild(hud);
-  const setOpt = (k, v) => { S()[k] = v; v3.set(k === 'look3d' ? 'look' : k === 'walls3d' ? 'walls' : 'allFloors', v); commit(); };
+  const setOpt = (k, v) => { S()[k] = v; if (k === 'look3d') S().blueprint = v === 'blueprint';  v3.set(k === 'look3d' ? 'look' : k === 'walls3d' ? 'walls' : 'allFloors', v); commit(); };
   $('#v3look').onchange = e => setOpt('look3d', e.target.value);
   $('#v3walls').onchange = e => setOpt('walls3d', e.target.value);
   $('#v3roof').onchange = e => { S().roof3 = e.target.value; commit(); render(); };
@@ -46,7 +46,7 @@ async function set3D(on) {
       st.hidden = false;
       v3 = FP3D.create(st, {
         getFloor: () => curFloor().id,
-        look: S().look3d || 'auto', walls: S().walls3d || 'auto', allFloors: !!S().all3d, dark: v3Dark, wheel: 'always',
+        look: S().blueprint ? 'blueprint' : (S().look3d || 'auto'), walls: S().walls3d || 'auto', allFloors: !!S().all3d, dark: v3Dark, wheel: 'always',
         onTap: (id, long) => { const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (!it) return; if (mode === 'live') onItemTap(it, long); else setSel('item', id); },
         getSel: () => (sel && sel.k === 'item' ? sel.id : null),
         canCover: () => mode === 'live' && haInfo.allowControl !== false,

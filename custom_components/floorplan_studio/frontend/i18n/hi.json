@@ -765,5 +765,9 @@
  "Alle Etagen": "सभी मंज़िलें",
  "Alle Etagen anzeigen": "सभी मंज़िलें दिखाएँ",
  "Raster & Anzeige": "ग्रिड और प्रदर्शन",
- "Sprache & Bedienung": "भाषा और नियंत्रण"
+ "Sprache & Bedienung": "भाषा और नियंत्रण",
+ "Neigen ↕": "झुकाएँ ↕",
+ "Senkrechtes Kippen mit dem Finger (blockiert das Scrollen über dem Bild)": "स्पर्श से ऊर्ध्वाधर झुकाव (चित्र पर पेज स्क्रॉल रुकता है)",
+ "Blueprint-Ansicht (Bauplan-Stil)": "ब्लूप्रिंट दृश्य",
+ "Blueprint-Ansicht (Bauplan-Stil) ein/aus": "ब्लूप्रिंट दृश्य"
 }
