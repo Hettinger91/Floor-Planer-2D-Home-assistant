@@ -14,7 +14,7 @@ function v3Hud() {
   hud.className = 'hud3';
   const opt = (arr, cur) => arr.map(([v, l]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${l}</option>`).join('');
   hud.innerHTML =
-    `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon'], ['blueprint', 'Blueprint']], S().look3d || 'auto')}</select>` +
+    `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['live', 'Live (Zeit & Wetter)'], ['neon', 'Neon'], ['blueprint', 'Blueprint']], S().look3d || 'auto')}</select>` +
     `<select id="v3walls" title="Wände">${opt([['auto', 'Wände: automatisch'], ['full', 'Wände: voll'], ['half', 'Wände: halb'], ['flat', 'Wände: flach']], S().walls3d || 'auto')}</select>` +
     `<select id="v3roof" title="Dach">${opt([['none', 'Dach: aus'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']], S().roof3 || 'none')}</select>` +
     `<select id="v3tile" title="Dacheindeckung">${opt([['plain', 'Dach: glatt'], ['tiles', 'Dach: Ziegel']], S().roofType3 || 'plain')}</select>` +

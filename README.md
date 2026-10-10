@@ -63,11 +63,14 @@ Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** in der Sei
 * Bedienung: Ziehen = Orbit, Zwei-Finger = Zoom/Verschieben/Drehen, Tippen = Objekt schalten (Live), Doppeltipp = Ansicht zurücksetzen
 * Dach (Flach-, Sattel-, Walmdach) mit Farbe, Neigung und Überstand; Wandfarbe, Wandhöhe und Wiesenfarbe einstellbar (Leiste im 3D-Editor oder Inspektor „3D-Ansicht“); Karte: `roof3d`, `wall_color3d`
 * Objekte direkt in 3D bearbeiten: in der Bibliothek ein Objekt wählen und in die 3D-Szene tippen; ausgewähltes Objekt (blauer Rahmen) per Ziehen verschieben
-* ☀ Solar: Panels auf dem Dach, Energie fließt animiert ins Haus; optional Leistungs-Entität (Inspektor „3D-Ansicht“) steuert Menge und Tempo
+* ☀ Solar: Panels auf dem Dach, Energie fließt animiert ins Haus; Anzahl der Module frei wählbar (Panels passen sich dem Dach an, Überlauf auf die Gegenseite), optional Leistungs-Entität (Inspektor „3D-Ansicht“) steuert Tempo
+* Dacheindeckung **glatt oder Dachziegel**; Etagen und Dach schließen bündig an
+* Look **Live (Zeit & Wetter)**: Sonnen-/Mondstand und Himmel nach Tageszeit (nutzt `sun.sun`, sonst die Uhrzeit) und aktuelles Wetter aus einer `weather.*`-Entität (automatisch die erste, oder Inspektor „Wetter-Entität“ / Karte `weather3d: weather.home`): Sonne, Wolken, Regen, Schnee (Schneedecke), Nebel, Gewitter mit Blitzen, Wind – alles animiert, Lampen gehen nachts stärker an. Karte: `look3d: live`
+* Garten: Terrassen mit Platten (40/60 cm, Naturstein), Pavillons, Zier- und Wandbrunnen, Kugelgrill, Steg, Gartenbrücke, Strandkorb
 * Saug-, Mäh- und Poolroboter fahren animiert umher (nur wenn die Entität aktiv ist; ohne Entität stehen sie still, außer am Objekt ist „Immer“ gewählt)
 * Rollläden, Markisen, Vorhangmotoren fahren animiert hoch/runter passend zum Cover-Zustand (Position oder offen/geschlossen); Rasensprenger und Springbrunnen sprühen, solange die Entität an ist; Deckenventilator dreht sich
 * Höhen pro Objekt im Inspektor („3D-Höhe“, „Höhe über Boden“), Wandhöhe pro Etage
-* Karten-Optionen: `look3d`, `walls3d`, `all3d`, `height3d` (px)
+* Karten-Optionen: `look3d` (auto, day, dark, live, neon, blueprint), `weather3d`, `walls3d`, `all3d`, `height3d` (px)
 * Rollläden/Garagentore: beim Hochziehen/Herunterziehen in 3D erscheint neben dem Finger/Mauszeiger eine Prozentanzeige. Türen/Fenster zeigen „offen“ (2D+3D), sobald die zugewiesene Entität (z. B. Kontaktsensor `binary_sensor`) `on` ist.
 * Layout: `layout: auto` (Standard: bei ≥ 640 px Kartenbreite Etagen/2D-3D/Wandansicht als Seitenleiste links, sonst als Leiste oben), `side` oder `top`. Tipp: Ansichtstyp „Panel (1 Karte)“ oder Sections-Karte mit voller Breite (12 Spalten) + `height3d` für eine große Darstellung.
 

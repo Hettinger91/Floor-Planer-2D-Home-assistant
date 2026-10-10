@@ -55,7 +55,20 @@ function linkedEntities() {
     f.items.forEach(i => { if (i.entity) set.add(i.entity); if (i.entity2) set.add(i.entity2); });
     f.rooms.forEach(r => { if (r.entity) set.add(r.entity); if (r.area) (areaMembers().get(r.area) || []).forEach(id => { if (/^(light|sensor|binary_sensor|cover)\./.test(id)) set.add(id); }); });
   });
+  const w = weatherId(); if (w) set.add(w);
+  if (HOST_HAS('sun.sun')) set.add('sun.sun');
   return [...set];
+}
+function HOST_HAS(id) { try { return !!(HOST.states() || {})[id]; } catch (_) { return false; } }
+// Wetter-Entität für die Live-Ansicht: Karte/Einstellung, sonst die erste weather.*-Entität.
+let _wid = null, _widAt = 0;
+function weatherId() {
+  const set = (typeof S === 'function' && S().weather3) || window.FP_WEATHER;
+  if (set === 'none') return '';
+  if (set) return set;
+  const now = Date.now(); if (_wid !== null && now - _widAt < 30000) return _wid;
+  let all = {}; try { all = HOST.states() || {}; } catch (_) { /* egal */ }
+  _wid = Object.keys(all).find(k => k.startsWith('weather.')) || ''; _widAt = now; return _wid;
 }
 
 function setHaBadge() {

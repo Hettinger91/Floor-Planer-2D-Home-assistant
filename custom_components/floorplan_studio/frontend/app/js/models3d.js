@@ -634,7 +634,7 @@ const FPM = (() => {
     b.cyl(r, r, 8, 0, 0, 0, mat('#a89c8c', 0.95), 8);
     for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n + Math.PI / 8, x = Math.cos(a) * (r - 8), z = Math.sin(a) * (r - 8); b.box(9, h * 0.78, 9, x, 8, z, wd); }
     b.add(new T.TorusGeometry(r - 8, 4, 6, 8), wd, 0, h * 0.78 + 6, 0).rotation.x = Math.PI / 2;
-    b.add(new T.ConeGeometry(r * 1.12, h * 0.24, 8), mat('#8a4b3a', 0.85), 0, h * 0.78 + 8 + h * 0.12, 0);
+    b.cyl(2, r * 1.12, h * 0.24, 0, h * 0.78 + 8, 0, mat('#8a4b3a', 0.85), 8);
     b.sph(5, 0, h * 1.03 + 8, 0, mat('#6d3a2c', 0.6));
     for (let i = 0; i < 5; i++) { const a = Math.PI * 0.2 + i * Math.PI * 0.4; b.box(36, 5, 12, Math.cos(a) * (r - 24), 24, Math.sin(a) * (r - 24), wd).rotation.y = -a + Math.PI / 2; }
   });

@@ -292,7 +292,8 @@ function renderFloorInspector(box) {
     { k: 'solarFill3', t: 'num', l: 'Dachbelegung (%) – nur bei Anzahl 0', min: 10, max: 100, step: 10 },
     { k: 'solarSide3', t: 'select', l: 'Dachseite', o: [['A', 'Seite A'], ['B', 'Seite B']] },
     { k: 'ground3', t: 'color', l: 'Bodenfarbe außen (Wiese)', def: '#93b07f' },
-    { k: 'look3d', t: 'select', l: 'Look', o: [['auto', 'Automatisch'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon'], ['blueprint', 'Blueprint']] },
+    { k: 'look3d', t: 'select', l: 'Look', o: [['auto', 'Automatisch'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['live', 'Live (Zeit & Wetter)'], ['neon', 'Neon'], ['blueprint', 'Blueprint']] },
+    { k: 'weather3', t: 'entity', l: 'Wetter-Entität für „Live“ (leer = automatisch, none = aus)', ph: 'weather.home' },
     { k: 'walls3d', t: 'select', l: 'Wände', o: [['auto', 'Automatisch (Kamera-Ausschnitt)'], ['full', 'Voll'], ['half', 'Halb'], ['flat', 'Flach']] },
   ];
   const numSel = ['grid'];

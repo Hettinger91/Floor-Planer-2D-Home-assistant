@@ -53,6 +53,7 @@ const FP3D = (() => {
   const LOOKS = {
     day: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true },
     dark: { bg: '#0f1626', sky: ['#070b16', '#121b2f', '#1d2840'], ground: '#1a2433', wall: '#cfc9bd', edge: null, amb: 0.35, hemi: 0.55, hs: '#6f86b8', hg: '#1b2230', sunc: '#8fa6d8', sun: 0.8, pl: 900, neon: false, real: true },
+    live: { bg: '#cfe3f4', sky: ['#7fb2e0', '#cfe3f4', '#eef3f6'], ground: '#93b07f', wall: '#f3f0ea', edge: null, amb: 0.9, hemi: 1.5, hs: '#e8f2ff', hg: '#9a8a74', sunc: '#fff1d6', sun: 3.6, pl: 520, neon: false, real: true, live: true },
     blueprint: { bg: '#0b3b75', ground: '#0d4a94', wall: '#1456a8', edge: '#e6f3ff', amb: 0.9, hemi: 0.9, hs: '#ffffff', hg: '#9dc4f0', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true, bp: true },
     neon: { bg: '#070a12', ground: '#0c1019', wall: '#141a2b', edge: '#26e6ff', amb: 0.8, hemi: 0.8, hs: '#ffffff', hg: '#8899aa', sunc: '#ffffff', sun: 1.0, pl: 900, neon: true },
   };
@@ -182,7 +183,7 @@ const FP3D = (() => {
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null;
+      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null; envO = null;
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
@@ -592,7 +593,159 @@ const FP3D = (() => {
       });
       return busy;
     }
-    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (opens.length && animateOpens(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; return b; }
+    function animateAll(dt, now) { let b = false; if (animateRecs(dt)) b = true; if (opens.length && animateOpens(dt)) b = true; if (robots.length || items.some(r => r.robot)) b = animateRobots(dt) || b; if (animateSolar(dt, now)) b = true; if (envO && animateEnv(dt, now)) b = true; return b; }
+
+    // ---------- Live-Umgebung: Tageszeit + Wetter (Look „live“) ----------
+    let envO = null;
+    const wx = { rain: 0, snow: 0, fog: 0, cl: 0, light: 0, wind: 0, elev: 30, az: 180, d: 1 };
+    const WCOND = {
+      sunny: { cl: 0.04 }, 'clear-night': { cl: 0.03 }, partlycloudy: { cl: 0.45 }, cloudy: { cl: 0.88 },
+      rainy: { cl: 0.88, rain: 0.55 }, pouring: { cl: 1, rain: 1 }, snowy: { cl: 0.88, snow: 0.65 }, 'snowy-rainy': { cl: 0.92, rain: 0.3, snow: 0.45 },
+      fog: { cl: 0.6, fog: 1 }, hail: { cl: 1, rain: 0.9 }, lightning: { cl: 0.95, light: 1 }, 'lightning-rainy': { cl: 1, rain: 0.8, light: 1 },
+      windy: { cl: 0.3, wind: 1 }, 'windy-variant': { cl: 0.6, wind: 1 }, exceptional: { cl: 0.5 },
+    };
+    const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    function readEnv() {
+      const sim = o.sim || S().sim3 || null, now = new Date();
+      let hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+      if (sim && sim.hour != null) hour = sim.hour;
+      const ss = states['sun.sun'], wid = typeof weatherId === 'function' ? weatherId() : '', ws = wid && states[wid];
+      let elev, az;
+      if (!(sim && sim.hour != null) && ss && ss.attributes && ss.attributes.elevation != null) { elev = Number(ss.attributes.elevation); az = Number(ss.attributes.azimuth) || 180; }
+      else { elev = 55 * Math.sin((hour - 6) / 12 * Math.PI); az = ((hour - 6) / 24 * 360 + 90) % 360; }
+      const cond = sim && sim.cond ? sim.cond : (ws ? String(ws.state) : 'sunny');
+      const c = Object.assign({ cl: 0.1, rain: 0, snow: 0, fog: 0, light: 0, wind: 0 }, WCOND[cond] || {});
+      const a = (ws && ws.attributes) || {};
+      if (a.cloud_coverage != null && !(sim && sim.cond)) c.cl = Math.min(1, Math.max(0, Number(a.cloud_coverage) / 100));
+      const wsp = Number(a.wind_speed); if (!isNaN(wsp) && !(sim && sim.cond)) c.wind = Math.max(c.wind, Math.min(1.5, wsp / 40));
+      return Object.assign(c, { elev, az, cond, hour });
+    }
+    function buildEnv(cx, cz, R, maxY, gm) {
+      const g = new T.Group(); world.add(g);
+      const rTex = (stops, size = 128) => canvasTex(size, size, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); stops.forEach(([p, col]) => gr.addColorStop(p, col)); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
+      const sunTex = rTex([[0, 'rgba(255,250,225,1)'], [0.12, 'rgba(255,244,200,1)'], [0.3, 'rgba(255,220,150,.35)'], [1, 'rgba(255,200,120,0)']]);
+      const moonTex = rTex([[0, 'rgba(240,244,255,1)'], [0.2, 'rgba(225,232,250,.95)'], [0.3, 'rgba(180,200,240,.25)'], [1, 'rgba(150,170,220,0)']]);
+      const cloudTex = canvasTex(256, 128, (c, w, h) => { for (let i = 0; i < 14; i++) { const x = w * (0.18 + 0.64 * Math.random()), y = h * (0.45 + 0.2 * Math.random()), r = h * (0.22 + 0.22 * Math.random()), gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); } });
+      const dotTex = rTex([[0, 'rgba(255,255,255,1)'], [0.5, 'rgba(255,255,255,.7)'], [1, 'rgba(255,255,255,0)']], 32);
+      const sp = (tex, sc) => { const m = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, fog: false })); m.scale.set(sc, sc, 1); m.renderOrder = -5; g.add(m); return m; };
+      const sunS = sp(sunTex, R * 5), moonS = sp(moonTex, R * 2.4);
+      const nCl = o.lowPower ? 9 : 16, cl = [];
+      for (let i = 0; i < nCl; i++) { const m = sp(cloudTex, R * (3 + Math.random() * 3.5)); m.scale.y = m.scale.x * 0.45; cl.push({ m, a: Math.random() * 6.283, r: R * (6 + Math.random() * 5), y: R * (0.4 + Math.random() * 1.1), v: 0.6 + Math.random() * 0.8, k: i / nCl }); }
+      const nSt = o.lowPower ? 150 : 350, sa = new Float32Array(nSt * 12), ss2 = R * 0.12;
+      for (let i = 0; i < nSt; i++) { const u = Math.random() * 6.283, v = 0.08 + Math.random() * 0.9, r2 = R * 20, x = cx + Math.cos(u) * Math.cos(v) * r2, y = Math.sin(v) * r2, z = cz + Math.sin(u) * Math.cos(v) * r2, q = i * 12; sa.set([x - ss2, y, z, x + ss2, y, z, x, y - ss2, z, x, y + ss2, z], q); }
+      const sg = new T.BufferGeometry(); sg.setAttribute('position', new T.Float32BufferAttribute(sa, 3));
+      const stars = new T.LineSegments(sg, new T.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, fog: false })); stars.renderOrder = -6; stars.frustumCulled = false; g.add(stars);
+      // Regen
+      const nR = o.lowPower ? 450 : 1300, ra = new Float32Array(nR * 6), rp = new Float32Array(nR * 3), W = R * 2.4, H = Math.max(R * 1.6, maxY + 200);
+      for (let i = 0; i < nR; i++) { rp[i * 3] = (Math.random() - 0.5) * W; rp[i * 3 + 1] = Math.random() * H; rp[i * 3 + 2] = (Math.random() - 0.5) * W; }
+      const rg = new T.BufferGeometry(); rg.setAttribute('position', new T.Float32BufferAttribute(ra, 3));
+      const rain = new T.LineSegments(rg, new T.LineBasicMaterial({ color: 0xcfe0f5, transparent: true, opacity: 0.85, fog: false, depthWrite: false })); rain.frustumCulled = false; rain.renderOrder = 20; g.add(rain);
+      // Schnee
+      const nS = o.lowPower ? 220 : 600, sn = new Float32Array(nS * 12), sq = new Float32Array(nS * 3), fs = Math.max(5, R * 0.014);
+      for (let i = 0; i < nS; i++) { sq[i * 3] = (Math.random() - 0.5) * W; sq[i * 3 + 1] = Math.random() * H; sq[i * 3 + 2] = (Math.random() - 0.5) * W; }
+      const ng = new T.BufferGeometry(); ng.setAttribute('position', new T.Float32BufferAttribute(sn, 3));
+      const snow = new T.LineSegments(ng, new T.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false, fog: false })); snow.frustumCulled = false; snow.renderOrder = 20; g.add(snow);
+      const gcol = colorOf(o.ground || S().ground3 || look.ground);
+      envO = { g, sunS, moonS, cl, stars, rain, snow, rp, ra: rg.attributes.position.array, sq, sn: ng.attributes.position.array, fs, nR, nS, W, H, cx, cz, R, maxY, gm, gcol, snowAcc: 0, flash: 0, nextFlash: 3, sig: '', t0: 0, lastD: -1, skyCv: null, T0: performance.now(), wind: 0 };
+      applyEnv(true);
+    }
+    function applyEnv(force) {
+      const E = envO; if (!E) return false;
+      const e = readEnv(), sg = [Math.round(e.elev * 2), Math.round(e.az), e.cl.toFixed(2), e.rain, e.snow, e.fog, e.light, e.wind.toFixed(1), o.lowPower].join('|');
+      if (!force && sg === E.sig) return false;
+      E.sig = sg; Object.assign(wx, e);
+      const d = smooth(-6, 9, e.elev); wx.d = d;
+      const tw = Math.exp(-Math.pow((e.elev - 3) / 7, 2)) * (1 - e.cl * 0.6);
+      const C = (h) => new T.Color(h);
+      const mix = (a, b, k) => a.clone().lerp(b, Math.min(1, Math.max(0, k)));
+      const stops = [0, 1, 2].map(i => {
+        let c = mix(C(['#050810', '#0d1526', '#1a2540'][i]), C(['#6aa6dd', '#cfe3f4', '#eef3f6'][i]), d);
+        c = mix(c, C(['#3d5a99', '#f2a56b', '#ffd9a0'][i]), tw * 0.85);
+        const grey = C(['#8d96a0', '#b3bac2', '#cfd4d9'][i]).multiplyScalar(0.18 + 0.82 * d);
+        return mix(c, grey, e.cl * (0.7 + 0.2 * e.rain));
+      });
+      const stormy = Math.max(e.rain, e.light) * 0.45; if (stormy) stops.forEach(c => c.multiplyScalar(1 - stormy * 0.5));
+      const tex = texCache.get('skylive') || canvasTex(8, 256, () => {}); texCache.set('skylive', tex);
+      const cv2 = tex.image, g2 = cv2.getContext('2d'), gr = g2.createLinearGradient(0, 0, 0, cv2.height);
+      gr.addColorStop(0, '#' + stops[0].getHexString()); gr.addColorStop(0.55, '#' + stops[1].getHexString()); gr.addColorStop(1, '#' + stops[2].getHexString());
+      g2.fillStyle = gr; g2.fillRect(0, 0, cv2.width, cv2.height); tex.needsUpdate = true; scene.background = tex;
+      const fogC = stops[1].clone(); const fogK = Math.min(1, e.fog);
+      if (fogK) fogC.lerp(mix(C('#9aa3ab'), C('#10151c'), 1 - d), 0.6 * fogK);
+      scene.fog = new T.Fog(fogC, radius * Math.max(0.6, 5 - 3.9 * e.fog - 1.5 * e.rain - 1 * e.snow), radius * Math.max(2.8, 16 - 11.5 * e.fog - 5 * e.rain - 3 * e.snow));
+      // Licht: Sonne am Tag, Mond in der Nacht
+      const useSun = e.elev > -1.5, ex = useSun ? Math.max(e.elev, 5) : Math.min(-e.elev, 45) + 20, eaz = useSun ? e.az : (e.az + 180) % 360;
+      const rad = Math.PI / 180, dist = E.R * 3, dirx = Math.sin(eaz * rad) * Math.cos(ex * rad), diry = Math.sin(ex * rad), dirz = -Math.cos(eaz * rad) * Math.cos(ex * rad);
+      sun.position.set(E.cx + dirx * dist, diry * dist + 10, E.cz + dirz * dist); sun.target.position.set(E.cx, 0, E.cz);
+      const sunI = 3.6 * d * (1 - 0.78 * e.cl) + (useSun ? 0 : 0), moonI = 0.9 * (1 - d) * (1 - 0.6 * e.cl);
+      sun.color.copy(useSun ? mix(C('#fff1d6'), C('#ff9a55'), tw * 1.1) : C('#9fb4e6'));
+      E.baseSun = useSun ? Math.max(sunI, 0.05) : moonI;
+      sun.intensity = E.baseSun;
+      E.baseAmb = (0.35 + 0.55 * d) * (1 - 0.1 * e.cl); E.baseHemi = (0.55 + 0.95 * d) * (1 - 0.5 * e.cl);
+      amb.intensity = E.baseAmb; hemi.intensity = E.baseHemi;
+      hemi.color.copy(mix(C('#6f86b8'), C('#e8f2ff'), d)).lerp(C('#c9cfd6'), e.cl * 0.4 * d);
+      hemi.groundColor.copy(mix(C('#1b2230'), C('#9a8a74'), d));
+      // Sonne / Mond / Sterne / Wolken
+      const sd = E.R * 14;
+      const sdir = (el, az2) => [Math.sin(az2 * rad) * Math.cos(el * rad), Math.sin(el * rad), -Math.cos(az2 * rad) * Math.cos(el * rad)];
+      const sv = sdir(Math.max(e.elev, -4), e.az); E.sunS.position.set(E.cx + sv[0] * sd, sv[1] * sd, E.cz + sv[2] * sd);
+      E.sunS.material.opacity = smooth(-5, 2, e.elev) * (1 - 0.92 * e.cl); E.sunS.material.color.copy(mix(C('#ffffff'), C('#ff9d5c'), tw));
+      const mv = sdir(Math.max(-e.elev, -4) + 8, (e.az + 180) % 360); E.moonS.position.set(E.cx + mv[0] * sd, mv[1] * sd, E.cz + mv[2] * sd);
+      E.moonS.material.opacity = (1 - d) * (1 - 0.95 * e.cl) * smooth(-4, 3, -e.elev);
+      E.stars.material.opacity = Math.pow(1 - d, 2) * (1 - e.cl) * 0.95;
+      const ccol = mix(C('#ffffff'), C('#8d96a0'), e.cl * 0.8).multiplyScalar(0.22 + 0.78 * d).lerp(C('#ffb985'), tw * 0.45);
+      E.cl.forEach(c => { c.m.visible = c.k < e.cl + 0.05; c.m.material.color.copy(ccol); c.m.material.opacity = Math.min(0.9, 0.3 + 0.55 * e.cl); });
+      // Boden: Schnee
+      E.snowTarget = Math.min(1, e.snow * 1.5);
+      E.rainAmt = e.rain; E.snowAmt = e.snow;
+      if (look.pl != null) { const np = Math.round(520 + (900 - 520) * (1 - d)); if (Math.abs(np - look.pl) > 40) { look.pl = np; applyLive(true); } }
+      dirty = true; return true;
+    }
+    function animateEnv(dt, now) {
+      const E = envO; if (!E) return false;
+      let ch = false;
+      if (!E.t0 || now - E.t0 > 1000) { E.t0 = now; if (applyEnv(false)) ch = true; }
+      const w = wx.wind, wxs = (w * 260 + (wx.rain ? 60 : 0)) * 1;
+      // Wolken ziehen
+      E.cl.forEach(c => { if (!c.m.visible) return; c.a += dt * 0.012 * c.v * (1 + w * 2.5); c.m.position.set(E.cx + Math.cos(c.a) * c.r, c.y, E.cz + Math.sin(c.a) * c.r); }); ch = true;
+      // Regen
+      const rv = E.rainAmt || 0;
+      E.rain.visible = rv > 0;
+      if (rv > 0) {
+        const n = Math.max(1, Math.round(E.nR * (0.25 + 0.75 * rv))), sp = 900 + 500 * rv, L = 40 + E.R * 0.06, lx = wxs / sp * L, ra = E.ra, rp = E.rp, W = E.W, H = E.H;
+        for (let i = 0; i < n; i++) {
+          let x = rp[i * 3] + wxs * dt, y = rp[i * 3 + 1] - sp * dt, z = rp[i * 3 + 2];
+          if (y < 0) { y += H; x = (Math.random() - 0.5) * W; z = (Math.random() - 0.5) * W; }
+          if (x > W / 2) x -= W;
+          rp[i * 3] = x; rp[i * 3 + 1] = y; rp[i * 3 + 2] = z;
+          const o6 = i * 6; ra[o6] = E.cx + x; ra[o6 + 1] = y; ra[o6 + 2] = E.cz + z; ra[o6 + 3] = E.cx + x - lx; ra[o6 + 4] = y + L; ra[o6 + 5] = E.cz + z;
+        }
+        E.rain.geometry.setDrawRange(0, n * 2); E.rain.geometry.attributes.position.needsUpdate = true;
+        E.rain.material.color.set(wx.d > 0.3 ? 0xb4cbe6 : 0x8fa6c8); ch = true;
+      }
+      // Schnee
+      const sv = E.snowAmt || 0;
+      E.snow.visible = sv > 0;
+      if (sv > 0) {
+        const n = Math.max(1, Math.round(E.nS * (0.3 + 0.7 * Math.min(1, sv * 1.4)))), sq = E.sq, sn = E.sn, W = E.W, H = E.H, t = now / 1000;
+        for (let i = 0; i < n; i++) {
+          let x = sq[i * 3] + (wxs * 0.5 + Math.sin(t * 0.8 + i) * 12) * dt, y = sq[i * 3 + 1] - (70 + (i % 5) * 12) * dt, z = sq[i * 3 + 2] + Math.cos(t * 0.7 + i * 1.3) * 10 * dt;
+          if (y < 0) { y += H; x = (Math.random() - 0.5) * W; z = (Math.random() - 0.5) * W; }
+          if (x > W / 2) x -= W;
+          sq[i * 3] = x; sq[i * 3 + 1] = y; sq[i * 3 + 2] = z; const X = E.cx + x, Z = E.cz + z, f = E.fs, q = i * 12; sn[q] = X - f; sn[q + 1] = y; sn[q + 2] = Z; sn[q + 3] = X + f; sn[q + 4] = y; sn[q + 5] = Z; sn[q + 6] = X; sn[q + 7] = y - f; sn[q + 8] = Z; sn[q + 9] = X; sn[q + 10] = y + f; sn[q + 11] = Z;
+        }
+        E.snow.geometry.setDrawRange(0, n * 4); E.snow.geometry.attributes.position.needsUpdate = true; ch = true;
+      }
+      // Schneedecke
+      const tgt = E.snowTarget || 0, cur = E.snowAcc;
+      if (Math.abs(tgt - cur) > 0.004 || E.snowShown == null) { E.snowAcc = cur + (tgt > cur ? 1 : -1) * Math.min(Math.abs(tgt - cur), dt * 0.05); E.snowShown = 1; if (E.gm && E.gm.material) E.gm.material.color.copy(E.gcol).lerp(new T.Color('#eef3f8'), E.snowAcc * 0.9); ch = true; }
+      // Blitz
+      if (wx.light) {
+        E.nextFlash -= dt;
+        if (E.nextFlash <= 0) { E.flash = 1; E.nextFlash = 3 + Math.random() * 6; }
+      }
+      if (E.flash > 0) { E.flash = Math.max(0, E.flash - dt * 3.2); const f = E.flash * (0.6 + 0.4 * Math.sin(E.flash * 30)); amb.intensity = E.baseAmb + 2.6 * f; hemi.intensity = E.baseHemi + 2.2 * f; sun.intensity = E.baseSun + 3 * f; renderer.toneMappingExposure = 1.12 + 0.6 * f; ch = true; if (E.flash === 0) { amb.intensity = E.baseAmb; hemi.intensity = E.baseHemi; sun.intensity = E.baseSun; renderer.toneMappingExposure = 1.12; } }
+      return ch;
+    }
 
     // ---------- Auswahl-Rahmen ----------
     function applySel() {
@@ -661,6 +814,7 @@ const FP3D = (() => {
       sun.position.set(cx + R * 1.2, maxY + R * 2, cz + R * 0.8); sun.target.position.set(cx, 0, cz);
       const sc = sun.shadow.camera; sc.left = -R * 1.6; sc.right = R * 1.6; sc.top = R * 1.6; sc.bottom = -R * 1.6; sc.near = 10; sc.far = R * 8; sc.updateProjectionMatrix();
       sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.6;
+      if (L3.live) buildEnv(cx, cz, R, maxY, gm); else { envO = null; renderer.toneMappingExposure = 1.12; }
       const key = floors.map(f => f.id).join(',') + '|' + o.getFloor() + '|' + o.allFloors;
       if (!fitted || fitKey !== key) { cam.tx = cx; cam.ty = Math.min(maxY, 300) * 0.3; cam.tz = cz; cam.dist = radius / Math.sin(cam.fov ? cam.fov : 0.36) * 0.95; fitted = true; fitKey = key; }
       applyLive(true);
@@ -871,16 +1025,18 @@ const FP3D = (() => {
       raf = 0; if (destroyed) return;
       if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
       if (animateWalls()) dirty = true;
-      if (solar || opens.length || items.some(r => r.robot || r.anim)) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000; if (!lastAnim || dtA > 0.028) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
+      const othersA = solar || opens.length || items.some(r => r.robot || r.anim);
+      if (othersA || envO) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000, minDt = othersA ? 0.028 : (envO && (wx.rain || wx.snow || wx.light) ? (o.lowPower ? 0.05 : 0.03) : 0.1); if (!lastAnim || dtA > minDt) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
       raf = requestAnimationFrame(frame);
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0]);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
+      if (look.live) look = Object.assign({}, look);
       const sg = structSig();
       if (!force && sg === built) return false;
       built = sg;
@@ -898,7 +1054,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };
