@@ -505,7 +505,17 @@ const LIB = [
   T('Garten', 'sandbox', 'Sandkasten', '🏖️', 120, 120, '#ffe0b2'),
   T('Garten', 'trampoline', 'Trampolin', '🤸', 300, 300, '#cfd8dc', { shape: 'ellipse' }),
   T('Garten', 'swing', 'Schaukel', '🛝', 200, 150, CF),
-  T('Garten', 'terrace', 'Terrasse / Platten', '', 400, 300, '#d7ccc8'),
+  T('Garten', 'terrace', 'Terrasse (Platten 40 cm)', '', 400, 300, '#d7ccc8'),
+  T('Garten', 'terrace_slabs', 'Terrasse (Großplatten 60 cm)', '', 420, 300, '#d7ccc8'),
+  T('Garten', 'terrace_stone', 'Terrasse (Naturstein)', '', 400, 300, '#d7ccc8'),
+  T('Garten', 'gazebo_round', 'Pavillon rund', '⛺', 320, 320, '#d7ccc8', { shape: 'ellipse' }),
+  T('Garten', 'gazebo_wood', 'Pavillon Holz', '🛖', 360, 300, '#d7ccc8'),
+  T('Garten', 'fountain_tiered', 'Zierbrunnen (Etagen)', '⛲', 140, 140, '#b3e5fc', { shape: 'ellipse', hint: 'switch' }),
+  T('Garten', 'wall_fountain', 'Wandbrunnen', '⛲', 80, 40, '#b3e5fc', { hint: 'switch' }),
+  T('Garten', 'bbq', 'Kugelgrill', '🍖', 70, 60, '#cfd8dc', { shape: 'ellipse' }),
+  T('Garten', 'jetty', 'Steg', '', 120, 400, '#d7ccc8'),
+  T('Garten', 'bridge_garden', 'Gartenbrücke', '', 110, 300, '#d7ccc8'),
+  T('Garten', 'strandkorb', 'Strandkorb', '🏖️', 120, 90, '#ffe0b2'),
   T('Außen & Garage', 'driveway', 'Einfahrt', '', 300, 600, '#cfd8dc'),
   T('Garten', 'firepit', 'Feuerstelle', '🔥', 90, 90, '#ffccbc', { shape: 'ellipse' }),
   T('Garten', 'parasol', 'Sonnenschirm', '⛱️', 200, 200, '#ffe0b2', { shape: 'ellipse' }),
@@ -2057,7 +2067,6 @@ const FPM = (() => {
   reg('gate', b => { const { w, d, h } = b, m = mat('#2d3238', 0.4, 0.6); [-1, 1].forEach(s => b.box(8, h, 8, s * (w / 2 - 4), 0, 0, m)); b.box(w - 16, 4, 3, 0, h * 0.2, 0, m); b.box(w - 16, 4, 3, 0, h * 0.85, 0, m); for (let i = 0; i < 12; i++) b.box(2, h * 0.7, 2, -w / 2 + 12 + i * (w - 24) / 11, h * 0.2, 0, m); void d; });
   reg('flowerbed', b => { const { w, d, h } = b; b.rb(w, h, d, 3, 0, 0, 0, mat('#8e8a82', 0.9)); b.box(w - 8, 1, d - 8, 0, h - 0.5, 0, mat(P.soil, 1)); const cs = ['#e74c3c', '#f1c40f', '#e67eb4', '#9b59b6']; for (let i = 0; i < 14; i++) { const x = -w / 2 + 12 + (i * 37 % 100) / 100 * (w - 24), z = -d / 2 + 10 + ((i * 53) % 100) / 100 * (d - 20); b.cyl(0.5, 0.5, 10, x, h, z, mat(P.leaf), 5); b.sph(3, x, h + 11, z, mat(cs[i % 4], 0.6)); } });
   reg('lawn', b => { b.rb(b.w, b.h + 1, b.d, 0.5, 0, 0, 0, mat(b.col || '#6aa84f', 1)); });
-  reg('terrace', b => { b.box(b.w, b.h + 2, b.d, 0, 0, 0, mat(b.col || '#a68a6a', 0.8)); const n = Math.round(b.d / 12); for (let i = 1; i < n; i++) b.box(b.w, 0.4, 0.4, 0, b.h + 2, -b.d / 2 + i * 12, mat('#6d573f', 0.9)); });
   reg('driveway', b => { b.box(b.w, b.h + 1, b.d, 0, 0, 0, mat(b.col || '#9a9ea3', 0.95)); });
   reg('mailbox', b => { const { w, d, h } = b; b.box(3, h * 0.55, 3, 0, 0, 0, mat('#4a4f57', 0.5, 0.5)); b.rb(w, h * 0.35, d, 3, 0, h * 0.62, 0, mat('#d9a521', 0.5)); b.box(w * 0.7, 1, 1, 0, h * 0.76, d / 2, mat(P.black)); });
   reg('shed', b => { const { w, d, h } = b; b.box(w, h * 0.78, d, 0, 0, 0, mat('#a97c50', 0.75)); const sh = new T.Shape(); sh.moveTo(-w / 2 - 8, 0); sh.lineTo(w / 2 + 8, 0); sh.lineTo(0, h * 0.28); sh.closePath(); const geo = new T.ExtrudeGeometry(sh, { depth: d + 12, bevelEnabled: false }); geo.translate(0, 0, -(d + 12) / 2); b.add(geo, mat('#5a3d2a', 0.8), 0, h * 0.78, 0).rotation.y = 0; b.box(w * 0.3, h * 0.6, 1, -w * 0.2, 0, d / 2 + 0.3, mat('#7d5a38', 0.7)); b.box(w * 0.22, h * 0.25, 1, w * 0.22, h * 0.3, d / 2 + 0.3, b.glass()); });
@@ -2149,6 +2158,94 @@ const FPM = (() => {
   reg('sensor_garden_motion', b => { b.rb(8, 14, 6, 2, 0, 0, 0, mat(P.white, 0.4)); b.sph(3.2, 0, 9, 3.4, mat('#eef1f2', 0.2, 0, { transparent: true, opacity: 0.9 }), 1, 1, 0.5); b.sph(0.7, 2.5, 3, 3, b.lv('#400', '#3de07a', 1.6)); });
 
 
+
+  // ---------- Terrasse, Pavillons, Brunnen & mehr ----------
+  const rndSeed = k => { let x = k * 9301 + 49297; return () => (x = (x * 16807) % 2147483647) / 2147483647; };
+  reg('terrace terrace_slabs terrace_stone', b => {
+    const { w, d } = b, t = b.it.type, hh = Math.max(3, b.h), fug = mat('#7d7a74', 1), rnd = rndSeed(w + d);
+    b.box(w, hh * 0.55, d, 0, 0, 0, fug);
+    const shades = t === 'terrace_stone' ? ['#b9ada0', '#aea294', '#c4b9ac', '#a89d90'] : ['#cfcac1', '#c6c1b8', '#d6d1c8'];
+    const base = b.col && b.col !== '#d7ccc8' ? b.col : null, pick = i => mat(base || shades[i % shades.length], 0.92);
+    if (t === 'terrace_stone') {
+      let z = -d / 2, row = 0;
+      while (z < d / 2 - 4) { const rh = Math.min(d / 2 - z, 34 + rnd() * 26); let x = -w / 2; while (x < w / 2 - 4) { const cw = Math.min(w / 2 - x, 32 + rnd() * 44); b.box(cw - 1.6, hh * 0.5, rh - 1.6, x + cw / 2, hh * 0.55, z + rh / 2, pick(Math.floor(rnd() * 4))); x += cw; } z += rh; row++; }
+      return;
+    }
+    const ps = t === 'terrace_slabs' ? 60 : 40, nx = Math.max(1, Math.round(w / ps)), nz = Math.max(1, Math.round(d / ps));
+    const pw = w / nx, pd = d / nz;
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) b.box(pw - 1.4, hh * 0.5, pd - 1.4, -w / 2 + (i + 0.5) * pw, hh * 0.55, -d / 2 + (j + 0.5) * pd, pick(i * 3 + j * 5 + Math.floor(rnd() * 3)));
+  });
+  reg('gazebo_round', b => {
+    const r = Math.min(b.w, b.d) / 2, h = b.h, wd = mat('#8c6a4a', 0.7), n = 8;
+    b.cyl(r, r, 8, 0, 0, 0, mat('#a89c8c', 0.95), 8);
+    for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n + Math.PI / 8, x = Math.cos(a) * (r - 8), z = Math.sin(a) * (r - 8); b.box(9, h * 0.78, 9, x, 8, z, wd); }
+    b.add(new T.TorusGeometry(r - 8, 4, 6, 8), wd, 0, h * 0.78 + 6, 0).rotation.x = Math.PI / 2;
+    b.add(new T.ConeGeometry(r * 1.12, h * 0.24, 8), mat('#8a4b3a', 0.85), 0, h * 0.78 + 8 + h * 0.12, 0);
+    b.sph(5, 0, h * 1.03 + 8, 0, mat('#6d3a2c', 0.6));
+    for (let i = 0; i < 5; i++) { const a = Math.PI * 0.2 + i * Math.PI * 0.4; b.box(36, 5, 12, Math.cos(a) * (r - 24), 24, Math.sin(a) * (r - 24), wd).rotation.y = -a + Math.PI / 2; }
+  });
+  reg('gazebo_wood', b => {
+    const { w, d, h } = b, wd = mat('#9a7650', 0.7), dk = mat('#6d4a2f', 0.75);
+    b.box(w, 10, d, 0, 0, 0, mat('#b08a5e', 0.8));
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(12, h * 0.72, 12, x * (w / 2 - 8), 10, z * (d / 2 - 8), wd));
+    [-1, 1].forEach(z => b.box(w - 4, 12, 9, 0, h * 0.72 - 2, z * (d / 2 - 8), dk)); [-1, 1].forEach(x => b.box(9, 12, d - 4, x * (w / 2 - 8), h * 0.72 - 2, 0, dk));
+    [-1, 1].forEach(z => { b.box(w - 40, 5, 5, 0, 70, z * (d / 2 - 8), wd); for (let i = 0; i < Math.round(w / 22); i++) b.box(3.5, 60, 3.5, -w / 2 + 28 + i * (w - 56) / Math.max(1, Math.round(w / 22) - 1), 10, z * (d / 2 - 8), wd); });
+    const sh = new T.Shape(); sh.moveTo(-w / 2 - 14, 0); sh.lineTo(w / 2 + 14, 0); sh.lineTo(0, h * 0.3); sh.closePath();
+    const geo = new T.ExtrudeGeometry(sh, { depth: d + 28, bevelEnabled: false }); geo.translate(0, 0, -(d + 28) / 2); b.add(geo, mat('#5a3d2a', 0.85), 0, h * 0.72 + 10, 0);
+    b.box(w * 0.6, 6, 28, 0, 22, -d / 2 + 24, wd);
+  });
+  function fallAnim(b, o) {
+    const grp = new T.Group(); grp.position.set(o.x || 0, o.y, o.z || 0); b.g.add(grp);
+    const dm = new T.MeshBasicMaterial({ color: 0x9bd8ff, transparent: true, opacity: 0.8, depthWrite: false }), geo = new T.SphereGeometry(o.size || 1, 6, 5), drops = [];
+    for (let i = 0; i < o.n; i++) { const mm = new T.Mesh(geo, dm); mm.visible = false; grp.add(mm); drops.push({ m: mm, ph: i / o.n, jx: ((i * 37) % 11 - 5) / 5 * (o.spread || 6) }); }
+    b.anim = { type: 'spray', step: (dt, on) => {
+      if (!on) { drops.forEach(d => { d.m.visible = false; }); return; }
+      drops.forEach(d => { d.ph = (d.ph + dt * (o.speed || 0.8)) % 1; d.m.visible = true; d.m.position.set(d.jx * (0.4 + d.ph), -d.ph * d.ph * o.h, (o.out || 0) * Math.sqrt(d.ph)); });
+    } };
+  }
+  reg('fountain_tiered', b => {
+    const r = Math.min(b.w, b.d) / 2, h = b.h, st = mat('#bdb8ae', 0.9), wt = mat('#2f8fc8', 0.05, 0.2, { transparent: true, opacity: 0.85 });
+    b.cyl(r, r, 34, 0, 0, 0, st, 36); b.cyl(r - 6, r - 6, 2, 0, 33, 0, wt, 36);
+    b.cyl(r * 0.16, r * 0.2, h * 0.42, 0, 34, 0, st, 16);
+    b.cyl(r * 0.62, r * 0.4, 9, 0, 34 + h * 0.3, 0, st, 28); b.cyl(r * 0.55, r * 0.55, 1.6, 0, 34 + h * 0.3 + 8, 0, wt, 28);
+    b.cyl(r * 0.09, r * 0.12, h * 0.2, 0, 34 + h * 0.3 + 9, 0, st, 12);
+    b.cyl(r * 0.34, r * 0.2, 7, 0, 34 + h * 0.5, 0, st, 22); b.cyl(r * 0.29, r * 0.29, 1.4, 0, 34 + h * 0.5 + 6, 0, wt, 22);
+    b.sph(r * 0.08, 0, 34 + h * 0.5 + 12, 0, st);
+    sprayAnim(b, { y: 34 + h * 0.5 + 12, n: 36, jets: 6, range: r * 0.42, height: 60, rot: 0, speed: 0.85, size: 1.1 });
+  });
+  reg('wall_fountain', b => {
+    const { w, d, h } = b, st = mat('#b9b3a8', 0.9), wt = mat('#2f8fc8', 0.05, 0.2, { transparent: true, opacity: 0.85 });
+    b.box(w, h * 0.8, 10, 0, h * 0.2, -d / 2 + 5, st); b.box(w + 8, 5, 14, 0, h, -d / 2 + 6, st);
+    b.cyl(2.2, 2.2, 14, 0, h * 0.62, -d / 2 + 14, mat(P.steel, 0.3, 0.8), 10).rotation.x = Math.PI / 2;
+    b.box(w, 18, d - 6, 0, 0, 3, st); b.box(w - 10, 2, d - 18, 0, 17, 3, wt);
+    fallAnim(b, { x: 0, y: h * 0.62, z: -d / 2 + 22, n: 26, h: h * 0.62 - 16, speed: 0.9, spread: 2, out: 6, size: 1 });
+  });
+  reg('bbq', b => {
+    const { w, d, h } = b, bl = mat('#25282d', 0.45, 0.3), r = Math.min(w, d) * 0.5;
+    [[-1, -1], [1, -1], [0, 1]].forEach(([x, z]) => { const l = b.cyl(1.4, 1.4, h * 0.58, x * r * 0.55, 0, z * r * 0.5, mat(P.steel, 0.4, 0.7), 8); l.rotation.z = x * 0.12; });
+    b.add(new T.SphereGeometry(r, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), bl, 0, h * 0.58, 0).rotation.x = Math.PI;
+    const lid = b.add(new T.SphereGeometry(r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('#2a2d33', 0.4, 0.3), 0, h * 0.62, 0); lid.rotation.x = -0.5; lid.position.z = -r * 0.25;
+    b.cyl(r * 0.92, r * 0.92, 0.8, 0, h * 0.62, 0, mat('#8a8e94', 0.4, 0.6), 24); b.cyl(r * 0.2, r * 0.2, 5, 0, h * 0.95, -r * 0.45, bl, 8);
+    b.box(w * 0.5, 3, 18, w * 0.7, h * 0.4, 0, mat('#6b4a32', 0.8));
+  });
+  reg('jetty', b => {
+    const { w, d, h } = b, wd = mat('#8f7556', 0.85), n = Math.max(3, Math.round(d / 14));
+    for (let i = 0; i < n; i++) b.box(w, 4, d / n - 1, 0, h - 4, -d / 2 + (i + 0.5) * d / n, mat(i % 2 ? '#a58862' : '#97795a', 0.85));
+    [-1, 1].forEach(x => { b.box(5, 5, d, x * (w / 2 - 6), h - 9, 0, wd); for (let i = 0; i < Math.max(2, Math.round(d / 110)); i++) b.box(9, h, 9, x * (w / 2 - 6), 0, -d / 2 + 14 + i * (d - 28) / Math.max(1, Math.round(d / 110) - 1), wd); });
+  });
+  reg('bridge_garden', b => {
+    const { w, d, h } = b, wd = mat('#8f7556', 0.8), n = 14;
+    for (let i = 0; i < n; i++) { const t = i / (n - 1), y = Math.sin(Math.PI * t) * h * 0.55; const pl = b.box(w - 14, 4, d / n + 0.4, 0, y + h * 0.3, -d / 2 + (i + 0.5) * d / n, mat(i % 2 ? '#a58862' : '#97795a', 0.85)); pl.rotation.x = Math.cos(Math.PI * t) * 0.35 * (h / 60); }
+    [-1, 1].forEach(x => { for (let i = 0; i < 7; i++) { const t = i / 6, y = Math.sin(Math.PI * t) * h * 0.55; b.box(4, 36, 4, x * (w / 2 - 4), y + h * 0.3 + 2, -d / 2 + 6 + t * (d - 12), wd); } for (let i = 0; i < n - 1; i++) { const t = (i + 0.5) / (n - 1), y = Math.sin(Math.PI * t) * h * 0.55; b.box(3.5, 3.5, d / n + 1, x * (w / 2 - 4), y + h * 0.3 + 38, -d / 2 + (i + 1) * d / n, wd).rotation.x = Math.cos(Math.PI * t) * 0.35 * (h / 60); } });
+  });
+  reg('strandkorb', b => {
+    const { w, d, h } = b, wk = mat('#c9a56a', 0.9), st = mat('#2a5d9a', 0.9);
+    b.box(w, h * 0.3, d * 0.8, 0, 0, d * 0.1, wk); b.rb(w - 10, h * 0.2, d * 0.7, 4, 0, h * 0.3, d * 0.12, mat('#f1efe9', 0.95));
+    b.box(w, h * 0.62, 10, 0, h * 0.2, -d / 2 + 5, wk); [-1, 1].forEach(x => b.box(10, h * 0.5, d * 0.7, x * (w / 2 - 5), h * 0.2, -d * 0.02, wk));
+    const hood = b.add(new T.CylinderGeometry(w * 0.5, w * 0.5, d * 0.6, 20, 1, false, 0, Math.PI), st, 0, h * 0.82, -d * 0.1); hood.rotation.set(Math.PI / 2, Math.PI / 2, 0); hood.scale.set(1, 1, 0.9);
+    b.box(w * 0.9, 2, 14, 0, h * 0.27, d * 0.52, wk);
+  });
+
   function sprayAnim(b, o) {
     const grp = new T.Group(); grp.position.set(o.x || 0, o.y, o.z || 0); b.g.add(grp);
     const dm = new T.MeshBasicMaterial({ color: 0x9bd8ff, transparent: true, opacity: 0.8, depthWrite: false }), geo = new T.SphereGeometry(o.size || 1.4, 6, 5), drops = [];
@@ -2222,7 +2319,7 @@ const FP3D = (() => {
     stairs: [260, 0], stairs_wide: [260, 0], stairs_L: [260, 0], stairs_U: [260, 0], stairs_spiral: [260, 0], stairs_spiral_small: [260, 0], stairs_outdoor: [100, 0], stairs_basement: [260, 0],
     plant: [90, 0], plant_big: [130, 0], plant_small: [30, 0], rug: [2, 0], rug_round: [2, 0], pillar: [250, 0], pillar_round: [250, 0], curtain: [240, 0], painting: [60, 140], playmat: [2, 0],
     car: [150, 0], carport: [2, 0], bike: [100, 0], terrace_table: [75, 0], lounger: [40, 0], grill: [95, 0], pool: [4, 0], hot_tub: [80, 0], tree: [350, 0], bush: [90, 0], hedge: [150, 0], fence: [110, 0],
-    flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [3, 0], driveway: [2, 0],
+    flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [4, 0], terrace_slabs: [4, 0], terrace_stone: [4, 0], gazebo_round: [300, 0], gazebo_wood: [300, 0], fountain_tiered: [160, 0], wall_fountain: [140, 0], bbq: [110, 0], jetty: [42, 0], bridge_garden: [100, 0], strandkorb: [160, 0], driveway: [2, 0],
     firepit: [40, 0], parasol: [230, 0], elevator: [250, 0], chimney: [250, 0], safe: [50, 0], fire_ext: [40, 10], electric_panel: [50, 150], niche: [250, 0], cable_duct: [250, 0],
   };
   const CAT3 = { Garten: [60, 0],  Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
@@ -2652,26 +2749,75 @@ const FP3D = (() => {
       return busy;
     }
 
+    // ---------- Dachgeometrie mit UV (Ziegel) ----------
+    function roofGeo(mode, across, len, rh) {
+      const a = across / 2, l = len / 2, faces = [];
+      if (mode === 'gable') {
+        faces.push([[-a, 0, -l], [-a, 0, l], [0, rh, l], [0, rh, -l]], [[a, 0, l], [a, 0, -l], [0, rh, -l], [0, rh, l]], [[-a, 0, l], [a, 0, l], [0, rh, l]], [[a, 0, -l], [-a, 0, -l], [0, rh, -l]]);
+      } else {
+        const rl = Math.max(0, l - a), A = [-a, 0, -l], B = [a, 0, -l], C = [a, 0, l], D = [-a, 0, l], R1 = [0, rh, -rl], R2 = [0, rh, rl];
+        faces.push([A, B, R1], [C, D, R2], [B, C, R2, R1], [D, A, R1, R2]);
+      }
+      const pos = [], uv = [], TW = 120, TH = 152;
+      faces.forEach(f => {
+        const p0 = f[0], e1 = new T.Vector3(f[1][0] - p0[0], f[1][1] - p0[1], f[1][2] - p0[2]), e2 = new T.Vector3(f[f.length - 1][0] - p0[0], f[f.length - 1][1] - p0[1], f[f.length - 1][2] - p0[2]);
+        const n = new T.Vector3().crossVectors(e1, e2).normalize(); let hz = new T.Vector3().crossVectors(n, new T.Vector3(0, 1, 0));
+        if (hz.lengthSq() < 1e-6) hz = new T.Vector3(1, 0, 0); hz.normalize();
+        let up = new T.Vector3().crossVectors(n, hz).normalize(); if (up.y < 0) up.negate();
+        const put = q => { pos.push(q[0], q[1], q[2]); const dv = new T.Vector3(q[0] - p0[0], q[1] - p0[1], q[2] - p0[2]); uv.push(dv.dot(hz) / TW, dv.dot(up) / TH); };
+        for (let i = 1; i < f.length - 1; i++) { put(f[0]); put(f[i]); put(f[i + 1]); }
+      });
+      const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.computeVertexNormals();
+      return geo;
+    }
+    function roofTileTex(col) {
+      const key = 'tile|' + col; let t = texCache.get(key); if (t) return t;
+      const c0 = new T.Color(col);
+      t = canvasTex(256, 256, (g, w2, h2) => {
+        g.fillStyle = '#' + c0.clone().multiplyScalar(0.45).getHexString(); g.fillRect(0, 0, w2, h2);
+        let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+        const cw = w2 / 4, ch = h2 / 4;
+        for (let r = -1; r < 5; r++) for (let c = -1; c < 5; c++) {
+          const x = c * cw + (((r % 2) + 2) % 2) * cw / 2, y = r * ch, k = 0.82 + rnd() * 0.32, cc = c0.clone().multiplyScalar(k);
+          const gr = g.createLinearGradient(0, y, 0, y + ch * 1.35); gr.addColorStop(0, '#' + cc.clone().multiplyScalar(0.8).getHexString()); gr.addColorStop(0.6, '#' + cc.getHexString()); gr.addColorStop(1, '#' + cc.clone().multiplyScalar(1.12).getHexString());
+          g.fillStyle = gr; g.beginPath(); g.moveTo(x + 2, y); g.lineTo(x + cw - 2, y); g.lineTo(x + cw - 2, y + ch * 1.05); g.quadraticCurveTo(x + cw / 2, y + ch * 1.45, x + 2, y + ch * 1.05); g.closePath(); g.fill();
+          g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.5; g.stroke();
+        }
+      });
+      t.wrapS = t.wrapT = T.RepeatWrapping; texCache.set(key, t); return t;
+    }
+
     // ---------- Solaranlage auf dem Dach ----------
     function buildSolar(P) {
       const { roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch } = P;
-      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1);
+      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1), reqN = Math.max(0, Math.round(Number(S().solarCount3) || 0));
       const PW = 100, PH = 170, GAP = 3;
       const tex = canvasTex(128, 256, (g, w2, h2) => { g.fillStyle = '#12213d'; g.fillRect(0, 0, w2, h2); const gr = g.createLinearGradient(0, 0, w2, h2); gr.addColorStop(0, 'rgba(90,140,220,.35)'); gr.addColorStop(1, 'rgba(10,20,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); g.strokeStyle = 'rgba(190,210,240,.55)'; g.lineWidth = 2; for (let i = 0; i <= 6; i++) { g.beginPath(); g.moveTo(i * w2 / 6, 0); g.lineTo(i * w2 / 6, h2); g.stroke(); } for (let j = 0; j <= 10; j++) { g.beginPath(); g.moveTo(0, j * h2 / 10); g.lineTo(w2, j * h2 / 10); g.stroke(); } });
       const topM = new T.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: 0.1 });
       const frameM = new T.MeshStandardMaterial({ color: 0xcfd4d9, roughness: 0.4, metalness: 0.8 });
       const pivot = new T.Group(); pivot.position.set(cx2, by, cz2); if (roofMode !== 'flat') pivot.rotation.y = alongX ? Math.PI / 2 : 0; world.add(pivot);
       const mkPanel = (dx, dz) => { const g = new T.Group(); const f2 = new T.Mesh(new T.BoxGeometry(dx, 3.2, dz), frameM); f2.castShadow = true; const tp = new T.Mesh(new T.PlaneGeometry(dx - 4, dz - 4), topM); tp.rotation.x = -Math.PI / 2; tp.position.y = 1.7; g.add(f2, tp); return g; };
+      // gleichmäßig zentriertes Raster für n Module
+      const gridPos = (n, colsMax, rowsMax) => {
+        const rows = Math.min(rowsMax, Math.max(1, Math.ceil(n / colsMax))), cols = Math.min(colsMax, Math.ceil(n / rows)), out = []; let k = 0;
+        for (let r = 0; r < rows && k < n; r++) { const cnt = Math.min(cols, n - k); for (let c = 0; c < cnt; c++) { out.push({ c: c - (cnt - 1) / 2, r }); k++; } }
+        return { list: out, rows };
+      };
       const spots = []; // [group-position, rotation]
       if (roofMode === 'flat') {
         const aw = W - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, ad = D - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, tilt = 0.4, pitchD = PH * Math.cos(tilt) + 55;
-        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.max(1, Math.round(max * fill));
-        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); spots.push({ x: -aw / 2 + PW / 2 + c * (PW + GAP) + (aw - cols * (PW + GAP) + GAP) / 2, y: 7 + PH * Math.sin(tilt) / 2 + 8, z: -ad / 2 + PH / 2 + r * pitchD, rx: side * tilt, rz: 0, flat: true }); }
+        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)));
+        const gp = gridPos(n, cols, rows);
+        gp.list.forEach(q => spots.push({ x: q.c * (PW + GAP), y: 7 + PH * Math.sin(tilt) / 2 + 8, z: (q.r - (gp.rows - 1) / 2) * pitchD, rx: side * tilt, rz: 0, flat: true }));
       } else {
-        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), ux = -side * (across / 2) / Ls, uy = rh / Ls, nx = side * rh / Ls, ny = (across / 2) / Ls;
-        const ex = side * across / 2, s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
-        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.max(1, Math.round(max * fill));
-        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols), sc = s0 + PH / 2 + r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: -regionLen / 2 + PW / 2 + c * (PW + GAP) + (regionLen - cols * (PW + GAP) + GAP) / 2, rz: -side * alpha, rx: 0, flat: false }); }
+        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols;
+        const nAll = reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)), nA = Math.min(nAll, max), nB = Math.min(nAll - nA, max);
+        [[side, nA], [-side, nB]].forEach(([sd, cnt]) => {
+          if (cnt <= 0) return;
+          const ux = -sd * (across / 2) / Ls, uy = rh / Ls, nx = sd * rh / Ls, ny = (across / 2) / Ls, ex = sd * across / 2, gp = gridPos(cnt, cols, rowsMax);
+          gp.list.forEach(q => { const sc = s0 + PH / 2 + q.r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: q.c * (PW + GAP), rz: -sd * alpha, rx: 0, flat: false }); });
+        });
       }
       const centers = [];
       spots.forEach(sp => { const g = sp.flat ? mkPanel(PW, PH) : mkPanel(PH, PW); g.position.set(sp.x, sp.y, sp.z); g.rotation.set(sp.rx || 0, 0, sp.rz || 0); pivot.add(g); });
@@ -2737,7 +2883,7 @@ const FP3D = (() => {
     function buildAll() {
       clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
       const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
-      const slab = wallH() + 25, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
+      const slab = wallH() + 14, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
       const levels = floors.map((f, i) => i).filter(i => floors[i].kind !== 'garden'), gardens = floors.map((f, i) => i).filter(i => floors[i].kind === 'garden');
       const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', lvCur = curIsGarden ? levels.length - 1 : levels.indexOf(curIdx);
       const show = o.allFloors || curIsGarden ? levels : levels.filter((i, k) => k <= lvCur);
@@ -2755,27 +2901,20 @@ const FP3D = (() => {
         const ti = show[show.length - 1], tf = floors[ti], slabIdx = show.length - 1;
         let rx0 = 1e9, rx1 = -1e9, rz0 = 1e9, rz1 = -1e9;
         (tf.walls || []).forEach(w2 => { rx0 = Math.min(rx0, w2.x1, w2.x2); rx1 = Math.max(rx1, w2.x1, w2.x2); rz0 = Math.min(rz0, w2.y1, w2.y2); rz1 = Math.max(rz1, w2.y1, w2.y2); });
+        if (rx0 <= rx1) { const tt = Math.max(...(tf.walls || []).map(w2 => w2.t || S().wallThickness || 15)) / 2; rx0 -= tt; rx1 += tt; rz0 -= tt; rz1 += tt; }
         if (rx0 > rx1) { const b2 = contentBounds(tf); rx0 = b2.x; rx1 = b2.x + b2.w; rz0 = b2.y; rz1 = b2.y + b2.h; }
         const ov = Math.max(0, Number(S().roofOver3 != null ? S().roofOver3 : 40)), pitch = Math.min(60, Math.max(5, Number(S().roofPitch3) || 30)) * Math.PI / 180;
         const W = rx1 - rx0 + 2 * ov, D = rz1 - rz0 + 2 * ov, cx2 = (rx0 + rx1) / 2, cz2 = (rz0 + rz1) / 2, by = slabIdx * slab + wallH();
-        const rmat = new T.MeshStandardMaterial({ color: colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        const tiles = S().roofType3 === 'tiles' && roofMode !== 'flat';
+        const rmat = new T.MeshStandardMaterial({ color: tiles ? 0xffffff : colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        if (tiles) rmat.map = roofTileTex(S().roofColor3 || '#8a4b3a');
         const alongX = W >= D, across = alongX ? D : W, len = alongX ? W : D;
         let rm = null, rh = 12;
         if (roofMode === 'flat') {
           rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
         } else {
           rh = (across / 2) * Math.tan(pitch);
-          if (roofMode === 'gable') {
-            const sh = new T.Shape(); sh.moveTo(-across / 2, 0); sh.lineTo(across / 2, 0); sh.lineTo(0, rh); sh.closePath();
-            const geo = new T.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); geo.translate(0, 0, -len / 2);
-            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
-          } else { // Walmdach
-            const hw = across / 2, hl = len / 2, rl = Math.max(0, hl - hw), P = [], tri = (a, b2, c) => P.push(...a, ...b2, ...c);
-            const A = [-hw, 0, -hl], B = [hw, 0, -hl], Cc = [hw, 0, hl], Dd = [-hw, 0, hl], R1 = [0, rh, -rl], R2 = [0, rh, rl];
-            tri(A, B, R1); tri(Cc, Dd, R2); tri(B, Cc, R2); tri(B, R2, R1); tri(Dd, A, R1); tri(Dd, R1, R2);
-            const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(P, 3)); geo.computeVertexNormals();
-            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
-          }
+          rm = new T.Mesh(roofGeo(roofMode, across, len, rh), rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
         if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
@@ -3012,7 +3151,7 @@ const FP3D = (() => {
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;

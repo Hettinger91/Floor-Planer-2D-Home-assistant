@@ -17,8 +17,10 @@ function v3Hud() {
     `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['neon', 'Neon'], ['blueprint', 'Blueprint']], S().look3d || 'auto')}</select>` +
     `<select id="v3walls" title="Wände">${opt([['auto', 'Wände: automatisch'], ['full', 'Wände: voll'], ['half', 'Wände: halb'], ['flat', 'Wände: flach']], S().walls3d || 'auto')}</select>` +
     `<select id="v3roof" title="Dach">${opt([['none', 'Dach: aus'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']], S().roof3 || 'none')}</select>` +
+    `<select id="v3tile" title="Dacheindeckung">${opt([['plain', 'Dach: glatt'], ['tiles', 'Dach: Ziegel']], S().roofType3 || 'plain')}</select>` +
     `<label class="chk" title="Wandfarbe">Wand <input type="color" id="v3wc" value="${S().wallColor3 || '#f3f0ea'}"></label>` +
     `<label class="chk" title="Solaranlage auf dem Dach"><input type="checkbox" id="v3solar"${S().solar3 ? ' checked' : ''}> ☀ Solar</label>` +
+    `<label class="chk" title="Anzahl Solarmodule (0 = automatisch)"><input type="number" id="v3solarN" min="0" step="1" style="width:56px" value="${Number(S().solarCount3) || 0}"> Module</label>` +
     `<label class="chk"><input type="checkbox" id="v3all"${S().all3d ? ' checked' : ''}> alle Etagen</label>` +
     `<button class="ibtn" id="v3rl" title="Drehen">⟲</button><button class="ibtn" id="v3rr" title="Drehen">⟳</button>` +
     `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>`;
@@ -27,6 +29,8 @@ function v3Hud() {
   $('#v3look').onchange = e => setOpt('look3d', e.target.value);
   $('#v3walls').onchange = e => setOpt('walls3d', e.target.value);
   $('#v3roof').onchange = e => { S().roof3 = e.target.value; commit(); render(); };
+  $('#v3tile').onchange = e => { S().roofType3 = e.target.value; commit(); render(); };
+  $('#v3solarN').onchange = e => { S().solarCount3 = Math.max(0, Math.round(Number(e.target.value) || 0)); if (S().solarCount3 > 0 && !S().solar3) { S().solar3 = true; $('#v3solar').checked = true; if (!S().roof3 || S().roof3 === 'none') { S().roof3 = 'gable'; $('#v3roof').value = 'gable'; } } commit(); render(); };
   $('#v3wc').oninput = e => { S().wallColor3 = e.target.value; commit(); render(); };
   $('#v3solar').onchange = e => { S().solar3 = e.target.checked; if (e.target.checked && (!S().roof3 || S().roof3 === 'none')) { S().roof3 = 'gable'; $('#v3roof').value = 'gable'; } commit(); render(); };
   $('#v3all').onchange = e => setOpt('all3d', e.target.checked);

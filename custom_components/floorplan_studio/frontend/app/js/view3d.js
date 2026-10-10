@@ -45,7 +45,7 @@ const FP3D = (() => {
     stairs: [260, 0], stairs_wide: [260, 0], stairs_L: [260, 0], stairs_U: [260, 0], stairs_spiral: [260, 0], stairs_spiral_small: [260, 0], stairs_outdoor: [100, 0], stairs_basement: [260, 0],
     plant: [90, 0], plant_big: [130, 0], plant_small: [30, 0], rug: [2, 0], rug_round: [2, 0], pillar: [250, 0], pillar_round: [250, 0], curtain: [240, 0], painting: [60, 140], playmat: [2, 0],
     car: [150, 0], carport: [2, 0], bike: [100, 0], terrace_table: [75, 0], lounger: [40, 0], grill: [95, 0], pool: [4, 0], hot_tub: [80, 0], tree: [350, 0], bush: [90, 0], hedge: [150, 0], fence: [110, 0],
-    flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [3, 0], driveway: [2, 0],
+    flowerbed: [20, 0], lawn: [2, 0], mailbox: [120, 0], gate: [150, 0], shed: [220, 0], trash_bin: [105, 0], rain_barrel: [90, 0], sandbox: [25, 0], trampoline: [30, 0], swing: [220, 0], terrace: [4, 0], terrace_slabs: [4, 0], terrace_stone: [4, 0], gazebo_round: [300, 0], gazebo_wood: [300, 0], fountain_tiered: [160, 0], wall_fountain: [140, 0], bbq: [110, 0], jetty: [42, 0], bridge_garden: [100, 0], strandkorb: [160, 0], driveway: [2, 0],
     firepit: [40, 0], parasol: [230, 0], elevator: [250, 0], chimney: [250, 0], safe: [50, 0], fire_ext: [40, 10], electric_panel: [50, 150], niche: [250, 0], cable_duct: [250, 0],
   };
   const CAT3 = { Garten: [60, 0],  Licht: [14, -1], Möbel: [80, 0], 'Küche & Bad': [90, 0], 'Heizung & Klima': [60, 0], 'Smart Home': [10, 110], 'Büro & Medien': [75, 0], 'Außen & Garage': [90, 0], 'Kinder & Haustiere': [45, 0], 'Bau & Deko': [100, 0] };
@@ -475,26 +475,75 @@ const FP3D = (() => {
       return busy;
     }
 
+    // ---------- Dachgeometrie mit UV (Ziegel) ----------
+    function roofGeo(mode, across, len, rh) {
+      const a = across / 2, l = len / 2, faces = [];
+      if (mode === 'gable') {
+        faces.push([[-a, 0, -l], [-a, 0, l], [0, rh, l], [0, rh, -l]], [[a, 0, l], [a, 0, -l], [0, rh, -l], [0, rh, l]], [[-a, 0, l], [a, 0, l], [0, rh, l]], [[a, 0, -l], [-a, 0, -l], [0, rh, -l]]);
+      } else {
+        const rl = Math.max(0, l - a), A = [-a, 0, -l], B = [a, 0, -l], C = [a, 0, l], D = [-a, 0, l], R1 = [0, rh, -rl], R2 = [0, rh, rl];
+        faces.push([A, B, R1], [C, D, R2], [B, C, R2, R1], [D, A, R1, R2]);
+      }
+      const pos = [], uv = [], TW = 120, TH = 152;
+      faces.forEach(f => {
+        const p0 = f[0], e1 = new T.Vector3(f[1][0] - p0[0], f[1][1] - p0[1], f[1][2] - p0[2]), e2 = new T.Vector3(f[f.length - 1][0] - p0[0], f[f.length - 1][1] - p0[1], f[f.length - 1][2] - p0[2]);
+        const n = new T.Vector3().crossVectors(e1, e2).normalize(); let hz = new T.Vector3().crossVectors(n, new T.Vector3(0, 1, 0));
+        if (hz.lengthSq() < 1e-6) hz = new T.Vector3(1, 0, 0); hz.normalize();
+        let up = new T.Vector3().crossVectors(n, hz).normalize(); if (up.y < 0) up.negate();
+        const put = q => { pos.push(q[0], q[1], q[2]); const dv = new T.Vector3(q[0] - p0[0], q[1] - p0[1], q[2] - p0[2]); uv.push(dv.dot(hz) / TW, dv.dot(up) / TH); };
+        for (let i = 1; i < f.length - 1; i++) { put(f[0]); put(f[i]); put(f[i + 1]); }
+      });
+      const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.computeVertexNormals();
+      return geo;
+    }
+    function roofTileTex(col) {
+      const key = 'tile|' + col; let t = texCache.get(key); if (t) return t;
+      const c0 = new T.Color(col);
+      t = canvasTex(256, 256, (g, w2, h2) => {
+        g.fillStyle = '#' + c0.clone().multiplyScalar(0.45).getHexString(); g.fillRect(0, 0, w2, h2);
+        let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+        const cw = w2 / 4, ch = h2 / 4;
+        for (let r = -1; r < 5; r++) for (let c = -1; c < 5; c++) {
+          const x = c * cw + (((r % 2) + 2) % 2) * cw / 2, y = r * ch, k = 0.82 + rnd() * 0.32, cc = c0.clone().multiplyScalar(k);
+          const gr = g.createLinearGradient(0, y, 0, y + ch * 1.35); gr.addColorStop(0, '#' + cc.clone().multiplyScalar(0.8).getHexString()); gr.addColorStop(0.6, '#' + cc.getHexString()); gr.addColorStop(1, '#' + cc.clone().multiplyScalar(1.12).getHexString());
+          g.fillStyle = gr; g.beginPath(); g.moveTo(x + 2, y); g.lineTo(x + cw - 2, y); g.lineTo(x + cw - 2, y + ch * 1.05); g.quadraticCurveTo(x + cw / 2, y + ch * 1.45, x + 2, y + ch * 1.05); g.closePath(); g.fill();
+          g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.5; g.stroke();
+        }
+      });
+      t.wrapS = t.wrapT = T.RepeatWrapping; texCache.set(key, t); return t;
+    }
+
     // ---------- Solaranlage auf dem Dach ----------
     function buildSolar(P) {
       const { roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch } = P;
-      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1);
+      const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1), reqN = Math.max(0, Math.round(Number(S().solarCount3) || 0));
       const PW = 100, PH = 170, GAP = 3;
       const tex = canvasTex(128, 256, (g, w2, h2) => { g.fillStyle = '#12213d'; g.fillRect(0, 0, w2, h2); const gr = g.createLinearGradient(0, 0, w2, h2); gr.addColorStop(0, 'rgba(90,140,220,.35)'); gr.addColorStop(1, 'rgba(10,20,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); g.strokeStyle = 'rgba(190,210,240,.55)'; g.lineWidth = 2; for (let i = 0; i <= 6; i++) { g.beginPath(); g.moveTo(i * w2 / 6, 0); g.lineTo(i * w2 / 6, h2); g.stroke(); } for (let j = 0; j <= 10; j++) { g.beginPath(); g.moveTo(0, j * h2 / 10); g.lineTo(w2, j * h2 / 10); g.stroke(); } });
       const topM = new T.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: 0.1 });
       const frameM = new T.MeshStandardMaterial({ color: 0xcfd4d9, roughness: 0.4, metalness: 0.8 });
       const pivot = new T.Group(); pivot.position.set(cx2, by, cz2); if (roofMode !== 'flat') pivot.rotation.y = alongX ? Math.PI / 2 : 0; world.add(pivot);
       const mkPanel = (dx, dz) => { const g = new T.Group(); const f2 = new T.Mesh(new T.BoxGeometry(dx, 3.2, dz), frameM); f2.castShadow = true; const tp = new T.Mesh(new T.PlaneGeometry(dx - 4, dz - 4), topM); tp.rotation.x = -Math.PI / 2; tp.position.y = 1.7; g.add(f2, tp); return g; };
+      // gleichmäßig zentriertes Raster für n Module
+      const gridPos = (n, colsMax, rowsMax) => {
+        const rows = Math.min(rowsMax, Math.max(1, Math.ceil(n / colsMax))), cols = Math.min(colsMax, Math.ceil(n / rows)), out = []; let k = 0;
+        for (let r = 0; r < rows && k < n; r++) { const cnt = Math.min(cols, n - k); for (let c = 0; c < cnt; c++) { out.push({ c: c - (cnt - 1) / 2, r }); k++; } }
+        return { list: out, rows };
+      };
       const spots = []; // [group-position, rotation]
       if (roofMode === 'flat') {
         const aw = W - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, ad = D - 2 * Math.max(0, Number(S().roofOver3) || 0) - 60, tilt = 0.4, pitchD = PH * Math.cos(tilt) + 55;
-        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.max(1, Math.round(max * fill));
-        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); spots.push({ x: -aw / 2 + PW / 2 + c * (PW + GAP) + (aw - cols * (PW + GAP) + GAP) / 2, y: 7 + PH * Math.sin(tilt) / 2 + 8, z: -ad / 2 + PH / 2 + r * pitchD, rx: side * tilt, rz: 0, flat: true }); }
+        const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)));
+        const gp = gridPos(n, cols, rows);
+        gp.list.forEach(q => spots.push({ x: q.c * (PW + GAP), y: 7 + PH * Math.sin(tilt) / 2 + 8, z: (q.r - (gp.rows - 1) / 2) * pitchD, rx: side * tilt, rz: 0, flat: true }));
       } else {
-        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), ux = -side * (across / 2) / Ls, uy = rh / Ls, nx = side * rh / Ls, ny = (across / 2) / Ls;
-        const ex = side * across / 2, s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
-        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.max(1, Math.round(max * fill));
-        for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols), sc = s0 + PH / 2 + r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: -regionLen / 2 + PW / 2 + c * (PW + GAP) + (regionLen - cols * (PW + GAP) + GAP) / 2, rz: -side * alpha, rx: 0, flat: false }); }
+        const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols;
+        const nAll = reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)), nA = Math.min(nAll, max), nB = Math.min(nAll - nA, max);
+        [[side, nA], [-side, nB]].forEach(([sd, cnt]) => {
+          if (cnt <= 0) return;
+          const ux = -sd * (across / 2) / Ls, uy = rh / Ls, nx = sd * rh / Ls, ny = (across / 2) / Ls, ex = sd * across / 2, gp = gridPos(cnt, cols, rowsMax);
+          gp.list.forEach(q => { const sc = s0 + PH / 2 + q.r * (PH + GAP); spots.push({ x: ex + ux * sc + nx * 2.4, y: uy * sc + ny * 2.4, z: q.c * (PW + GAP), rz: -sd * alpha, rx: 0, flat: false }); });
+        });
       }
       const centers = [];
       spots.forEach(sp => { const g = sp.flat ? mkPanel(PW, PH) : mkPanel(PH, PW); g.position.set(sp.x, sp.y, sp.z); g.rotation.set(sp.rx || 0, 0, sp.rz || 0); pivot.add(g); });
@@ -560,7 +609,7 @@ const FP3D = (() => {
     function buildAll() {
       clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
       const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
-      const slab = wallH() + 25, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
+      const slab = wallH() + 14, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
       const levels = floors.map((f, i) => i).filter(i => floors[i].kind !== 'garden'), gardens = floors.map((f, i) => i).filter(i => floors[i].kind === 'garden');
       const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', lvCur = curIsGarden ? levels.length - 1 : levels.indexOf(curIdx);
       const show = o.allFloors || curIsGarden ? levels : levels.filter((i, k) => k <= lvCur);
@@ -578,27 +627,20 @@ const FP3D = (() => {
         const ti = show[show.length - 1], tf = floors[ti], slabIdx = show.length - 1;
         let rx0 = 1e9, rx1 = -1e9, rz0 = 1e9, rz1 = -1e9;
         (tf.walls || []).forEach(w2 => { rx0 = Math.min(rx0, w2.x1, w2.x2); rx1 = Math.max(rx1, w2.x1, w2.x2); rz0 = Math.min(rz0, w2.y1, w2.y2); rz1 = Math.max(rz1, w2.y1, w2.y2); });
+        if (rx0 <= rx1) { const tt = Math.max(...(tf.walls || []).map(w2 => w2.t || S().wallThickness || 15)) / 2; rx0 -= tt; rx1 += tt; rz0 -= tt; rz1 += tt; }
         if (rx0 > rx1) { const b2 = contentBounds(tf); rx0 = b2.x; rx1 = b2.x + b2.w; rz0 = b2.y; rz1 = b2.y + b2.h; }
         const ov = Math.max(0, Number(S().roofOver3 != null ? S().roofOver3 : 40)), pitch = Math.min(60, Math.max(5, Number(S().roofPitch3) || 30)) * Math.PI / 180;
         const W = rx1 - rx0 + 2 * ov, D = rz1 - rz0 + 2 * ov, cx2 = (rx0 + rx1) / 2, cz2 = (rz0 + rz1) / 2, by = slabIdx * slab + wallH();
-        const rmat = new T.MeshStandardMaterial({ color: colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        const tiles = S().roofType3 === 'tiles' && roofMode !== 'flat';
+        const rmat = new T.MeshStandardMaterial({ color: tiles ? 0xffffff : colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        if (tiles) rmat.map = roofTileTex(S().roofColor3 || '#8a4b3a');
         const alongX = W >= D, across = alongX ? D : W, len = alongX ? W : D;
         let rm = null, rh = 12;
         if (roofMode === 'flat') {
           rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
         } else {
           rh = (across / 2) * Math.tan(pitch);
-          if (roofMode === 'gable') {
-            const sh = new T.Shape(); sh.moveTo(-across / 2, 0); sh.lineTo(across / 2, 0); sh.lineTo(0, rh); sh.closePath();
-            const geo = new T.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); geo.translate(0, 0, -len / 2);
-            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
-          } else { // Walmdach
-            const hw = across / 2, hl = len / 2, rl = Math.max(0, hl - hw), P = [], tri = (a, b2, c) => P.push(...a, ...b2, ...c);
-            const A = [-hw, 0, -hl], B = [hw, 0, -hl], Cc = [hw, 0, hl], Dd = [-hw, 0, hl], R1 = [0, rh, -rl], R2 = [0, rh, rl];
-            tri(A, B, R1); tri(Cc, Dd, R2); tri(B, Cc, R2); tri(B, R2, R1); tri(Dd, A, R1); tri(Dd, R1, R2);
-            const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(P, 3)); geo.computeVertexNormals();
-            rm = new T.Mesh(geo, rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
-          }
+          rm = new T.Mesh(roofGeo(roofMode, across, len, rh), rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
         if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
@@ -835,7 +877,7 @@ const FP3D = (() => {
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0]);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;

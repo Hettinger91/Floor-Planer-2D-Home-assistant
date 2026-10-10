@@ -521,7 +521,6 @@ const FPM = (() => {
   reg('gate', b => { const { w, d, h } = b, m = mat('#2d3238', 0.4, 0.6); [-1, 1].forEach(s => b.box(8, h, 8, s * (w / 2 - 4), 0, 0, m)); b.box(w - 16, 4, 3, 0, h * 0.2, 0, m); b.box(w - 16, 4, 3, 0, h * 0.85, 0, m); for (let i = 0; i < 12; i++) b.box(2, h * 0.7, 2, -w / 2 + 12 + i * (w - 24) / 11, h * 0.2, 0, m); void d; });
   reg('flowerbed', b => { const { w, d, h } = b; b.rb(w, h, d, 3, 0, 0, 0, mat('#8e8a82', 0.9)); b.box(w - 8, 1, d - 8, 0, h - 0.5, 0, mat(P.soil, 1)); const cs = ['#e74c3c', '#f1c40f', '#e67eb4', '#9b59b6']; for (let i = 0; i < 14; i++) { const x = -w / 2 + 12 + (i * 37 % 100) / 100 * (w - 24), z = -d / 2 + 10 + ((i * 53) % 100) / 100 * (d - 20); b.cyl(0.5, 0.5, 10, x, h, z, mat(P.leaf), 5); b.sph(3, x, h + 11, z, mat(cs[i % 4], 0.6)); } });
   reg('lawn', b => { b.rb(b.w, b.h + 1, b.d, 0.5, 0, 0, 0, mat(b.col || '#6aa84f', 1)); });
-  reg('terrace', b => { b.box(b.w, b.h + 2, b.d, 0, 0, 0, mat(b.col || '#a68a6a', 0.8)); const n = Math.round(b.d / 12); for (let i = 1; i < n; i++) b.box(b.w, 0.4, 0.4, 0, b.h + 2, -b.d / 2 + i * 12, mat('#6d573f', 0.9)); });
   reg('driveway', b => { b.box(b.w, b.h + 1, b.d, 0, 0, 0, mat(b.col || '#9a9ea3', 0.95)); });
   reg('mailbox', b => { const { w, d, h } = b; b.box(3, h * 0.55, 3, 0, 0, 0, mat('#4a4f57', 0.5, 0.5)); b.rb(w, h * 0.35, d, 3, 0, h * 0.62, 0, mat('#d9a521', 0.5)); b.box(w * 0.7, 1, 1, 0, h * 0.76, d / 2, mat(P.black)); });
   reg('shed', b => { const { w, d, h } = b; b.box(w, h * 0.78, d, 0, 0, 0, mat('#a97c50', 0.75)); const sh = new T.Shape(); sh.moveTo(-w / 2 - 8, 0); sh.lineTo(w / 2 + 8, 0); sh.lineTo(0, h * 0.28); sh.closePath(); const geo = new T.ExtrudeGeometry(sh, { depth: d + 12, bevelEnabled: false }); geo.translate(0, 0, -(d + 12) / 2); b.add(geo, mat('#5a3d2a', 0.8), 0, h * 0.78, 0).rotation.y = 0; b.box(w * 0.3, h * 0.6, 1, -w * 0.2, 0, d / 2 + 0.3, mat('#7d5a38', 0.7)); b.box(w * 0.22, h * 0.25, 1, w * 0.22, h * 0.3, d / 2 + 0.3, b.glass()); });
@@ -612,6 +611,94 @@ const FPM = (() => {
   reg('garden_speaker', b => { const r = Math.min(b.w, b.d) / 2; const rk = b.sph(r, 0, r * 0.55, 0, mat('#8c8a84', 0.95), 1, 0.65, 0.9); rk.castShadow = true; b.cyl(r * 0.28, r * 0.28, 1, 0, r * 0.9, r * 0.5, mat('#2a2d33', 0.6), 14).rotation.x = Math.PI / 2 - 0.5; b.sph(0.8, r * 0.4, r * 0.8, r * 0.55, b.lv('#222', '#4fd0ff', 1.6)); });
   reg('sensor_garden_motion', b => { b.rb(8, 14, 6, 2, 0, 0, 0, mat(P.white, 0.4)); b.sph(3.2, 0, 9, 3.4, mat('#eef1f2', 0.2, 0, { transparent: true, opacity: 0.9 }), 1, 1, 0.5); b.sph(0.7, 2.5, 3, 3, b.lv('#400', '#3de07a', 1.6)); });
 
+
+
+  // ---------- Terrasse, Pavillons, Brunnen & mehr ----------
+  const rndSeed = k => { let x = k * 9301 + 49297; return () => (x = (x * 16807) % 2147483647) / 2147483647; };
+  reg('terrace terrace_slabs terrace_stone', b => {
+    const { w, d } = b, t = b.it.type, hh = Math.max(3, b.h), fug = mat('#7d7a74', 1), rnd = rndSeed(w + d);
+    b.box(w, hh * 0.55, d, 0, 0, 0, fug);
+    const shades = t === 'terrace_stone' ? ['#b9ada0', '#aea294', '#c4b9ac', '#a89d90'] : ['#cfcac1', '#c6c1b8', '#d6d1c8'];
+    const base = b.col && b.col !== '#d7ccc8' ? b.col : null, pick = i => mat(base || shades[i % shades.length], 0.92);
+    if (t === 'terrace_stone') {
+      let z = -d / 2, row = 0;
+      while (z < d / 2 - 4) { const rh = Math.min(d / 2 - z, 34 + rnd() * 26); let x = -w / 2; while (x < w / 2 - 4) { const cw = Math.min(w / 2 - x, 32 + rnd() * 44); b.box(cw - 1.6, hh * 0.5, rh - 1.6, x + cw / 2, hh * 0.55, z + rh / 2, pick(Math.floor(rnd() * 4))); x += cw; } z += rh; row++; }
+      return;
+    }
+    const ps = t === 'terrace_slabs' ? 60 : 40, nx = Math.max(1, Math.round(w / ps)), nz = Math.max(1, Math.round(d / ps));
+    const pw = w / nx, pd = d / nz;
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) b.box(pw - 1.4, hh * 0.5, pd - 1.4, -w / 2 + (i + 0.5) * pw, hh * 0.55, -d / 2 + (j + 0.5) * pd, pick(i * 3 + j * 5 + Math.floor(rnd() * 3)));
+  });
+  reg('gazebo_round', b => {
+    const r = Math.min(b.w, b.d) / 2, h = b.h, wd = mat('#8c6a4a', 0.7), n = 8;
+    b.cyl(r, r, 8, 0, 0, 0, mat('#a89c8c', 0.95), 8);
+    for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n + Math.PI / 8, x = Math.cos(a) * (r - 8), z = Math.sin(a) * (r - 8); b.box(9, h * 0.78, 9, x, 8, z, wd); }
+    b.add(new T.TorusGeometry(r - 8, 4, 6, 8), wd, 0, h * 0.78 + 6, 0).rotation.x = Math.PI / 2;
+    b.add(new T.ConeGeometry(r * 1.12, h * 0.24, 8), mat('#8a4b3a', 0.85), 0, h * 0.78 + 8 + h * 0.12, 0);
+    b.sph(5, 0, h * 1.03 + 8, 0, mat('#6d3a2c', 0.6));
+    for (let i = 0; i < 5; i++) { const a = Math.PI * 0.2 + i * Math.PI * 0.4; b.box(36, 5, 12, Math.cos(a) * (r - 24), 24, Math.sin(a) * (r - 24), wd).rotation.y = -a + Math.PI / 2; }
+  });
+  reg('gazebo_wood', b => {
+    const { w, d, h } = b, wd = mat('#9a7650', 0.7), dk = mat('#6d4a2f', 0.75);
+    b.box(w, 10, d, 0, 0, 0, mat('#b08a5e', 0.8));
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => b.box(12, h * 0.72, 12, x * (w / 2 - 8), 10, z * (d / 2 - 8), wd));
+    [-1, 1].forEach(z => b.box(w - 4, 12, 9, 0, h * 0.72 - 2, z * (d / 2 - 8), dk)); [-1, 1].forEach(x => b.box(9, 12, d - 4, x * (w / 2 - 8), h * 0.72 - 2, 0, dk));
+    [-1, 1].forEach(z => { b.box(w - 40, 5, 5, 0, 70, z * (d / 2 - 8), wd); for (let i = 0; i < Math.round(w / 22); i++) b.box(3.5, 60, 3.5, -w / 2 + 28 + i * (w - 56) / Math.max(1, Math.round(w / 22) - 1), 10, z * (d / 2 - 8), wd); });
+    const sh = new T.Shape(); sh.moveTo(-w / 2 - 14, 0); sh.lineTo(w / 2 + 14, 0); sh.lineTo(0, h * 0.3); sh.closePath();
+    const geo = new T.ExtrudeGeometry(sh, { depth: d + 28, bevelEnabled: false }); geo.translate(0, 0, -(d + 28) / 2); b.add(geo, mat('#5a3d2a', 0.85), 0, h * 0.72 + 10, 0);
+    b.box(w * 0.6, 6, 28, 0, 22, -d / 2 + 24, wd);
+  });
+  function fallAnim(b, o) {
+    const grp = new T.Group(); grp.position.set(o.x || 0, o.y, o.z || 0); b.g.add(grp);
+    const dm = new T.MeshBasicMaterial({ color: 0x9bd8ff, transparent: true, opacity: 0.8, depthWrite: false }), geo = new T.SphereGeometry(o.size || 1, 6, 5), drops = [];
+    for (let i = 0; i < o.n; i++) { const mm = new T.Mesh(geo, dm); mm.visible = false; grp.add(mm); drops.push({ m: mm, ph: i / o.n, jx: ((i * 37) % 11 - 5) / 5 * (o.spread || 6) }); }
+    b.anim = { type: 'spray', step: (dt, on) => {
+      if (!on) { drops.forEach(d => { d.m.visible = false; }); return; }
+      drops.forEach(d => { d.ph = (d.ph + dt * (o.speed || 0.8)) % 1; d.m.visible = true; d.m.position.set(d.jx * (0.4 + d.ph), -d.ph * d.ph * o.h, (o.out || 0) * Math.sqrt(d.ph)); });
+    } };
+  }
+  reg('fountain_tiered', b => {
+    const r = Math.min(b.w, b.d) / 2, h = b.h, st = mat('#bdb8ae', 0.9), wt = mat('#2f8fc8', 0.05, 0.2, { transparent: true, opacity: 0.85 });
+    b.cyl(r, r, 34, 0, 0, 0, st, 36); b.cyl(r - 6, r - 6, 2, 0, 33, 0, wt, 36);
+    b.cyl(r * 0.16, r * 0.2, h * 0.42, 0, 34, 0, st, 16);
+    b.cyl(r * 0.62, r * 0.4, 9, 0, 34 + h * 0.3, 0, st, 28); b.cyl(r * 0.55, r * 0.55, 1.6, 0, 34 + h * 0.3 + 8, 0, wt, 28);
+    b.cyl(r * 0.09, r * 0.12, h * 0.2, 0, 34 + h * 0.3 + 9, 0, st, 12);
+    b.cyl(r * 0.34, r * 0.2, 7, 0, 34 + h * 0.5, 0, st, 22); b.cyl(r * 0.29, r * 0.29, 1.4, 0, 34 + h * 0.5 + 6, 0, wt, 22);
+    b.sph(r * 0.08, 0, 34 + h * 0.5 + 12, 0, st);
+    sprayAnim(b, { y: 34 + h * 0.5 + 12, n: 36, jets: 6, range: r * 0.42, height: 60, rot: 0, speed: 0.85, size: 1.1 });
+  });
+  reg('wall_fountain', b => {
+    const { w, d, h } = b, st = mat('#b9b3a8', 0.9), wt = mat('#2f8fc8', 0.05, 0.2, { transparent: true, opacity: 0.85 });
+    b.box(w, h * 0.8, 10, 0, h * 0.2, -d / 2 + 5, st); b.box(w + 8, 5, 14, 0, h, -d / 2 + 6, st);
+    b.cyl(2.2, 2.2, 14, 0, h * 0.62, -d / 2 + 14, mat(P.steel, 0.3, 0.8), 10).rotation.x = Math.PI / 2;
+    b.box(w, 18, d - 6, 0, 0, 3, st); b.box(w - 10, 2, d - 18, 0, 17, 3, wt);
+    fallAnim(b, { x: 0, y: h * 0.62, z: -d / 2 + 22, n: 26, h: h * 0.62 - 16, speed: 0.9, spread: 2, out: 6, size: 1 });
+  });
+  reg('bbq', b => {
+    const { w, d, h } = b, bl = mat('#25282d', 0.45, 0.3), r = Math.min(w, d) * 0.5;
+    [[-1, -1], [1, -1], [0, 1]].forEach(([x, z]) => { const l = b.cyl(1.4, 1.4, h * 0.58, x * r * 0.55, 0, z * r * 0.5, mat(P.steel, 0.4, 0.7), 8); l.rotation.z = x * 0.12; });
+    b.add(new T.SphereGeometry(r, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), bl, 0, h * 0.58, 0).rotation.x = Math.PI;
+    const lid = b.add(new T.SphereGeometry(r, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('#2a2d33', 0.4, 0.3), 0, h * 0.62, 0); lid.rotation.x = -0.5; lid.position.z = -r * 0.25;
+    b.cyl(r * 0.92, r * 0.92, 0.8, 0, h * 0.62, 0, mat('#8a8e94', 0.4, 0.6), 24); b.cyl(r * 0.2, r * 0.2, 5, 0, h * 0.95, -r * 0.45, bl, 8);
+    b.box(w * 0.5, 3, 18, w * 0.7, h * 0.4, 0, mat('#6b4a32', 0.8));
+  });
+  reg('jetty', b => {
+    const { w, d, h } = b, wd = mat('#8f7556', 0.85), n = Math.max(3, Math.round(d / 14));
+    for (let i = 0; i < n; i++) b.box(w, 4, d / n - 1, 0, h - 4, -d / 2 + (i + 0.5) * d / n, mat(i % 2 ? '#a58862' : '#97795a', 0.85));
+    [-1, 1].forEach(x => { b.box(5, 5, d, x * (w / 2 - 6), h - 9, 0, wd); for (let i = 0; i < Math.max(2, Math.round(d / 110)); i++) b.box(9, h, 9, x * (w / 2 - 6), 0, -d / 2 + 14 + i * (d - 28) / Math.max(1, Math.round(d / 110) - 1), wd); });
+  });
+  reg('bridge_garden', b => {
+    const { w, d, h } = b, wd = mat('#8f7556', 0.8), n = 14;
+    for (let i = 0; i < n; i++) { const t = i / (n - 1), y = Math.sin(Math.PI * t) * h * 0.55; const pl = b.box(w - 14, 4, d / n + 0.4, 0, y + h * 0.3, -d / 2 + (i + 0.5) * d / n, mat(i % 2 ? '#a58862' : '#97795a', 0.85)); pl.rotation.x = Math.cos(Math.PI * t) * 0.35 * (h / 60); }
+    [-1, 1].forEach(x => { for (let i = 0; i < 7; i++) { const t = i / 6, y = Math.sin(Math.PI * t) * h * 0.55; b.box(4, 36, 4, x * (w / 2 - 4), y + h * 0.3 + 2, -d / 2 + 6 + t * (d - 12), wd); } for (let i = 0; i < n - 1; i++) { const t = (i + 0.5) / (n - 1), y = Math.sin(Math.PI * t) * h * 0.55; b.box(3.5, 3.5, d / n + 1, x * (w / 2 - 4), y + h * 0.3 + 38, -d / 2 + (i + 1) * d / n, wd).rotation.x = Math.cos(Math.PI * t) * 0.35 * (h / 60); } });
+  });
+  reg('strandkorb', b => {
+    const { w, d, h } = b, wk = mat('#c9a56a', 0.9), st = mat('#2a5d9a', 0.9);
+    b.box(w, h * 0.3, d * 0.8, 0, 0, d * 0.1, wk); b.rb(w - 10, h * 0.2, d * 0.7, 4, 0, h * 0.3, d * 0.12, mat('#f1efe9', 0.95));
+    b.box(w, h * 0.62, 10, 0, h * 0.2, -d / 2 + 5, wk); [-1, 1].forEach(x => b.box(10, h * 0.5, d * 0.7, x * (w / 2 - 5), h * 0.2, -d * 0.02, wk));
+    const hood = b.add(new T.CylinderGeometry(w * 0.5, w * 0.5, d * 0.6, 20, 1, false, 0, Math.PI), st, 0, h * 0.82, -d * 0.1); hood.rotation.set(Math.PI / 2, Math.PI / 2, 0); hood.scale.set(1, 1, 0.9);
+    b.box(w * 0.9, 2, 14, 0, h * 0.27, d * 0.52, wk);
+  });
 
   function sprayAnim(b, o) {
     const grp = new T.Group(); grp.position.set(o.x || 0, o.y, o.z || 0); b.g.add(grp);
