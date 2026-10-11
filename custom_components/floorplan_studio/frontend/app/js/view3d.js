@@ -768,23 +768,27 @@ const FP3D = (() => {
 
     function buildAll() {
       clearWorld(); if (typeof FPM !== 'undefined') FPM.reset(T);
-      const L3 = look, Hw = o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
+      const L3 = look, Hw = walkMode ? wallH() : o.walls === 'half' ? Math.min(100, wallH()) : o.walls === 'flat' ? 6 : wallH();
       const slab = wallH() + 14, floors = plan.floors, curIdx = Math.max(0, floors.findIndex(f => f.id === o.getFloor()));
       const levels = floors.map((f, i) => i).filter(i => floors[i].kind !== 'garden'), gardens = floors.map((f, i) => i).filter(i => floors[i].kind === 'garden');
-      const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', lvCur = curIsGarden ? levels.length - 1 : levels.indexOf(curIdx);
-      const show = o.allFloors || curIsGarden ? levels : levels.filter((i, k) => k <= lvCur);
+      const curIsGarden = floors[curIdx] && floors[curIdx].kind === 'garden', grpKey = i => floors[i].bld || '';
+      let groups = [...new Set(levels.map(grpKey))]; if (o.building) groups = groups.filter(g => g === o.building);
+      const curG = curIsGarden || !groups.includes(grpKey(curIdx)) ? groups[0] : grpKey(curIdx);
+      const showG = groups.map(g => { const L = levels.filter(i => grpKey(i) === g); let sh = L; if (!((o.allFloors && !walkMode) || curIsGarden || g !== curG)) { const lc = L.indexOf(curIdx); sh = L.filter((i, k) => k <= lc); } return { g, sh }; });
+      const show = [].concat(...showG.map(x => x.sh)), lvCur = curIsGarden ? -1 : levels.filter(i => grpKey(i) === curG).indexOf(curIdx);
       groundY = curIsGarden ? -1 : Math.max(0, lvCur) * slab;
       let minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9, maxY = 0;
       const grow = (b) => { minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x + b.w); minZ = Math.min(minZ, b.y); maxZ = Math.max(maxZ, b.y + b.h); };
-      show.forEach((i, k) => {
+      showG.forEach(({ sh }) => sh.forEach((i, k) => {
         const f = floors[i];
-        buildFloor(f, i, k * slab, Hw, L3, k === show.length - 1);
+        buildFloor(f, i, k * slab, Hw, L3, k === sh.length - 1);
         grow(contentBounds(f)); maxY = Math.max(maxY, k * slab + wallH());
-      });
+      }));
       gardens.forEach(i => { const f = floors[i]; buildFloor(f, i, -1, 110, L3, false); if (curIsGarden && i === curIdx) grow(contentBounds(f)); else if (!show.length) grow(contentBounds(f)); });
-      const roofMode = o.roof || S().roof3 || 'none';
-      if (roofMode !== 'none' && show.length) {
-        const ti = show[show.length - 1], tf = floors[ti], slabIdx = show.length - 1;
+      const roofMode = walkMode ? 'none' : (o.roof || S().roof3 || 'none');
+      showG.forEach(({ g: gk, sh }) => {
+      if (roofMode !== 'none' && sh.length) {
+        const ti = sh[sh.length - 1], tf = floors[ti], slabIdx = sh.length - 1;
         let rx0 = 1e9, rx1 = -1e9, rz0 = 1e9, rz1 = -1e9;
         (tf.walls || []).forEach(w2 => { rx0 = Math.min(rx0, w2.x1, w2.x2); rx1 = Math.max(rx1, w2.x1, w2.x2); rz0 = Math.min(rz0, w2.y1, w2.y2); rz1 = Math.max(rz1, w2.y1, w2.y2); });
         if (rx0 <= rx1) { const tt = Math.max(...(tf.walls || []).map(w2 => w2.t || S().wallThickness || 15)) / 2; rx0 -= tt; rx1 += tt; rz0 -= tt; rz1 += tt; }
@@ -804,9 +808,10 @@ const FP3D = (() => {
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
         if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
-        if (S().solar3) buildSolar({ roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch });
+        if (S().solar3 && gk === curG) buildSolar({ roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch });
         maxY = Math.max(maxY, by + rh);
       }
+      });
       if (minX > maxX) { minX = -200; maxX = 200; minZ = -200; maxZ = 200; }
       const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, R = Math.max(maxX - minX, maxZ - minZ, 300) / 2;
       radius = Math.hypot(maxX - minX, maxZ - minZ, maxY) / 2;
@@ -890,7 +895,37 @@ const FP3D = (() => {
 
     // ---------- Kamera / Steuerung ----------
     const FOV = 42 * Math.PI / 180; cam.fov = FOV / 2;
+    // ---------- Begehen (Ego-Perspektive, ohne Wand-Kollision) ----------
+    let walk = null, walkMode = false, lastW = 0; const wkeys = new Set();
+    function walkStartPos() {
+      const f = plan.floors.find(x => x.id === o.getFloor()) || plan.floors[0];
+      let best = null; (f.rooms || []).forEach(r => { if (r.pts && r.pts.length > 2) { const a = polyArea(r.pts); if (!best || a > best.a) best = { a, c: polyCentroid(r.pts) }; } });
+      if (best) return { x: best.c[0], z: best.c[1] };
+      const b = contentBounds(f); return { x: b.x + b.w / 2, z: b.y + b.h / 2 };
+    }
+    function setWalk(on) {
+      on = !!on; if (on === !!walk) return;
+      if (on) {
+        walkMode = true; build(true);
+        const p = walkStartPos(); walk = { x: p.x, z: p.z, y: groundY + 160, yaw: 0, pitch: 0 };
+        camera.fov = 72; camera.updateProjectionMatrix();
+        root.tabIndex = 0; try { root.focus({ preventScroll: true }); } catch (_) { /* egal */ }
+      } else { walk = null; walkMode = false; camera.fov = 42; camera.updateProjectionMatrix(); fitted = false; wkeys.clear(); build(true); }
+      dirty = true; if (o.onWalk) o.onWalk(!!walk);
+    }
+    function walkMove(fw, st) { const s2 = Math.sin(walk.yaw), c2 = Math.cos(walk.yaw); walk.x += s2 * fw + c2 * st; walk.z += -c2 * fw + s2 * st; }
+    function walkKeys(dt) {
+      if (!walk || !wkeys.size) return false;
+      const sp = (wkeys.has('shift') ? 320 : 160) * dt, k = n => wkeys.has(n);
+      const fw = (k('w') || k('arrowup') ? 1 : 0) - (k('s') || k('arrowdown') ? 1 : 0), st = (k('d') ? 1 : 0) - (k('a') ? 1 : 0), tr = (k('e') || k('arrowright') ? 1 : 0) - (k('q') || k('arrowleft') ? 1 : 0);
+      if (tr) walk.yaw += tr * 1.6 * dt; if (fw || st) walkMove(fw * sp, st * sp);
+      return !!(fw || st || tr);
+    }
+    root.addEventListener('keydown', e => { if (!walk) return; const k = e.key.toLowerCase(); if ('wasdqe'.includes(k) && k.length === 1 || k.startsWith('arrow') || k === 'shift') { wkeys.add(k); if (k !== 'shift') e.preventDefault(); } if (k === 'escape') setWalk(false); });
+    root.addEventListener('keyup', e => { wkeys.delete(e.key.toLowerCase()); });
+    root.addEventListener('blur', () => wkeys.clear());
     function placeCamera() {
+      if (walk) { const cp0 = Math.cos(walk.pitch); camera.position.set(walk.x, walk.y, walk.z); camera.lookAt(walk.x + Math.sin(walk.yaw) * cp0, walk.y + Math.sin(walk.pitch), walk.z - Math.cos(walk.yaw) * cp0); return; }
       const sp = Math.sin(cam.pol), cp = Math.cos(cam.pol);
       camera.position.set(cam.tx + cam.dist * sp * Math.sin(cam.az), cam.ty + cam.dist * cp, cam.tz + cam.dist * sp * Math.cos(cam.az));
       camera.lookAt(cam.tx, cam.ty, cam.tz);
@@ -981,9 +1016,10 @@ const FP3D = (() => {
         }
         return;
       }
-      if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; if (!(o.touchScroll && e.pointerType === 'touch' && !(o.touchTilt && o.touchTilt()))) cam.pol -= dy * (e.pointerType === 'touch' ? 0.009 : 0.0075); limit(); dirty = true; } }
+      if (walk && gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { walk.yaw -= dx * 0.005; if (e.pointerType === 'touch') walkMove(-dy * 1.6, 0); else walk.pitch = Math.max(-1.2, Math.min(1.2, walk.pitch + dy * 0.004)); dirty = true; } }
+      else if (gesture.t === 'orbit' && ptrs.size === 1) { if (!tap || tap.moved) { cam.az -= dx * 0.008; if (!(o.touchScroll && e.pointerType === 'touch' && !(o.touchTilt && o.touchTilt()))) cam.pol -= dy * (e.pointerType === 'touch' ? 0.009 : 0.0075); limit(); dirty = true; } }
       else if (gesture.t === 'pan' && ptrs.size === 1) { panBy(dx, dy); dirty = true; }
-      else if (gesture.t === 'pinch' && ptrs.size === 2) {
+      else if (gesture.t === 'pinch' && ptrs.size === 2 && !walk) {
         const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
         cam.dist *= gesture.d / d; let da = ang - gesture.ang; da = Math.atan2(Math.sin(da), Math.cos(da)); cam.az -= da;
         panBy(mx - gesture.mx, my - gesture.my);
@@ -1006,10 +1042,11 @@ const FP3D = (() => {
       if (o.wheel === 'ctrl' && !e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+      if (walk) { walkMove(-dy * 0.6, 0); dirty = true; return; }
       if (e.shiftKey) cam.az -= dy * 0.003; else cam.dist *= Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0012));
       limit(); dirty = true;
     }, { passive: false });
-    cv.addEventListener('dblclick', () => { fitted = false; build(true); });
+    cv.addEventListener('dblclick', () => { if (walk) return; fitted = false; build(true); });
 
     function resize() {
       const r = root.getBoundingClientRect(), w = Math.max(50, Math.round(r.width)), h = Math.max(50, Math.round(r.height));
@@ -1021,7 +1058,7 @@ const FP3D = (() => {
     let raf = 0, visible = true;
     const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(es => { const v = es[es.length - 1].isIntersecting; if (v && !visible) dirty = true; visible = v; }) : null; if (io) io.observe(root);
     function animateWalls() {
-      if (o.walls !== 'auto' || !wallGroups.length) return false;
+      if (walkMode || o.walls !== 'auto' || !wallGroups.length) return false;
       const dx = Math.sin(cam.az), dz = Math.cos(cam.az); let busy = false;
       wallGroups.forEach(wg => {
         const n = wg.userData.n, tgt = (n[0] * dx + n[1] * dz) > 0.2 ? 0.12 : 1, d = tgt - wg.scale.y;
@@ -1033,6 +1070,7 @@ const FP3D = (() => {
       raf = 0; if (destroyed) return;
       if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
       if (animateWalls()) dirty = true;
+      if (walk) { const nW = performance.now(), dW = Math.min(0.1, (nW - (lastW || nW)) / 1000); lastW = nW; if (walkKeys(dW)) dirty = true; } else lastW = 0;
       const othersA = solar || opens.length || items.some(r => r.robot || r.anim);
       if (othersA || envO) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000, minDt = othersA ? 0.028 : (envO && (wx.rain || wx.snow || wx.light) ? (o.lowPower ? 0.05 : 0.03) : 0.1); if (!lastAnim || dtA > minDt) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
       if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
@@ -1040,7 +1078,7 @@ const FP3D = (() => {
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0, typeof heatMetric === 'function' ? heatMetric() : '']);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, walkMode ? 1 : 0, o.building || '', o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0, typeof heatMetric === 'function' ? heatMetric() : '']);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
@@ -1049,6 +1087,7 @@ const FP3D = (() => {
       if (!force && sg === built) return false;
       built = sg;
       buildAll(); liveSig = stateSig(); dirty = true;
+      if (walk) walk.y = groundY + 160;
       return true;
     }
     function update() {
@@ -1059,10 +1098,10 @@ const FP3D = (() => {
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
     function set(k, v) { o[k] = v; if (k === 'touchTilt') { applyTouch(); return; } build(true); }
-    function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
+    function destroy() { destroyed = true; wkeys.clear(); cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { setWalk, isWalking: () => !!walk, setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };

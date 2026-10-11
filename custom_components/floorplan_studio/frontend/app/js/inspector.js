@@ -252,7 +252,7 @@ function renderRoomInspector(box, r) {
 
 function renderFloorInspector(box) {
   const f = curFloor(), st = S(), hasBg = f.bg && f.bg.url;
-  const fs = [{ k: 'name', t: 'text', l: 'Name der Etage' }];
+  const fs = [{ k: 'name', t: 'text', l: 'Name der Etage' }, { k: 'bld', t: 'text', l: 'Gebäude (leer = Haupthaus)', ph: 'z. B. Garage' }];
   const bg = hasBg ? [
     { k: 'opacity', t: 'range', l: 'Deckkraft', min: 0.05, max: 1, step: 0.05 },
     { k: 'w', t: 'num', l: 'Breite (cm)', min: 10 }, { k: 'x', t: 'num', l: 'X (cm)' }, { k: 'y', t: 'num', l: 'Y (cm)' },
@@ -353,10 +353,10 @@ function imgSize(url) { return new Promise((res, rej) => { const i = new Image()
 function renderFloorTabs() {
   const nav = $('#floors');
   if (!nav || !plan) return;
-  nav.innerHTML = plan.floors.map(f => `<button class="tab${f.id === floorId ? ' on' : ''}" data-id="${f.id}">${f.kind === 'garden' ? '🌿 ' : ''}${esc(f.name)}</button>`).join('') + '<button class="tab add garden" title="Garten hinzufügen">🌿+</button><button class="tab add" title="Etage hinzufügen">+</button>';
+  nav.innerHTML = plan.floors.map(f => `<button class="tab${f.id === floorId ? ' on' : ''}" data-id="${f.id}">${f.kind === 'garden' ? '🌿 ' : ''}${f.bld ? esc(f.bld) + ' · ' : ''}${esc(f.name)}</button>`).join('') + '<button class="tab add bld" title="Weiteres Gebäude anlegen">🏠+</button>' + '<button class="tab add garden" title="Garten hinzufügen">🌿+</button><button class="tab add" title="Etage hinzufügen">+</button>';
   $$('.tab', nav).forEach(b => {
     b.onclick = () => {
-      if (b.classList.contains('add')) return addFloor(b.classList.contains('garden') ? 'garden' : '');
+      if (b.classList.contains('add')) return b.classList.contains('bld') ? addBuilding() : addFloor(b.classList.contains('garden') ? 'garden' : '');
       switchFloor(b.dataset.id);
     };
     b.ondblclick = () => { if (!b.classList.contains('add')) renameFloor(); };
@@ -369,8 +369,18 @@ function switchFloor(id) {
   if (!V().fitted) fitView();
   renderAll();
 }
+async function addBuilding() {
+  const name = await ask('Neues Gebäude', 'Name des Gebäudes', 'Garage');
+  if (!name) return;
+  const bs = plan.floors.filter(x => x.kind !== 'garden').map(contentBounds).filter(b => !b.empty);
+  const f = newFloor('Erdgeschoss', ''); f.bld = name.trim();
+  plan.floors.push(f); floorId = f.id;
+  const x1 = bs.length ? Math.max(...bs.map(b => b.x + b.w)) : 0; views[f.id] = { tx: 0, ty: 0, k: 0.5, a: viewAngle(), fitted: false };
+  commit(); renderAll(); toast('Gebäude „' + f.bld + '“ angelegt – im Plan rechts neben dem Haupthaus zeichnen (x ≥ ' + fmtN(x1 / 100, 1) + ' m)');
+}
 function addFloor(kind) {
-  const f = newFloor(kind === 'garden' ? 'Garten' : 'Etage ' + (plan.floors.filter(x => x.kind !== 'garden').length + 1), kind);
+  const f = newFloor(kind === 'garden' ? 'Garten' : 'Etage ' + (plan.floors.filter(x => x.kind !== 'garden' && (x.bld || '') === (curFloor().bld || '')).length + 1), kind);
+  if (!kind && curFloor().bld) f.bld = curFloor().bld;
   if (kind === 'garden') {
     const bs = plan.floors.filter(x => x.kind !== 'garden').map(contentBounds).filter(b => !b.empty);
     const x0 = bs.length ? Math.min(...bs.map(b => b.x)) - 600 : 0, y0 = bs.length ? Math.min(...bs.map(b => b.y)) - 600 : 0;
@@ -379,7 +389,7 @@ function addFloor(kind) {
   }
   if (!kind) {
     // Neue Etage übernimmt Wände + Räume der ersten Etage (deckungsgleich gestapelt)
-    const base = plan.floors.find(x => x.kind !== 'garden');
+    const base = plan.floors.find(x => x.kind !== 'garden' && (x.bld || '') === (f.bld || ''));
     if (base) {
       const c = deepClone({ walls: base.walls, rooms: base.rooms });
       c.walls.forEach(w => { w.id = uid(); });
@@ -480,7 +490,7 @@ function saveAsTemplate(it) {
 function showMenu() {
   const items = [
     ['Plan exportieren (JSON)', exportJson], ['Plan importieren …', importJson],
-    ['Stückliste & Flächen …', showBom], ['Drucken / als PDF …', () => printPlan(false)], ['Etage als PNG exportieren', () => exportImage('png')], ['Etage als SVG exportieren', () => exportImage('svg')],
+    ['Stückliste & Flächen …', showBom], ['Plan prüfen (Überschneidungen) …', showCheck], ['DXF importieren …', importDxf], ['Drucken / als PDF …', () => printPlan(false)], ['Etage als PNG exportieren', () => exportImage('png')], ['Etage als SVG exportieren', () => exportImage('svg')],
     ['Dashboard in Home Assistant …', showDashboard], ['Sicherungen …', showBackups], ['Hilfe & Tastenkürzel', showHelp],
   ];
   const wrap = document.createElement('div');

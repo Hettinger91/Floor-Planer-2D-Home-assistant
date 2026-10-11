@@ -23,7 +23,8 @@ function v3Hud() {
     `<label class="chk" title="Anzahl Solarmodule (0 = automatisch)"><input type="number" id="v3solarN" min="0" step="1" style="width:56px" value="${Number(S().solarCount3) || 0}"> Module</label>` +
     `<label class="chk"><input type="checkbox" id="v3all"${S().all3d ? ' checked' : ''}> alle Etagen</label>` +
     `<button class="ibtn" id="v3rl" title="Drehen">⟲</button><button class="ibtn" id="v3rr" title="Drehen">⟳</button>` +
-    `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>`;
+    `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>` +
+    `<button class="ibtn txt" id="v3walk" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück, Esc = beenden">🚶 Begehen</button>`;
   st.appendChild(hud);
   const setOpt = (k, v) => { S()[k] = v; if (k === 'look3d') S().blueprint = v === 'blueprint';  v3.set(k === 'look3d' ? 'look' : k === 'walls3d' ? 'walls' : 'allFloors', v); commit(); };
   $('#v3look').onchange = e => setOpt('look3d', e.target.value);
@@ -37,6 +38,7 @@ function v3Hud() {
   $('#v3rl').onclick = () => v3.rotate(-0.5);
   $('#v3rr').onclick = () => v3.rotate(0.5);
   $('#v3reset').onclick = () => v3.resetView();
+  $('#v3walk').onclick = () => { const w = !v3.isWalking(); v3.setWalk(w); $('#v3walk').classList.toggle('on', w); $('#v3walk').textContent = w ? '🚶 Beenden' : '🚶 Begehen'; };
 }
 
 async function set3D(on) {

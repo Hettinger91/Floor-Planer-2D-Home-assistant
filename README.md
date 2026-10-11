@@ -63,6 +63,11 @@ Im Live-Modus des Editors und in der Dashboard-Karte erscheint oben links eine �
 * **Kiosk-Modus** (Karte): `kiosk: true` – Vollbild-Knopf, größere Touch-Flächen, nach `kiosk_idle` Sekunden (Standard 90) ohne Bedienung Rückkehr zur Startansicht.
 * **Stückliste & Druck:** Editor-Menü → „Stückliste & Flächen“ (Räume, Flächen, Wandlängen, Objekte; CSV-Export) und „Drucken / als PDF“ (Pläne mit Maßstabsangabe, optional mit Stückliste).
 * **Pultdach** als weitere Dachform (inkl. Solarmodulen).
+* **Mehrere Gebäude:** Etagen-Feld „Gebäude“ bzw. Knopf **🏠+** in der Etagenleiste. Jedes Gebäude stapelt eigene Etagen und bekommt ein eigenes Dach; Karte: `building: Garage` zeigt nur dieses Gebäude.
+* **Begehen (🚶):** Ego-Perspektive durchs Haus (3D-Leiste bzw. Karten-Seitenleiste): Ziehen = umsehen (Touch: seitlich drehen, senkrecht laufen), WASD/Pfeile, Mausrad = vor/zurück, Esc beendet. Ohne Wand-Kollision („Geistermodus“).
+* **Plan prüfen:** Menü → „Plan prüfen (Überschneidungen)“ listet überlappende Möbel/Objekte je Etage, Tippen springt zum Objekt.
+* **DXF-Import:** Menü → „DXF importieren“ (ASCII-DXF: LINE, LWPOLYLINE, POLYLINE → Wände; Einheit und Layer wählbar).
+* **Grafischer Karten-Editor:** Alle Kartenoptionen lassen sich im Dashboard-Editor per Formular einstellen (kein YAML nötig).
 
 ## 3D-Ansicht
 
