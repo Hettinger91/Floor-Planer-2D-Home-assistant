@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Zeichne deinen Grundriss und nutze ihn als Live-Dashboard. Es sind keine Einstellungen nötig."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio ist bereits eingerichtet."
+    }
+  }
+}

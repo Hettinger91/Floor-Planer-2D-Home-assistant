@@ -1,0 +1,16 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd custom_components/floorplan_studio && zip -r ../../floorplan_studio.zip . -x "*/__pycache__/*"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: floorplan_studio.zip
+          generate_release_notes: true

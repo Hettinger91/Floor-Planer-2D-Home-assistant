@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Piirrä pohjapiirroksesi ja käytä sitä reaaliaikaisena kojelautana. Asetuksia ei tarvita."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio on jo määritetty."
+    }
+  }
+}

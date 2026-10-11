@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Tegn din plantegning og brug den som live-dashboard. Ingen indstillinger nødvendige."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio er allerede konfigureret."
+    }
+  }
+}

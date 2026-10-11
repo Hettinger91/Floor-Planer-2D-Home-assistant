@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Floorplan Studio",
+        "description": "Zeichne din Grundriss und bruch ihn als Live-Dashboard. Kei Iistellige nötig."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Floorplan Studio isch scho iigrichtet."
+    }
+  }
+}
