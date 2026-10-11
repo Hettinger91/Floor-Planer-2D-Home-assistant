@@ -22,7 +22,9 @@ function toast(msg) { console.warn('[floorplan-studio-card]', msg); }
 
 const CARD_CSS = `
 :host { display: block; }
-ha-card { overflow: hidden; }
+ha-card { overflow: hidden; position: relative; }
+.fsb { position: absolute; top: 6px; right: 6px; z-index: 6; width: 36px; height: 36px; border-radius: 18px; border: 1px solid var(--divider-color); background: var(--card-background-color, #fff); color: var(--primary-text-color); font-size: 18px; cursor: pointer; opacity: .85; }
+ha-card.kiosk .rail button, ha-card.kiosk .tabs button { min-height: 44px; font-size: 15px; }
 .hd { padding: 12px 16px 0; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 12px 0; }
 .tabs button { border: 1px solid var(--divider-color); background: transparent; color: var(--primary-text-color); border-radius: 16px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
@@ -60,7 +62,7 @@ ha-card { display: block; container-type: inline-size; }
 }
 ${BP_CSS}
 .msg { padding: 24px 16px; color: var(--secondary-text-color); text-align: center; }
-`;
+${OVL_CSS}`;
 
 class FloorplanStudioCard extends HTMLElement {
   constructor() {
@@ -125,8 +127,23 @@ class FloorplanStudioCard extends HTMLElement {
   }
 
   // Globale Editor-Variablen für diese Karte setzen (alles synchron, daher sicher bei mehreren Karten).
+  _kio() {
+    const c = this._cfg, root = this.shadowRoot, hc = root.querySelector('ha-card'); if (!c.kiosk || !hc) return;
+    if (!hc.querySelector('.fsb')) {
+      const b = document.createElement('button'); b.className = 'fsb'; b.textContent = '⛶'; b.title = 'Vollbild';
+      b.onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else if (this.requestFullscreen) this.requestFullscreen().catch(() => { }); };
+      hc.append(b); hc.classList.add('kiosk');
+    }
+    if (!this._kioB) {
+      this._kioB = true;
+      const bump = () => { clearTimeout(this._kt); this._kt = setTimeout(() => this._kioReset(), Math.max(10, Number(this._cfg.kiosk_idle) || 90) * 1000); };
+      ['pointerdown', 'wheel', 'keydown'].forEach(ev => this.addEventListener(ev, bump, { passive: true })); this._kioBump = bump;
+    }
+  }
+  _kioReset() { if (!this._plan || !this._cfg.kiosk) return; this._floor = null; this._m3 = this._cfg.mode3d === true; this._pickFloor(); this._v = null; this._ov = null; if (this._v3) { try { this._v3.resetView(); } catch (_) { /* egal */ } } this._sig = ''; this._draw(); }
+  _ovl() { this._kio(); try { ovlMount(this.shadowRoot.querySelector('.wrap'), { show: true, v3: this._v3 }); } catch (e) { /* egal */ } }
   _ctx() {
-    ACTIVE = this;
+    ACTIVE = this; window.FP_CARDCFG = this._cfg;
     haInfo = { ha: true, allowControl: true };
     const dark = !!(this._hass && this._hass.themes && this._hass.themes.darkMode);
     const p = this._plan;
@@ -192,6 +209,7 @@ class FloorplanStudioCard extends HTMLElement {
     this._bindRail(false);
     const svg = root.querySelector('svg');
     if (svg) this._bind(svg);
+    this._ovl();
   }
 
   _bpOn() { if (this._bp == null) { const c = this._cfg, s = (this._plan && this._plan.settings) || {}; this._bp = c.blueprint != null ? !!c.blueprint : !!(s.blueprint || (c.look3d || s.look3d) === 'blueprint'); } return this._bp; }
@@ -235,7 +253,7 @@ class FloorplanStudioCard extends HTMLElement {
   // 3D-Ansicht. true = übernommen (auch wenn noch geladen wird)
   _draw3(head) {
     const root = this.shadowRoot, key = '3|' + this._floor + '|' + (this._plan.floors.length > 1 && !this._cfg.floor ? 't' : '');
-    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); return true; }
+    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); this._ovl(); return true; }
     this._kill3(); this._k3 = key;
     const c0 = this._cfg, s0 = this._plan.settings || {};
     if (this._w3 == null) this._w3 = c0.walls3d || s0.walls3d || 'auto';
@@ -255,7 +273,7 @@ class FloorplanStudioCard extends HTMLElement {
         roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => c.tilt3d !== false, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
-      this._v3.update();
+      this._v3.update(); this._ovl();
     }).catch(e => { st.innerHTML = `<div class="msg">3D nicht möglich: ${esc(e.message)}</div>`; });
     return true;
   }

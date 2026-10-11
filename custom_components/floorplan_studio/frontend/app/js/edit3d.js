@@ -16,7 +16,7 @@ function v3Hud() {
   hud.innerHTML =
     `<select id="v3look" title="Look">${opt([['auto', 'Look: Auto'], ['day', 'Realistisch Tag'], ['dark', 'Realistisch Nacht'], ['live', 'Live (Zeit & Wetter)'], ['neon', 'Neon'], ['blueprint', 'Blueprint']], S().look3d || 'auto')}</select>` +
     `<select id="v3walls" title="Wände">${opt([['auto', 'Wände: automatisch'], ['full', 'Wände: voll'], ['half', 'Wände: halb'], ['flat', 'Wände: flach']], S().walls3d || 'auto')}</select>` +
-    `<select id="v3roof" title="Dach">${opt([['none', 'Dach: aus'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']], S().roof3 || 'none')}</select>` +
+    `<select id="v3roof" title="Dach">${opt([['none', 'Dach: aus'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach'], ['shed', 'Pultdach']], S().roof3 || 'none')}</select>` +
     `<select id="v3tile" title="Dacheindeckung">${opt([['plain', 'Dach: glatt'], ['tiles', 'Dach: Ziegel']], S().roofType3 || 'plain')}</select>` +
     `<label class="chk" title="Wandfarbe">Wand <input type="color" id="v3wc" value="${S().wallColor3 || '#f3f0ea'}"></label>` +
     `<label class="chk" title="Solaranlage auf dem Dach"><input type="checkbox" id="v3solar"${S().solar3 ? ' checked' : ''}> ☀ Solar</label>` +

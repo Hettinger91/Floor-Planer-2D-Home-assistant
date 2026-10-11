@@ -50,6 +50,20 @@ Die Bibliothek enthält über 260 Objekte (Möbel, Küche & Bad, Heizung & Klima
 
 Oben in der Etagenleiste **🌿+** = Garten-Ebene hinzufügen: Rasenfläche, blasser Hausumriss zur Orientierung, Wände werden zu Zäunen. Bodenarten für Flächen: Rasen, Kies, Pflaster, Holzdeck, Sand, Erde, Wasser. Kategorie **Garten** in der Bibliothek mit ~100 Objekten (Bäume, Beete, Teich, Gewächshaus, Pergola, Möbel, Wege, Leuchten, Mähroboter, Bewässerung, Sensoren …). In 3D steht der Garten immer um das Haus herum.
 
+## Live-Übersicht (neu in 1.1.0)
+
+Im Live-Modus des Editors und in der Dashboard-Karte erscheint oben links eine Übersicht (ausblendbar: Karte `overlay: false`, Inspektor „Live-Übersicht“):
+
+* **🚨 Alarme:** Rauch-, Gas-, Wasser-, CO-, Störungs- und Sabotage-Melder (`binary_sensor` mit passender Geräteklasse) blinken rot; zusätzlich Warnung bei offenen Fenstern/Türen, wenn niemand (`person.*`) zuhause ist.
+* **👤 Anwesenheit:** Wer ist zuhause (alle `person`-Entitäten).
+* **⚡ Energiefluss:** Im Inspektor „Live-Übersicht“ PV-, Netz-, Akku- und Hausverbrauchs-Sensor wählen (W oder kW, Vorzeichen umkehrbar) – animiertes Flussdiagramm mit Richtung und Leistung.
+* **Szenen:** Szenen, Skripte oder Taster (je Zeile `scene.kino|Kino`) als Buttons.
+* **🕒 Tageszeit-Regler** in der 3D-Ansicht mit Look „Live“: Sonnenstand/Schatten für jede Uhrzeit ansehen, „Jetzt“ springt zurück.
+* **Raum-Heatmap:** Inspektor „Live-Übersicht“ → Temperatur, Luftfeuchte oder CO₂ färbt Räume (mit HA-Bereich) in 2D und 3D ein; Karte: `heat: temp | hum | co2`.
+* **Kiosk-Modus** (Karte): `kiosk: true` – Vollbild-Knopf, größere Touch-Flächen, nach `kiosk_idle` Sekunden (Standard 90) ohne Bedienung Rückkehr zur Startansicht.
+* **Stückliste & Druck:** Editor-Menü → „Stückliste & Flächen“ (Räume, Flächen, Wandlängen, Objekte; CSV-Export) und „Drucken / als PDF“ (Pläne mit Maßstabsangabe, optional mit Stückliste).
+* **Pultdach** als weitere Dachform (inkl. Solarmodulen).
+
 ## 3D-Ansicht
 
 Im Editor oben **2D | 3D** umschalten, in der Karte der Button **3D** in der Seitenleiste (`view3d: false` blendet ihn aus, `mode3d: true` startet direkt in 3D).

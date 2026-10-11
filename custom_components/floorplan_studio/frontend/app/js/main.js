@@ -13,6 +13,7 @@ function applyBp() {
 }
 function bindUi() {
   if (!document.getElementById('bpcss')) { const st = document.createElement('style'); st.id = 'bpcss'; st.textContent = BP_CSS; document.head.appendChild(st); }
+  if (!document.getElementById('ovlcss')) { const st = document.createElement('style'); st.id = 'ovlcss'; st.textContent = OVL_CSS; document.head.appendChild(st); }
   $('#btnBp').onclick = () => { S().blueprint = !S().blueprint; commit(); applyBp(); };
   $('#btnUndo').onclick = undo;
   $('#btnRedo').onclick = redo;

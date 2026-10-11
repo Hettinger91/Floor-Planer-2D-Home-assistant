@@ -985,12 +985,13 @@ function areaMembers() {
   return _am;
 }
 function areaSummary(areaId) {
-  const r = { temp: null, hum: null, lights: 0, on: 0, open: 0 };
+  const r = { temp: null, hum: null, co2: null, lights: 0, on: 0, open: 0 };
   (areaMembers().get(areaId) || []).forEach(id => {
     const s = states[id]; if (!s) return;
     const d = domainOf(id), a = s.attributes || {}, dc = a.device_class, v = parseFloat(s.state);
     if (d === 'sensor' && dc === 'temperature' && r.temp == null && isFinite(v)) r.temp = v;
     else if (d === 'sensor' && dc === 'humidity' && r.hum == null && isFinite(v)) r.hum = v;
+    else if (d === 'sensor' && dc === 'carbon_dioxide' && r.co2 == null && isFinite(v)) r.co2 = v;
     else if (d === 'light') { r.lights++; if (s.state === 'on') r.on++; }
     else if (d === 'binary_sensor' && ['window', 'door', 'opening', 'garage_door'].includes(dc) && s.state === 'on') r.open++;
     else if (d === 'cover' && ['window', 'door', 'garage', 'gate'].includes(dc) && (s.state === 'open' || s.state === 'opening')) r.open++;
@@ -1001,6 +1002,7 @@ function areaSummaryText(areaId) {
   const r = areaSummary(areaId), p = [];
   if (r.temp != null) p.push(fmtN(r.temp, 1) + '°');
   if (r.hum != null) p.push(Math.round(r.hum) + '%');
+  if (r.co2 != null) p.push('CO₂ ' + Math.round(r.co2));
   if (r.lights) p.push('💡 ' + r.on + '/' + r.lights);
   if (r.open) p.push('🪟 ' + r.open);
   return p.join(' · ');
@@ -1017,8 +1019,31 @@ function linkedEntities() {
     f.rooms.forEach(r => { if (r.entity) set.add(r.entity); if (r.area) (areaMembers().get(r.area) || []).forEach(id => { if (/^(light|sensor|binary_sensor|cover)\./.test(id)) set.add(id); }); });
   });
   const w = weatherId(); if (w) set.add(w);
+  if (typeof ovlEntities === 'function') ovlEntities().forEach(id => set.add(id));
   if (HOST_HAS('sun.sun')) set.add('sun.sun');
   return [...set];
+}
+// ---------- Heatmap der Räume (Temperatur / Feuchte / CO₂) ----------
+function heatMetric() { const c = window.FP_CARDCFG; const m = (c && c.heat) || (typeof S === 'function' && S().heat) || 'none'; return ['temp', 'hum', 'co2'].includes(m) ? m : 'none'; }
+const HEAT_SCALE = {
+  temp: [[16, [60, 120, 230]], [20, [70, 190, 200]], [22, [90, 200, 110]], [25, [245, 200, 70]], [29, [235, 80, 60]]],
+  hum: [[25, [235, 140, 60]], [40, [200, 210, 90]], [50, [90, 200, 110]], [60, [70, 170, 210]], [75, [60, 90, 220]]],
+  co2: [[400, [90, 200, 110]], [800, [200, 210, 90]], [1100, [245, 170, 60]], [1600, [235, 70, 60]]],
+};
+function heatRgb(m, v) {
+  const sc = HEAT_SCALE[m]; if (v <= sc[0][0]) return sc[0][1]; if (v >= sc[sc.length - 1][0]) return sc[sc.length - 1][1];
+  for (let i = 1; i < sc.length; i++) if (v <= sc[i][0]) { const [a, ca] = sc[i - 1], [b, cb] = sc[i], t = (v - a) / (b - a); return ca.map((x, k) => Math.round(x + (cb[k] - x) * t)); }
+  return sc[0][1];
+}
+// Farbe (#rrggbb) für den Raum-Bereich oder null
+function heatFill(areaId) {
+  const m = heatMetric(); if (m === 'none' || !areaId) return null;
+  const v = areaSummary(areaId)[m]; if (v == null) return null;
+  return '#' + heatRgb(m, v).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function heatSig() {
+  if (heatMetric() === 'none') return '';
+  let sg = ''; plan.floors.forEach(f => f.rooms.forEach(r => { if (r.area) { const v = areaSummary(r.area)[heatMetric()]; if (v != null) sg += r.id + Math.round(v * 2) + ';'; } })); return sg;
 }
 function HOST_HAS(id) { try { return !!(HOST.states() || {})[id]; } catch (_) { return false; } }
 // Wetter-Entität für die Live-Ansicht: Karte/Einstellung, sonst die erste weather.*-Entität.
@@ -1196,7 +1221,10 @@ function readColors() {
 function render() {
   if (rq || !plan) return;
   rq = true;
-  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) return; renderNow(); });
+  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) { ovlRefresh(); return; } renderNow(); ovlRefresh(); });
+}
+function ovlRefresh() {
+  try { ovlMount(document.getElementById('stage'), { show: mode === 'live', v3: typeof v3On !== 'undefined' && v3On && typeof v3 !== 'undefined' ? v3 : null }); } catch (e) { /* egal */ }
 }
 
 function renderNow() {
@@ -1302,8 +1330,9 @@ function roomMarkup(r) {
     y += l.s * 1.25;
     return `<text x="${cx}" y="${y - l.s * 0.45}" text-anchor="middle" font-size="${l.s}" fill="${l.c}" opacity="${l.o}" font-weight="${l.o === 1 ? 600 : 400}" pointer-events="none" style="user-select:none">${esc(l.t)}</text>`;
   }).join('');
-  const col = r.color || '#90caf9';
-  return `<g data-k="room" data-id="${r.id}"><polygon points="${pts}" fill="${col}" fill-opacity="${r.floor ? Math.max(S().roomOpacity, 0.55) : S().roomOpacity}" stroke="${col}" stroke-opacity=".6" stroke-width="1" ${NS}/>${floorMarkup(r, pts)}${txt}</g>`;
+  let col = r.color || '#90caf9', op = r.floor ? Math.max(S().roomOpacity, 0.55) : S().roomOpacity;
+  const hc = mode === 'live' && r.area ? heatFill(r.area) : null; if (hc) { col = hc; op = 0.62; }
+  return `<g data-k="room" data-id="${r.id}"><polygon points="${pts}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity=".6" stroke-width="1" ${NS}/>${floorMarkup(r, pts)}${txt}</g>`;
 }
 
 function wallMarkup(w, live, v) {
@@ -1556,6 +1585,137 @@ const BP_CSS = `
 .bp svg text { fill: #eaf4ff !important; stroke: none !important; }
 .bp svg .item g[filter] { filter: none !important; }
 `;
+
+/* ---- overlay.js ---- */
+// Gemeinsame Live-Übersicht (Editor-Live-Modus + Karte): Alarme, Anwesenheit, Energiefluss,
+// Szenen und Tageszeit-Regler (3D „Live“). Alles wird aus den verknüpften HA-Zuständen gebaut.
+
+const OVL_CSS = `
+.ovl, .ovb { position: absolute; left: 8px; z-index: 5; font-size: 12px; color: var(--primary-text-color, var(--text, #222)); max-width: calc(100% - 16px); pointer-events: none; }
+.ovl { top: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.ovb { bottom: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.ovb[hidden], .ovt[hidden] { display: none !important; }
+.ovl > *, .ovb > * { pointer-events: auto; }
+.ovc { display: flex; gap: 6px; flex-wrap: wrap; }
+.oc, .os { border: 1px solid var(--divider-color, var(--line, #ccc)); background: var(--card-background-color, var(--panel, #fff)); color: inherit; border-radius: 16px; padding: 3px 10px; font: inherit; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.18); opacity: .94; }
+.oc.on { border-color: var(--primary-color, var(--accent, #03a9f4)); }
+.oc.alarm { background: #e5484d; border-color: #e5484d; color: #fff; animation: ovlpulse 1.2s ease-in-out infinite; }
+@keyframes ovlpulse { 50% { box-shadow: 0 0 0 5px rgba(229,72,77,.35); } }
+.ovp { background: var(--card-background-color, var(--panel, #fff)); border: 1px solid var(--divider-color, var(--line, #ccc)); border-radius: 10px; padding: 8px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.22); max-width: 260px; }
+.ovp .row { padding: 2px 0; } .ovp .dim { opacity: .5; } .ovp .red { color: #e5484d; font-weight: 600; }
+.ovp svg { width: 220px; height: 150px; display: block; max-height: none; }
+.ovp svg text { fill: var(--primary-text-color, var(--text, #222)); font-size: 11px; text-anchor: middle; }
+.fl { stroke: var(--secondary-text-color, #888); stroke-width: 2.2; stroke-dasharray: 4 4; opacity: .25; fill: none; }
+.fl.on { opacity: 1; stroke: var(--primary-color, var(--accent, #03a9f4)); animation: ovlfl .9s linear infinite; }
+.fl.rev { animation-direction: reverse; }
+@keyframes ovlfl { to { stroke-dashoffset: -8; } }
+.ovs { display: flex; gap: 6px; flex-wrap: wrap; }
+.os:active { transform: scale(.96); }
+.ovt { display: flex; align-items: center; gap: 6px; background: var(--card-background-color, var(--panel, #fff)); border: 1px solid var(--divider-color, var(--line, #ccc)); border-radius: 16px; padding: 3px 10px; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.ovt input[type=range] { width: 130px; margin: 0; }
+.ovt button { border: 0; background: transparent; color: var(--primary-color, var(--accent, #03a9f4)); font: inherit; cursor: pointer; padding: 0 2px; }
+`;
+
+const ALARM_DC = ['smoke', 'gas', 'moisture', 'carbon_monoxide', 'safety', 'problem', 'tamper', 'heat'];
+let ovlOpen = '', ovlHour = null, _ovlC = null, _ovlAt = 0;
+
+const ovlEnabled = () => { const c = window.FP_CARDCFG; if (c && c.overlay === false) return false; return !(typeof S === 'function' && plan && S().overlayOff); };
+function ovlScenes() {
+  const t = String((typeof S === 'function' && plan && S().scenes) || '');
+  return t.split(/\n|,/).map(x => x.trim()).filter(Boolean).map(x => { const [id, label] = x.split('|'); return { id: id.trim(), label: (label || '').trim() }; });
+}
+// Entitäten, die zusätzlich zu den Plan-Verknüpfungen mitgelesen werden müssen
+function ovlEntities() {
+  if (!plan || !ovlEnabled()) return [];
+  const now = Date.now(), s = S(), base = [s.energyPv, s.energyGrid, s.energyBat, s.energyHome, ...ovlScenes().map(x => x.id)].filter(Boolean);
+  if (_ovlC && now - _ovlAt < 10000) return base.concat(_ovlC);
+  let all = {}; try { all = HOST.states() || {}; } catch (_) { /* egal */ }
+  _ovlC = Object.keys(all).filter(id => { const d = id.split('.')[0]; return d === 'person' || (d === 'binary_sensor' && ALARM_DC.includes((all[id].attributes || {}).device_class)); });
+  _ovlAt = now;
+  return base.concat(_ovlC);
+}
+
+const fmtPow = v => v == null ? '–' : Math.abs(v) >= 1000 ? fmtN(v / 1000, 2) + ' kW' : Math.round(v) + ' W';
+function ovlModel() {
+  const s = S(), m = { alarms: [], persons: [], energy: null, scenes: [] };
+  Object.keys(states).forEach(id => {
+    const st = states[id], d = id.split('.')[0], a = st.attributes || {};
+    if (d === 'binary_sensor' && ALARM_DC.includes(a.device_class) && st.state === 'on') m.alarms.push({ n: a.friendly_name || id, dc: a.device_class });
+    else if (d === 'person') m.persons.push({ n: a.friendly_name || id, home: st.state === 'home' });
+  });
+  if (m.persons.length && m.persons.every(p => !p.home)) {
+    let n = 0;
+    plan.floors.forEach(f => f.items.forEach(it => { if (it.entity && /^(window|door|sliding|garage|skylight|roof_window|terrace_door)/.test(it.type)) { const o = openInfo(it); if (o && (o.o > 0 || o.tilt)) n++; } }));
+    if (n) m.alarms.push({ n: n + ' Fenster/Türen offen, niemand zuhause', dc: 'open' });
+  }
+  const num = id => { const st = id && states[id]; if (!st) return null; const v = parseFloat(st.state); if (!isFinite(v)) return null; const u = String((st.attributes || {}).unit_of_measurement || 'W'); return /^kW/i.test(u) ? v * 1000 : /^MW/i.test(u) ? v * 1e6 : v; };
+  const pv = num(s.energyPv), gr = num(s.energyGrid), bt = num(s.energyBat), hm = num(s.energyHome);
+  if (pv != null || gr != null || bt != null || hm != null) {
+    const g = gr == null ? null : (s.energyGridInv ? -gr : gr), b = bt == null ? null : (s.energyBatInv ? -bt : bt);
+    m.energy = { pv, g, b, home: hm != null ? hm : Math.max(0, (pv || 0) + (g || 0) - (b || 0)) };
+  }
+  m.scenes = ovlScenes().map(x => { const st = states[x.id], a = (st && st.attributes) || {}; return { id: x.id, n: x.label || a.friendly_name || x.id }; });
+  return m;
+}
+
+function ovlEnergySvg(e) {
+  const T = 10, ln = (x1, y1, x2, y2, on, rev) => `<line class="fl${on ? ' on' : ''}${rev ? ' rev' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  const node = (x, y, ico, val, r = 15) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="var(--divider-color, #bbb)" stroke-width="1.5"/><text x="${x}" y="${y + 5}" style="font-size:15px">${ico}</text><text x="${x}" y="${y + r + 13}">${val}</text>`;
+  const pvOn = e.pv != null && e.pv > T, gImp = e.g != null && e.g > T, gExp = e.g != null && e.g < -T, bCh = e.b != null && e.b > T, bDis = e.b != null && e.b < -T;
+  return `<svg viewBox="0 0 200 150">${ln(30, 28, 100, 70, pvOn, false)}${ln(170, 28, 100, 70, gImp || gExp, gExp)}${ln(30, 112, 100, 70, bCh || bDis, bCh)}` +
+    node(30, 28, '☀️', fmtPow(e.pv)) + node(170, 28, '🔌', fmtPow(e.g)) + node(30, 112, '🔋', fmtPow(e.b)) + node(100, 70, '🏠', fmtPow(e.home), 17) + '</svg>';
+}
+
+function ovlTopHtml(m) {
+  const chips = [];
+  if (m.alarms.length) chips.push(`<button class="oc alarm" data-o="a">🚨 ${m.alarms.length}</button>`);
+  if (m.persons.length) chips.push(`<button class="oc${ovlOpen === 'p' ? ' on' : ''}" data-o="p">👤 ${m.persons.filter(p => p.home).length}/${m.persons.length}</button>`);
+  if (m.energy) chips.push(`<button class="oc${ovlOpen === 'e' ? ' on' : ''}" data-o="e">⚡ ${fmtPow(m.energy.home)}</button>`);
+  if (!chips.length) return '';
+  let panel = '';
+  if (ovlOpen === 'a' && m.alarms.length) panel = m.alarms.map(a => `<div class="row red">${a.dc === 'open' ? '🪟' : '⚠️'} ${esc(a.n)}</div>`).join('');
+  else if (ovlOpen === 'p' && m.persons.length) panel = m.persons.map(p => `<div class="row${p.home ? '' : ' dim'}">${p.home ? '🏠' : '🚶'} ${esc(p.n)} · ${p.home ? 'zuhause' : 'unterwegs'}</div>`).join('');
+  else if (ovlOpen === 'e' && m.energy) panel = ovlEnergySvg(m.energy);
+  return `<div class="ovc">${chips.join('')}</div>${panel ? `<div class="ovp">${panel}</div>` : ''}`;
+}
+
+const pad2 = n => String(n).padStart(2, '0');
+const hourTxt = h => pad2(Math.floor(h)) + ':' + pad2(Math.round((h % 1) * 60) % 60);
+function ovlNowHour() { const d = new Date(); return d.getHours() + d.getMinutes() / 60; }
+
+// Hängt die Übersicht in `host` (position: relative). o = { show, v3 }
+function ovlMount(host, o = {}) {
+  if (!host || !plan) return;
+  let top = host.querySelector(':scope > .ovl'), bar = host.querySelector(':scope > .ovb');
+  if (!o.show || !ovlEnabled()) { if (top) top.remove(); if (bar) bar.remove(); return; }
+  if (!top) { top = document.createElement('div'); top.className = 'ovl'; host.appendChild(top); }
+  if (!bar) { bar = document.createElement('div'); bar.className = 'ovb'; bar.innerHTML = '<div class="ovs"></div><div class="ovt" hidden></div>'; host.appendChild(bar); }
+  host._ovlO = o;
+  if (!host._ovlBound) {
+    host._ovlBound = true;
+    host.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('[data-o],[data-scene]'); if (!b) return;
+      if (b.dataset.scene) { const id = b.dataset.scene, d = id.split('.')[0]; callService(d, d === 'button' || d === 'input_button' ? 'press' : 'turn_on', { entity_id: id }); return; }
+      if (b.dataset.o === 'now') { ovlHour = null; const v = host._ovlO && host._ovlO.v3; if (v && v.setSim) v.setSim((v.opts.sim && v.opts.sim.cond) ? { cond: v.opts.sim.cond } : null); const tt = host.querySelector('.ovt'); if (tt) tt._k = ''; ovlMount(host, host._ovlO); return; }
+      ovlOpen = ovlOpen === b.dataset.o ? '' : b.dataset.o; ovlMount(host, host._ovlO);
+    });
+    host.addEventListener('input', e => {
+      const r = e.target.closest && e.target.closest('.ovt input'); if (!r) return;
+      ovlHour = Number(r.value); const t = host.querySelector('.ovt span'); if (t) t.textContent = hourTxt(ovlHour);
+      const v = host._ovlO && host._ovlO.v3; if (v && v.setSim) v.setSim(Object.assign({}, v.opts.sim || {}, { hour: ovlHour }));
+    });
+  }
+  const m = ovlModel(), th = ovlTopHtml(m);
+  if (top._h !== th) { top._h = th; top.innerHTML = th; }
+  const sc = m.scenes.map(x => `<button class="os" data-scene="${esc(x.id)}">${esc(x.n)}</button>`).join('');
+  const se = bar.querySelector('.ovs'); if (se._h !== sc) { se._h = sc; se.innerHTML = sc; }
+  const tm = bar.querySelector('.ovt'), wantT = !!(o.v3 && o.v3.hasEnv && o.v3.hasEnv()), tk = wantT ? 't' : '';
+  if (tm._k !== tk) {
+    tm._k = tk; tm.hidden = !wantT;
+    if (wantT) { const sh = o.v3 && o.v3.opts && o.v3.opts.sim && o.v3.opts.sim.hour != null ? o.v3.opts.sim.hour : null, h = ovlHour != null ? ovlHour : (sh != null ? sh : ovlNowHour()); tm.innerHTML = `🕒 <input type="range" min="0" max="24" step="0.25" value="${h}"><span>${hourTxt(h)}</span><button data-o="now" title="Aktuelle Zeit">Jetzt</button>`; } else tm.innerHTML = '';
+  }
+  bar.hidden = !(sc || wantT);
+}
 
 /* ---- models3d.js ---- */
 // ---------- Prozedurale 3D-Modelle (realistische Möbel, Geräte, Smart-Home-Objekte) ----------
@@ -2466,11 +2626,11 @@ const FP3D = (() => {
     }
 
     // ---------- Aufbau ----------
-    let wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
+    let heatRooms = [], wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null; envO = null;
+      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null; envO = null; heatRooms = [];
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
@@ -2597,6 +2757,7 @@ const FP3D = (() => {
         const col = r.floor && FLOOR_COL[r.floor] ? FLOOR_COL[r.floor] : (r.color || '#90caf9');
         const mat = new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide });
         if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.bp ? 0x0b3b75 : look.neon ? 0x0b1020 : 0xffffff), look.bp ? 0.7 : look.neon ? 0.55 : 0.45);
+        if (r.area && !(r.floor && FLOOR_COL[r.floor])) heatRooms.push({ mat, area: r.area, base: mat.color.clone() });
         const geo = new T.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
         const m = new T.Mesh(geo, mat); m.rotation.x = Math.PI / 2; m.position.y = 0; m.receiveShadow = true; g.add(m);
         const fd = typeof FLOORS !== 'undefined' ? FLOORS[r.floor] : null;
@@ -2766,7 +2927,9 @@ const FP3D = (() => {
     // ---------- Dachgeometrie mit UV (Ziegel) ----------
     function roofGeo(mode, across, len, rh) {
       const a = across / 2, l = len / 2, faces = [];
-      if (mode === 'gable') {
+      if (mode === 'shed') {
+        faces.push([[-a, 0, -l], [-a, 0, l], [a, rh, l], [a, rh, -l]], [[a, 0, l], [a, 0, -l], [a, rh, -l], [a, rh, l]], [[-a, 0, l], [a, 0, l], [a, rh, l]], [[a, 0, -l], [-a, 0, -l], [a, rh, -l]]);
+      } else if (mode === 'gable') {
         faces.push([[-a, 0, -l], [-a, 0, l], [0, rh, l], [0, rh, -l]], [[a, 0, l], [a, 0, -l], [0, rh, -l], [0, rh, l]], [[-a, 0, l], [a, 0, l], [0, rh, l]], [[a, 0, -l], [-a, 0, -l], [0, rh, -l]]);
       } else {
         const rl = Math.max(0, l - a), A = [-a, 0, -l], B = [a, 0, -l], C = [a, 0, l], D = [-a, 0, l], R1 = [0, rh, -rl], R2 = [0, rh, rl];
@@ -2823,6 +2986,10 @@ const FP3D = (() => {
         const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)));
         const gp = gridPos(n, cols, rows);
         gp.list.forEach(q => spots.push({ x: q.c * (PW + GAP), y: 7 + PH * Math.sin(tilt) / 2 + 8, z: (q.r - (gp.rows - 1) / 2) * pitchD, rx: side * tilt, rz: 0, flat: true }));
+      } else if (roofMode === 'shed') {
+        const Ls = Math.hypot(across, rh), alpha = Math.atan2(rh, across), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const cols = Math.max(1, Math.floor((Math.max(PW, len - 50) + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill))), gp = gridPos(n, cols, rowsMax);
+        gp.list.forEach(q => { const sc = s0 + PH / 2 + q.r * (PH + GAP); spots.push({ x: -across / 2 + Math.cos(alpha) * sc - Math.sin(alpha) * 2.4, y: Math.sin(alpha) * sc + Math.cos(alpha) * 2.4, z: q.c * (PW + GAP), rz: alpha, rx: 0, flat: false }); });
       } else {
         const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
         const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols;
@@ -3079,7 +3246,7 @@ const FP3D = (() => {
         if (roofMode === 'flat') {
           rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
         } else {
-          rh = (across / 2) * Math.tan(pitch);
+          rh = roofMode === 'shed' ? across * Math.tan(Math.min(pitch, 0.3)) : (across / 2) * Math.tan(pitch);
           rm = new T.Mesh(roofGeo(roofMode, across, len, rh), rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
@@ -3111,10 +3278,11 @@ const FP3D = (() => {
     function stateSig() {
       let s = '';
       plan.floors.forEach(f => f.items.forEach(it => { [it.entity, it.entity2].forEach(en => { if (en) { const st = states[en]; if (st) s += en + st.state + (st.attributes && st.attributes.brightness != null ? st.attributes.brightness : '') + (st.attributes && st.attributes.current_position != null ? 'p' + st.attributes.current_position : '') + (st.attributes && st.attributes.rgb_color ? st.attributes.rgb_color.join('') : '') + '|'; } }); }));
-      return s;
+      return s + (typeof heatSig === 'function' ? heatSig() : '');
     }
     function applyLive(force) {
       let lights = 0;
+      heatRooms.forEach(h => { const hc = heatFill(h.area); if (hc) h.mat.color.set(hc); else h.mat.color.copy(h.base); }); if (heatRooms.length) dirty = true;
       items.forEach(r => {
         const it = r.it, s = it.entity ? states[it.entity] : null, act = isActive(s), na = s && (s.state === 'unavailable' || s.state === 'unknown');
         const lightLike = it.glow;
@@ -3319,7 +3487,7 @@ const FP3D = (() => {
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0, typeof heatMetric === 'function' ? heatMetric() : '']);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
@@ -3341,7 +3509,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };
@@ -3372,7 +3540,9 @@ function toast(msg) { console.warn('[floorplan-studio-card]', msg); }
 
 const CARD_CSS = `
 :host { display: block; }
-ha-card { overflow: hidden; }
+ha-card { overflow: hidden; position: relative; }
+.fsb { position: absolute; top: 6px; right: 6px; z-index: 6; width: 36px; height: 36px; border-radius: 18px; border: 1px solid var(--divider-color); background: var(--card-background-color, #fff); color: var(--primary-text-color); font-size: 18px; cursor: pointer; opacity: .85; }
+ha-card.kiosk .rail button, ha-card.kiosk .tabs button { min-height: 44px; font-size: 15px; }
 .hd { padding: 12px 16px 0; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 12px 0; }
 .tabs button { border: 1px solid var(--divider-color); background: transparent; color: var(--primary-text-color); border-radius: 16px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
@@ -3410,7 +3580,7 @@ ha-card { display: block; container-type: inline-size; }
 }
 ${BP_CSS}
 .msg { padding: 24px 16px; color: var(--secondary-text-color); text-align: center; }
-`;
+${OVL_CSS}`;
 
 class FloorplanStudioCard extends HTMLElement {
   constructor() {
@@ -3475,8 +3645,23 @@ class FloorplanStudioCard extends HTMLElement {
   }
 
   // Globale Editor-Variablen für diese Karte setzen (alles synchron, daher sicher bei mehreren Karten).
+  _kio() {
+    const c = this._cfg, root = this.shadowRoot, hc = root.querySelector('ha-card'); if (!c.kiosk || !hc) return;
+    if (!hc.querySelector('.fsb')) {
+      const b = document.createElement('button'); b.className = 'fsb'; b.textContent = '⛶'; b.title = 'Vollbild';
+      b.onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else if (this.requestFullscreen) this.requestFullscreen().catch(() => { }); };
+      hc.append(b); hc.classList.add('kiosk');
+    }
+    if (!this._kioB) {
+      this._kioB = true;
+      const bump = () => { clearTimeout(this._kt); this._kt = setTimeout(() => this._kioReset(), Math.max(10, Number(this._cfg.kiosk_idle) || 90) * 1000); };
+      ['pointerdown', 'wheel', 'keydown'].forEach(ev => this.addEventListener(ev, bump, { passive: true })); this._kioBump = bump;
+    }
+  }
+  _kioReset() { if (!this._plan || !this._cfg.kiosk) return; this._floor = null; this._m3 = this._cfg.mode3d === true; this._pickFloor(); this._v = null; this._ov = null; if (this._v3) { try { this._v3.resetView(); } catch (_) { /* egal */ } } this._sig = ''; this._draw(); }
+  _ovl() { this._kio(); try { ovlMount(this.shadowRoot.querySelector('.wrap'), { show: true, v3: this._v3 }); } catch (e) { /* egal */ } }
   _ctx() {
-    ACTIVE = this;
+    ACTIVE = this; window.FP_CARDCFG = this._cfg;
     haInfo = { ha: true, allowControl: true };
     const dark = !!(this._hass && this._hass.themes && this._hass.themes.darkMode);
     const p = this._plan;
@@ -3542,6 +3727,7 @@ class FloorplanStudioCard extends HTMLElement {
     this._bindRail(false);
     const svg = root.querySelector('svg');
     if (svg) this._bind(svg);
+    this._ovl();
   }
 
   _bpOn() { if (this._bp == null) { const c = this._cfg, s = (this._plan && this._plan.settings) || {}; this._bp = c.blueprint != null ? !!c.blueprint : !!(s.blueprint || (c.look3d || s.look3d) === 'blueprint'); } return this._bp; }
@@ -3585,7 +3771,7 @@ class FloorplanStudioCard extends HTMLElement {
   // 3D-Ansicht. true = übernommen (auch wenn noch geladen wird)
   _draw3(head) {
     const root = this.shadowRoot, key = '3|' + this._floor + '|' + (this._plan.floors.length > 1 && !this._cfg.floor ? 't' : '');
-    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); return true; }
+    if (this._v3 && this._k3 === key && root.querySelector('.stage3')) { this._v3.update(); this._ovl(); return true; }
     this._kill3(); this._k3 = key;
     const c0 = this._cfg, s0 = this._plan.settings || {};
     if (this._w3 == null) this._w3 = c0.walls3d || s0.walls3d || 'auto';
@@ -3605,7 +3791,7 @@ class FloorplanStudioCard extends HTMLElement {
         roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => c.tilt3d !== false, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
-      this._v3.update();
+      this._v3.update(); this._ovl();
     }).catch(e => { st.innerHTML = `<div class="msg">3D nicht möglich: ${esc(e.message)}</div>`; });
     return true;
   }

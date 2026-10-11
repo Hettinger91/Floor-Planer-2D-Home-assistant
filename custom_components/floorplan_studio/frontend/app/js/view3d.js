@@ -179,11 +179,11 @@ const FP3D = (() => {
     }
 
     // ---------- Aufbau ----------
-    let wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
+    let heatRooms = [], wallGroups = [], robots = [], solar = null, groundY = 0, selBox = null, lastAnim = 0;
     function clearWorld() {
       world.traverse(n => { if (n.geometry) n.geometry.dispose(); if (n.material) { (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => m.dispose()); } });
       while (world.children.length) world.remove(world.children[0]);
-      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null; envO = null;
+      items = []; pickables = []; wallGroups = []; robots = []; opens = []; solar = null; selBox = null; envO = null; heatRooms = [];
     }
 
     function box(w, h, d, mat, x, y, z, ry = 0) {
@@ -310,6 +310,7 @@ const FP3D = (() => {
         const col = r.floor && FLOOR_COL[r.floor] ? FLOOR_COL[r.floor] : (r.color || '#90caf9');
         const mat = new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide });
         if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.bp ? 0x0b3b75 : look.neon ? 0x0b1020 : 0xffffff), look.bp ? 0.7 : look.neon ? 0.55 : 0.45);
+        if (r.area && !(r.floor && FLOOR_COL[r.floor])) heatRooms.push({ mat, area: r.area, base: mat.color.clone() });
         const geo = new T.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
         const m = new T.Mesh(geo, mat); m.rotation.x = Math.PI / 2; m.position.y = 0; m.receiveShadow = true; g.add(m);
         const fd = typeof FLOORS !== 'undefined' ? FLOORS[r.floor] : null;
@@ -479,7 +480,9 @@ const FP3D = (() => {
     // ---------- Dachgeometrie mit UV (Ziegel) ----------
     function roofGeo(mode, across, len, rh) {
       const a = across / 2, l = len / 2, faces = [];
-      if (mode === 'gable') {
+      if (mode === 'shed') {
+        faces.push([[-a, 0, -l], [-a, 0, l], [a, rh, l], [a, rh, -l]], [[a, 0, l], [a, 0, -l], [a, rh, -l], [a, rh, l]], [[-a, 0, l], [a, 0, l], [a, rh, l]], [[a, 0, -l], [-a, 0, -l], [a, rh, -l]]);
+      } else if (mode === 'gable') {
         faces.push([[-a, 0, -l], [-a, 0, l], [0, rh, l], [0, rh, -l]], [[a, 0, l], [a, 0, -l], [0, rh, -l], [0, rh, l]], [[-a, 0, l], [a, 0, l], [0, rh, l]], [[a, 0, -l], [-a, 0, -l], [0, rh, -l]]);
       } else {
         const rl = Math.max(0, l - a), A = [-a, 0, -l], B = [a, 0, -l], C = [a, 0, l], D = [-a, 0, l], R1 = [0, rh, -rl], R2 = [0, rh, rl];
@@ -536,6 +539,10 @@ const FP3D = (() => {
         const cols = Math.max(1, Math.floor((aw + GAP) / (PW + GAP))), rows = Math.max(1, Math.floor((ad + 40) / pitchD)), max = cols * rows, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill)));
         const gp = gridPos(n, cols, rows);
         gp.list.forEach(q => spots.push({ x: q.c * (PW + GAP), y: 7 + PH * Math.sin(tilt) / 2 + 8, z: (q.r - (gp.rows - 1) / 2) * pitchD, rx: side * tilt, rz: 0, flat: true }));
+      } else if (roofMode === 'shed') {
+        const Ls = Math.hypot(across, rh), alpha = Math.atan2(rh, across), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
+        const cols = Math.max(1, Math.floor((Math.max(PW, len - 50) + GAP) / (PW + GAP))), max = rowsMax * cols, n = Math.min(max, reqN > 0 ? reqN : Math.max(1, Math.round(max * fill))), gp = gridPos(n, cols, rowsMax);
+        gp.list.forEach(q => { const sc = s0 + PH / 2 + q.r * (PH + GAP); spots.push({ x: -across / 2 + Math.cos(alpha) * sc - Math.sin(alpha) * 2.4, y: Math.sin(alpha) * sc + Math.cos(alpha) * 2.4, z: q.c * (PW + GAP), rz: alpha, rx: 0, flat: false }); });
       } else {
         const Ls = Math.hypot(across / 2, rh), alpha = Math.atan2(rh, across / 2), s0 = Math.max(35, (Number(S().roofOver3) || 40) / Math.cos(alpha) + 12), rowsMax = Math.max(1, Math.floor((Ls - s0 - 25 + GAP) / (PH + GAP)));
         const regionLen = roofMode === 'hip' ? Math.max(PW, len - across - 20) : Math.max(PW, len - 50), cols = Math.max(1, Math.floor((regionLen + GAP) / (PW + GAP))), max = rowsMax * cols;
@@ -792,7 +799,7 @@ const FP3D = (() => {
         if (roofMode === 'flat') {
           rm = new T.Mesh(new T.BoxGeometry(W, 14, D), rmat); rm.position.set(cx2, by + 7, cz2);
         } else {
-          rh = (across / 2) * Math.tan(pitch);
+          rh = roofMode === 'shed' ? across * Math.tan(Math.min(pitch, 0.3)) : (across / 2) * Math.tan(pitch);
           rm = new T.Mesh(roofGeo(roofMode, across, len, rh), rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
@@ -824,10 +831,11 @@ const FP3D = (() => {
     function stateSig() {
       let s = '';
       plan.floors.forEach(f => f.items.forEach(it => { [it.entity, it.entity2].forEach(en => { if (en) { const st = states[en]; if (st) s += en + st.state + (st.attributes && st.attributes.brightness != null ? st.attributes.brightness : '') + (st.attributes && st.attributes.current_position != null ? 'p' + st.attributes.current_position : '') + (st.attributes && st.attributes.rgb_color ? st.attributes.rgb_color.join('') : '') + '|'; } }); }));
-      return s;
+      return s + (typeof heatSig === 'function' ? heatSig() : '');
     }
     function applyLive(force) {
       let lights = 0;
+      heatRooms.forEach(h => { const hc = heatFill(h.area); if (hc) h.mat.color.set(hc); else h.mat.color.copy(h.base); }); if (heatRooms.length) dirty = true;
       items.forEach(r => {
         const it = r.it, s = it.entity ? states[it.entity] : null, act = isActive(s), na = s && (s.state === 'unavailable' || s.state === 'unknown');
         const lightLike = it.glow;
@@ -1032,7 +1040,7 @@ const FP3D = (() => {
     }
 
     function structSig() {
-      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0]);
+      return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0, typeof heatMetric === 'function' ? heatMetric() : '']);
     }
     function build(force) {
       look = LOOKS[lookKey()] || LOOKS.day;
@@ -1054,7 +1062,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };

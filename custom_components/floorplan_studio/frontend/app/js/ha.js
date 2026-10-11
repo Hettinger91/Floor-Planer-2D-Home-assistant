@@ -24,12 +24,13 @@ function areaMembers() {
   return _am;
 }
 function areaSummary(areaId) {
-  const r = { temp: null, hum: null, lights: 0, on: 0, open: 0 };
+  const r = { temp: null, hum: null, co2: null, lights: 0, on: 0, open: 0 };
   (areaMembers().get(areaId) || []).forEach(id => {
     const s = states[id]; if (!s) return;
     const d = domainOf(id), a = s.attributes || {}, dc = a.device_class, v = parseFloat(s.state);
     if (d === 'sensor' && dc === 'temperature' && r.temp == null && isFinite(v)) r.temp = v;
     else if (d === 'sensor' && dc === 'humidity' && r.hum == null && isFinite(v)) r.hum = v;
+    else if (d === 'sensor' && dc === 'carbon_dioxide' && r.co2 == null && isFinite(v)) r.co2 = v;
     else if (d === 'light') { r.lights++; if (s.state === 'on') r.on++; }
     else if (d === 'binary_sensor' && ['window', 'door', 'opening', 'garage_door'].includes(dc) && s.state === 'on') r.open++;
     else if (d === 'cover' && ['window', 'door', 'garage', 'gate'].includes(dc) && (s.state === 'open' || s.state === 'opening')) r.open++;
@@ -40,6 +41,7 @@ function areaSummaryText(areaId) {
   const r = areaSummary(areaId), p = [];
   if (r.temp != null) p.push(fmtN(r.temp, 1) + '°');
   if (r.hum != null) p.push(Math.round(r.hum) + '%');
+  if (r.co2 != null) p.push('CO₂ ' + Math.round(r.co2));
   if (r.lights) p.push('💡 ' + r.on + '/' + r.lights);
   if (r.open) p.push('🪟 ' + r.open);
   return p.join(' · ');
@@ -56,8 +58,31 @@ function linkedEntities() {
     f.rooms.forEach(r => { if (r.entity) set.add(r.entity); if (r.area) (areaMembers().get(r.area) || []).forEach(id => { if (/^(light|sensor|binary_sensor|cover)\./.test(id)) set.add(id); }); });
   });
   const w = weatherId(); if (w) set.add(w);
+  if (typeof ovlEntities === 'function') ovlEntities().forEach(id => set.add(id));
   if (HOST_HAS('sun.sun')) set.add('sun.sun');
   return [...set];
+}
+// ---------- Heatmap der Räume (Temperatur / Feuchte / CO₂) ----------
+function heatMetric() { const c = window.FP_CARDCFG; const m = (c && c.heat) || (typeof S === 'function' && S().heat) || 'none'; return ['temp', 'hum', 'co2'].includes(m) ? m : 'none'; }
+const HEAT_SCALE = {
+  temp: [[16, [60, 120, 230]], [20, [70, 190, 200]], [22, [90, 200, 110]], [25, [245, 200, 70]], [29, [235, 80, 60]]],
+  hum: [[25, [235, 140, 60]], [40, [200, 210, 90]], [50, [90, 200, 110]], [60, [70, 170, 210]], [75, [60, 90, 220]]],
+  co2: [[400, [90, 200, 110]], [800, [200, 210, 90]], [1100, [245, 170, 60]], [1600, [235, 70, 60]]],
+};
+function heatRgb(m, v) {
+  const sc = HEAT_SCALE[m]; if (v <= sc[0][0]) return sc[0][1]; if (v >= sc[sc.length - 1][0]) return sc[sc.length - 1][1];
+  for (let i = 1; i < sc.length; i++) if (v <= sc[i][0]) { const [a, ca] = sc[i - 1], [b, cb] = sc[i], t = (v - a) / (b - a); return ca.map((x, k) => Math.round(x + (cb[k] - x) * t)); }
+  return sc[0][1];
+}
+// Farbe (#rrggbb) für den Raum-Bereich oder null
+function heatFill(areaId) {
+  const m = heatMetric(); if (m === 'none' || !areaId) return null;
+  const v = areaSummary(areaId)[m]; if (v == null) return null;
+  return '#' + heatRgb(m, v).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function heatSig() {
+  if (heatMetric() === 'none') return '';
+  let sg = ''; plan.floors.forEach(f => f.rooms.forEach(r => { if (r.area) { const v = areaSummary(r.area)[heatMetric()]; if (v != null) sg += r.id + Math.round(v * 2) + ';'; } })); return sg;
 }
 function HOST_HAS(id) { try { return !!(HOST.states() || {})[id]; } catch (_) { return false; } }
 // Wetter-Entität für die Live-Ansicht: Karte/Einstellung, sonst die erste weather.*-Entität.

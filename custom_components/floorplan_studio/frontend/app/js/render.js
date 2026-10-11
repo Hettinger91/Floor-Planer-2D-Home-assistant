@@ -17,7 +17,10 @@ function readColors() {
 function render() {
   if (rq || !plan) return;
   rq = true;
-  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) return; renderNow(); });
+  requestAnimationFrame(() => { rq = false; if (typeof v3Hook === 'function' && v3Hook()) { ovlRefresh(); return; } renderNow(); ovlRefresh(); });
+}
+function ovlRefresh() {
+  try { ovlMount(document.getElementById('stage'), { show: mode === 'live', v3: typeof v3On !== 'undefined' && v3On && typeof v3 !== 'undefined' ? v3 : null }); } catch (e) { /* egal */ }
 }
 
 function renderNow() {
@@ -123,8 +126,9 @@ function roomMarkup(r) {
     y += l.s * 1.25;
     return `<text x="${cx}" y="${y - l.s * 0.45}" text-anchor="middle" font-size="${l.s}" fill="${l.c}" opacity="${l.o}" font-weight="${l.o === 1 ? 600 : 400}" pointer-events="none" style="user-select:none">${esc(l.t)}</text>`;
   }).join('');
-  const col = r.color || '#90caf9';
-  return `<g data-k="room" data-id="${r.id}"><polygon points="${pts}" fill="${col}" fill-opacity="${r.floor ? Math.max(S().roomOpacity, 0.55) : S().roomOpacity}" stroke="${col}" stroke-opacity=".6" stroke-width="1" ${NS}/>${floorMarkup(r, pts)}${txt}</g>`;
+  let col = r.color || '#90caf9', op = r.floor ? Math.max(S().roomOpacity, 0.55) : S().roomOpacity;
+  const hc = mode === 'live' && r.area ? heatFill(r.area) : null; if (hc) { col = hc; op = 0.62; }
+  return `<g data-k="room" data-id="${r.id}"><polygon points="${pts}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity=".6" stroke-width="1" ${NS}/>${floorMarkup(r, pts)}${txt}</g>`;
 }
 
 function wallMarkup(w, live, v) {

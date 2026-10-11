@@ -280,7 +280,7 @@ function renderFloorInspector(box) {
   const s3 = [
     { k: 'wallColor3', t: 'color', l: 'Wandfarbe', def: '#f3f0ea' },
     { k: 'wallH3', t: 'num', l: 'Wandhöhe (cm)', min: 180, step: 10 },
-    { k: 'roof3', t: 'select', l: 'Dach', o: [['none', 'Kein Dach'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach']] },
+    { k: 'roof3', t: 'select', l: 'Dach', o: [['none', 'Kein Dach'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach'], ['shed', 'Pultdach']] },
     { k: 'roofType3', t: 'select', l: 'Dacheindeckung', o: [['plain', 'Glatt'], ['tiles', 'Dachziegel']] },
     { k: 'roofColor3', t: 'color', l: 'Dachfarbe', def: '#8a4b3a' },
     { k: 'roofPitch3', t: 'num', l: 'Dachneigung (°)', min: 5, max: 60 },
@@ -296,6 +296,17 @@ function renderFloorInspector(box) {
     { k: 'weather3', t: 'entity', l: 'Wetter-Entität für „Live“ (leer = automatisch, none = aus)', ph: 'weather.home' },
     { k: 'walls3d', t: 'select', l: 'Wände', o: [['auto', 'Automatisch (Kamera-Ausschnitt)'], ['full', 'Voll'], ['half', 'Halb'], ['flat', 'Flach']] },
   ];
+  const sL = [
+    { k: 'heat', t: 'select', l: 'Raum-Heatmap (Raum braucht HA-Bereich)', o: [['none', 'Aus'], ['temp', 'Temperatur'], ['hum', 'Luftfeuchte'], ['co2', 'CO₂']] },
+    { k: 'energyPv', t: 'entity', l: 'Energie: PV-Leistung (W/kW)', ph: 'sensor.pv_power' },
+    { k: 'energyGrid', t: 'entity', l: 'Energie: Netz (+ = Bezug)', ph: 'sensor.grid_power' },
+    { k: 'energyGridInv', t: 'check', l: 'Netz-Vorzeichen umkehren' },
+    { k: 'energyBat', t: 'entity', l: 'Energie: Akku (+ = Laden)', ph: 'sensor.battery_power' },
+    { k: 'energyBatInv', t: 'check', l: 'Akku-Vorzeichen umkehren' },
+    { k: 'energyHome', t: 'entity', l: 'Energie: Hausverbrauch (leer = berechnet)', ph: 'sensor.house_power' },
+    { k: 'scenes', t: 'area', l: 'Szenen/Skripte/Taster – je Zeile: entity oder entity|Name', rows: 3, ph: 'scene.kino|Kino' },
+    { k: 'overlayOff', t: 'check', l: 'Live-Übersicht (Alarme, Anwesenheit, Energie, Szenen) ausblenden' },
+  ];
   const numSel = ['grid'];
   box.innerHTML = `<div class="ihead"><span class="ico">⌂</span><b>Etage & Einstellungen</b></div>` +
     section('Etage', fs.map(specHtml).join('') +
@@ -306,11 +317,13 @@ function renderFloorInspector(box) {
     section('Raster & Anzeige', ['unit', 'grid', 'snap', 'showGrid', 'showDims', 'showRoomNames', 'showArea', 'labelSize'].map(k => specHtml(ss.find(x => x.k === k))).join('') + actionsHtml([['fit', 'Alles anzeigen']])) +
     section('Darstellung', ['theme', 'wallColor', 'wallThickness', 'roomOpacity', 'symStyle', 'itemShadow', 'viewRot'].map(k => specHtml(ss.find(x => x.k === k))).join('') + actionsHtml([['rotsave', 'Aktuelle Drehung als Ausrichtung speichern']]), false) +
     section('Sprache & Bedienung', ['lang', 'liveTap'].map(k => specHtml(ss.find(x => x.k === k))).join(''), false) +
+    section('Live-Übersicht', sL.map(specHtml).join(''), false) +
     section('3D-Ansicht', s3.map(specHtml).join(''), false);
   wire(box, f, fs, { onInput: () => renderFloorTabs() });
   if (hasBg) wire(box, f.bg, bg);
   wire(box, st, ss.map(s => numSel.includes(s.k) ? { ...s, get: o => o[s.k], set: (o, v) => { o[s.k] = num(v, 25); } } : s), { onInput: k => { if (k === 'theme') applyTheme(); }, onChange: k => { if (k === 'lang') applyLang(); if (k === 'symStyle') { renderLibrary(); render(); } if (k === 'theme') applyTheme(); if (k === 'unit') renderInspector(); if (k === 'viewRot') { setViewAngle(num(S().viewRot, 0)); fitView(); } } });
   wire(box, st, s3, { onInput: () => render(), onChange: () => render() });
+  wire(box, st, sL, { onInput: () => render(), onChange: () => render() });
   bindPick(box);
   bindActs(box, {
     bgup: async () => {
@@ -467,7 +480,7 @@ function saveAsTemplate(it) {
 function showMenu() {
   const items = [
     ['Plan exportieren (JSON)', exportJson], ['Plan importieren …', importJson],
-    ['Etage als PNG exportieren', () => exportImage('png')], ['Etage als SVG exportieren', () => exportImage('svg')],
+    ['Stückliste & Flächen …', showBom], ['Drucken / als PDF …', () => printPlan(false)], ['Etage als PNG exportieren', () => exportImage('png')], ['Etage als SVG exportieren', () => exportImage('svg')],
     ['Dashboard in Home Assistant …', showDashboard], ['Sicherungen …', showBackups], ['Hilfe & Tastenkürzel', showHelp],
   ];
   const wrap = document.createElement('div');
