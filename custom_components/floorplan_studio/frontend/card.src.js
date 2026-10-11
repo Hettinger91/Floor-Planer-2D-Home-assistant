@@ -83,6 +83,7 @@ class FloorplanStudioCard extends HTMLElement {
   getGridOptions() { return { columns: 12, rows: "auto", min_columns: 6, min_rows: 3 }; }
   getLayoutOptions() { return { grid_columns: 12, grid_rows: 'auto' }; }
   setConfig(c) { this._cfg = c || {}; if (this._cfg.weather3d) window.FP_WEATHER = this._cfg.weather3d; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._w3 = null; this._a3 = null; this._bp = null; this._kill3(); this._pickFloor(); this._draw(); try { this._lang().catch(() => { }); } catch (_) { /* egal */ } }
+  _real3() { return this._r3 != null ? !!this._r3 : !!(this._cfg && this._cfg.realistic); }
   _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
@@ -229,7 +230,7 @@ class FloorplanStudioCard extends HTMLElement {
     let vb = '';
     if (is3) {
       const w = this._w3 || 'auto', wl = { auto: 'Wände: auto', full: 'Wände: voll', half: 'Wände: halb', flat: 'Wände: aus' }[w];
-      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button><button data-xr="vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button data-xr="ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
+      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button><button data-real="1" title="Realistische Grafik (für Geräte mit mehr Rechenleistung)" class="' + (this._real3() ? 'on' : '') + '">✨ Realistisch</button><button data-xr="vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button data-xr="ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
     } else if (c.view3d !== false && c.gestures !== false) vb = '<button data-v="3d" title="3D-Ansicht">3D</button>';
     if (vb || fb) vb += `<button data-bp="1" class="${this._bpOn() ? 'on' : ''}" title="Blueprint-Ansicht (Bauplan-Stil)">Blueprint</button>`;
     if (!fb && !vb) return '';
@@ -245,6 +246,7 @@ class FloorplanStudioCard extends HTMLElement {
         if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.bp) { this._bp = !this._bpOn(); b.classList.toggle('on', this._bp); const mn = root.querySelector('.main'); if (mn) mn.classList.toggle('bp', this._bp); if (this._v3) this._v3.set('look', this._look3()); return; }
         if (!this._v3) return;
+        if (b.dataset.real) { this._r3 = !this._real3(); this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.xr) { if (this._v3.inXR()) this._v3.stopXR(); else this._v3.startXR(b.dataset.xr); return; }
         if (b.dataset.walk) { const w = !this._v3.isWalking(); this._v3.setWalk(w); b.classList.toggle('on', w); b.textContent = w ? '🚶 Beenden' : '🚶 Begehen'; return; }
         if (b.dataset.w) {
@@ -273,11 +275,12 @@ class FloorplanStudioCard extends HTMLElement {
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}<div class="body ${this._lay()}">${rail}<div class="main${this._bpOn() ? ' bp' : ''}"><div class="wrap"><div class="stage3${hgt ? ' fixed' : ''}"${hgt ? ` style="height:${hgt}px"` : ''}></div></div></div></div></ha-card>`;
     this._bindRail(true);
     const st = root.querySelector('.stage3'), myKey = key;
-    FP3D.load(this._base3()).then(() => {
+    FP3D.load(this._base3(), this._real3()).then(() => {
       if (this._k3 !== myKey || !this._m3 || !st.isConnected) return;
       this._ctx();
       const c = this._cfg, s = plan.settings;
       this._v3 = FP3D.create(st, {
+        real: this._real3(),
         getFloor: () => this._floor,
         look: this._look3(), building: this._cfg.building || '', walls: this._w3 || 'auto', allFloors: !!this._a3,
         roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => c.tilt3d !== false, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
@@ -448,7 +451,7 @@ function normalizeSafe(p) { try { return normalize(p); } catch (_) { return null
 const ED_DEF = { overlay: true, tilt3d: true, gestures: true, view3d: true };
 const ED_LABELS = {
   title: 'Titel', floor: 'Etage (leer = alle mit Reitern)', layout: 'Layout', mode3d: 'Direkt in 3D starten', view3d: '3D-Umschalter anzeigen', look3d: 'Look (3D)', walls3d: 'Wände (3D)',
-  all3d: 'Alle Etagen (3D)', roof3d: 'Dach (3D)', heat: 'Raum-Heatmap', blueprint: 'Blueprint-Look', tilt3d: 'Kippen per Touch (3D)', overlay: 'Live-Übersicht (Alarme, Energie, Szenen)',
+  all3d: 'Alle Etagen (3D)', roof3d: 'Dach (3D)', heat: 'Raum-Heatmap', blueprint: 'Blueprint-Look', tilt3d: 'Kippen per Touch (3D)', realistic: 'Realistische Grafik (3D, rechenintensiv)', overlay: 'Live-Übersicht (Alarme, Energie, Szenen)',
   kiosk: 'Kiosk-Modus', kiosk_idle: 'Kiosk: Rückkehr nach (Sekunden)', height3d: 'Höhe 3D (px, 0 = automatisch)', weather3d: 'Wetter-Entität', language: 'Sprache (z. B. de, en; leer = automatisch)', rotate: 'Drehung (°)', gestures: 'Gesten (Drehen/Zoomen)', building: 'Gebäude',
 };
 class FloorplanStudioCardEditor extends HTMLElement {
@@ -475,7 +478,7 @@ class FloorplanStudioCardEditor extends HTMLElement {
       bool('all3d'),
       sel('roof3d', [['', 'Automatisch'], ['none', 'Kein Dach'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach'], ['shed', 'Pultdach']]),
       sel('heat', [['none', 'Aus'], ['temp', 'Temperatur'], ['hum', 'Luftfeuchte'], ['co2', 'CO₂']]),
-      bool('blueprint'), bool('tilt3d'), bool('overlay'), bool('gestures'), bool('kiosk'),
+      bool('blueprint'), bool('realistic'), bool('tilt3d'), bool('overlay'), bool('gestures'), bool('kiosk'),
       { name: 'kiosk_idle', selector: { number: { min: 10, max: 3600, mode: 'box' } } },
       { name: 'height3d', selector: { number: { min: 0, max: 2000, mode: 'box' } } },
       { name: 'weather3d', selector: { entity: { domain: 'weather' } } },

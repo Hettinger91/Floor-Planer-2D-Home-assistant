@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Skriv ut / PDF i skala",
  "Drucken / PDF": "Skriv ut / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtuell verklighet: gå genom huset i skala 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Förstärkt verklighet: modell på bordet"
+ "Augmented Reality: Modell auf dem Tisch": "Förstärkt verklighet: modell på bordet",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistisk grafik (3D, krävande)",
+ "✨ Realistisch": "✨ Realistisk",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistisk grafik (PBR-material, himmel, mjuka skuggor, ambient occlusion) – för kraftfulla enheter",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistisk grafik (för kraftfulla enheter)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Det realistiska biblioteket kunde inte laddas"
 }

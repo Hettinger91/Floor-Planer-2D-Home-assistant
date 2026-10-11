@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Drukuj / PDF w skali",
  "Drucken / PDF": "Drukuj / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Rzeczywistość wirtualna: spacer po domu w skali 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Rzeczywistość rozszerzona: model na stole"
+ "Augmented Reality: Modell auf dem Tisch": "Rzeczywistość rozszerzona: model na stole",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistyczna grafika (3D, wymagająca)",
+ "✨ Realistisch": "✨ Realistycznie",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistyczna grafika (materiały PBR, niebo, miękkie cienie, okluzja otoczenia) – dla wydajnych urządzeń",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistyczna grafika (dla wydajnych urządzeń)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Nie można załadować biblioteki realistycznej"
 }

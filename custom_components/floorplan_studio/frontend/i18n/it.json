@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Stampa / PDF in scala",
  "Drucken / PDF": "Stampa / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Realtà virtuale: visita la casa in scala 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Realtà aumentata: modello sul tavolo"
+ "Augmented Reality: Modell auf dem Tisch": "Realtà aumentata: modello sul tavolo",
+ "Realistische Grafik (3D, rechenintensiv)": "Grafica realistica (3D, impegnativa)",
+ "✨ Realistisch": "✨ Realistico",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Grafica realistica (materiali PBR, cielo, ombre morbide, occlusione ambientale) – per dispositivi potenti",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Grafica realistica (per dispositivi potenti)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Impossibile caricare la libreria realistica"
 }

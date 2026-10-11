@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Печать / PDF в масштабе",
  "Drucken / PDF": "Печать / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Виртуальная реальность: прогулка по дому в масштабе 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Дополненная реальность: модель на столе"
+ "Augmented Reality: Modell auf dem Tisch": "Дополненная реальность: модель на столе",
+ "Realistische Grafik (3D, rechenintensiv)": "Реалистичная графика (3D, требовательная)",
+ "✨ Realistisch": "✨ Реалистично",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Реалистичная графика (PBR-материалы, небо, мягкие тени, затенение) – для мощных устройств",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Реалистичная графика (для мощных устройств)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Не удалось загрузить библиотеку реалистичной графики"
 }

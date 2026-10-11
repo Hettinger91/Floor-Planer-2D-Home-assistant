@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Print / PDF to scale",
  "Drucken / PDF": "Print / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: walk through the house at 1:1 scale",
- "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model on your table"
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model on your table",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistic graphics (3D, demanding)",
+ "✨ Realistisch": "✨ Realistic",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistic graphics (PBR materials, sky, soft shadows, ambient occlusion) – for more powerful devices",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistic graphics (for more powerful devices)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Realistic library could not be loaded"
 }

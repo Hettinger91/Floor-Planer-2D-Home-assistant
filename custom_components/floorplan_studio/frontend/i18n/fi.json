@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Tulosta / PDF mittakaavassa",
  "Drucken / PDF": "Tulosta / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtuaalitodellisuus: kävele talossa mittakaavassa 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Lisätty todellisuus: malli pöydällä"
+ "Augmented Reality: Modell auf dem Tisch": "Lisätty todellisuus: malli pöydällä",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistinen grafiikka (3D, raskas)",
+ "✨ Realistisch": "✨ Realistinen",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistinen grafiikka (PBR-materiaalit, taivas, pehmeät varjot, ambient occlusion) – tehokkaille laitteille",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistinen grafiikka (tehokkaille laitteille)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Realistista kirjastoa ei voitu ladata"
 }

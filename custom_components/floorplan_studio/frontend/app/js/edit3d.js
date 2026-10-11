@@ -21,6 +21,7 @@ function v3Hud() {
     `<label class="chk" title="Wandfarbe">Wand <input type="color" id="v3wc" value="${S().wallColor3 || '#f3f0ea'}"></label>` +
     `<label class="chk" title="Solaranlage auf dem Dach"><input type="checkbox" id="v3solar"${S().solar3 ? ' checked' : ''}> ☀ Solar</label>` +
     `<label class="chk" title="Anzahl Solarmodule (0 = automatisch)"><input type="number" id="v3solarN" min="0" step="1" style="width:56px" value="${Number(S().solarCount3) || 0}"> Module</label>` +
+    `<label class="chk" title="Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung"><input type="checkbox" id="v3real"${S().real3 ? ' checked' : ''}> ✨ Realistisch</label>` +
     `<label class="chk"><input type="checkbox" id="v3all"${S().all3d ? ' checked' : ''}> alle Etagen</label>` +
     `<button class="ibtn" id="v3rl" title="Drehen">⟲</button><button class="ibtn" id="v3rr" title="Drehen">⟳</button>` +
     `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>` +
@@ -37,6 +38,7 @@ function v3Hud() {
   $('#v3wc').oninput = e => { S().wallColor3 = e.target.value; commit(); render(); };
   $('#v3solar').onchange = e => { S().solar3 = e.target.checked; if (e.target.checked && (!S().roof3 || S().roof3 === 'none')) { S().roof3 = 'gable'; $('#v3roof').value = 'gable'; } commit(); render(); };
   $('#v3all').onchange = e => setOpt('all3d', e.target.checked);
+  $('#v3real').onchange = async e => { S().real3 = e.target.checked ? true : false; commit(); await set3D(false); await set3D(true); };
   $('#v3rl').onclick = () => v3.rotate(-0.5);
   $('#v3rr').onclick = () => v3.rotate(0.5);
   $('#v3reset').onclick = () => v3.resetView();
@@ -48,11 +50,12 @@ async function set3D(on) {
   const app = $('#app'), st = $('#stage3d');
   if (on) {
     v3Busy = true;
-    try { await FP3D.load(v3Base()); } catch (e) { v3Busy = false; toast(e.message); return; }
+    try { await FP3D.load(v3Base(), !!S().real3); } catch (e) { v3Busy = false; toast(e.message); return; }
     try {
       setTool('select');
       st.hidden = false;
       v3 = FP3D.create(st, {
+        real: !!S().real3, lowPower: S().real3 === 'light',
         getFloor: () => curFloor().id,
         look: S().blueprint ? 'blueprint' : (S().look3d || 'auto'), walls: S().walls3d || 'auto', allFloors: !!S().all3d, dark: v3Dark, wheel: 'always',
         onTap: (id, long) => { const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (!it) return; if (mode === 'live') onItemTap(it, long); else setSel('item', id); },

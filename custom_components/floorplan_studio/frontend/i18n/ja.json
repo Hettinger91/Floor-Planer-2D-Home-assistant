@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "縮尺指定で印刷 / PDF",
  "Drucken / PDF": "印刷 / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "VR：1:1の縮尺で家を歩く",
- "Augmented Reality: Modell auf dem Tisch": "AR：テーブルの上にモデルを表示"
+ "Augmented Reality: Modell auf dem Tisch": "AR：テーブルの上にモデルを表示",
+ "Realistische Grafik (3D, rechenintensiv)": "リアル描画（3D、高負荷）",
+ "✨ Realistisch": "✨ リアル",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "リアル描画（PBR素材、空、柔らかい影、アンビエントオクルージョン）– 高性能デバイス向け",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "リアル描画（高性能デバイス向け）",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "リアル描画ライブラリを読み込めませんでした"
 }

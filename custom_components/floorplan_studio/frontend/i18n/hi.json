@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "स्केल के अनुसार प्रिंट / PDF",
  "Drucken / PDF": "प्रिंट / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "वर्चुअल रियलिटी: घर में 1:1 स्केल पर घूमें",
- "Augmented Reality: Modell auf dem Tisch": "ऑगमेंटेड रियलिटी: मेज़ पर मॉडल"
+ "Augmented Reality: Modell auf dem Tisch": "ऑगमेंटेड रियलिटी: मेज़ पर मॉडल",
+ "Realistische Grafik (3D, rechenintensiv)": "यथार्थवादी ग्राफ़िक्स (3D, भारी)",
+ "✨ Realistisch": "✨ यथार्थवादी",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "यथार्थवादी ग्राफ़िक्स (PBR सामग्री, आकाश, मुलायम छाया, एंबिएंट ऑक्लूज़न) – अधिक शक्तिशाली डिवाइस के लिए",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "यथार्थवादी ग्राफ़िक्स (अधिक शक्तिशाली डिवाइस के लिए)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "यथार्थवादी लाइब्रेरी लोड नहीं हो सकी"
 }

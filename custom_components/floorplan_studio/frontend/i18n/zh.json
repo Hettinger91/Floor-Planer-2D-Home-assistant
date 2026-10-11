@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "按比例打印 / PDF",
  "Drucken / PDF": "打印 / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "虚拟现实：以 1:1 比例漫游房屋",
- "Augmented Reality: Modell auf dem Tisch": "增强现实：桌面上的模型"
+ "Augmented Reality: Modell auf dem Tisch": "增强现实：桌面上的模型",
+ "Realistische Grafik (3D, rechenintensiv)": "写实画面（3D，耗性能）",
+ "✨ Realistisch": "✨ 写实",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "写实画面（PBR 材质、天空、柔和阴影、环境光遮蔽）– 适合性能较强的设备",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "写实画面（适合性能较强的设备）",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "无法加载写实图形库"
 }

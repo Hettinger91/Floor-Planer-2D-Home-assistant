@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Afdrukken / PDF op schaal",
  "Drucken / PDF": "Afdrukken / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: loop door het huis op schaal 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model op tafel"
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model op tafel",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistische graphics (3D, zwaar)",
+ "✨ Realistisch": "✨ Realistisch",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistische graphics (PBR-materialen, lucht, zachte schaduwen, ambient occlusion) – voor krachtige apparaten",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistische graphics (voor krachtige apparaten)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Realistische bibliotheek kon niet worden geladen"
 }

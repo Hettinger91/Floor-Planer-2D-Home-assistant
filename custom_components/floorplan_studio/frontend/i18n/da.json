@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Udskriv / PDF i målestok",
  "Drucken / PDF": "Udskriv / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: gå gennem huset i skala 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model på bordet"
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model på bordet",
+ "Realistische Grafik (3D, rechenintensiv)": "Realistisk grafik (3D, krævende)",
+ "✨ Realistisch": "✨ Realistisk",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Realistisk grafik (PBR-materialer, himmel, bløde skygger, ambient occlusion) – til kraftige enheder",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Realistisk grafik (til kraftige enheder)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "Det realistiske bibliotek kunne ikke indlæses"
 }

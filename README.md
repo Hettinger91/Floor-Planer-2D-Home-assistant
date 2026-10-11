@@ -69,6 +69,7 @@ Im Live-Modus des Editors und in der Dashboard-Karte erscheint oben links eine �
 * **Kamera-Popup:** Objekte mit `camera.*`-Entität zeigen Foto (automatisch aktualisiert) oder Live-Stream im Popup.
 * **Druck / PDF im Maßstab:** Menü → „Drucken / als PDF“: Format A4–A2, Maßstab 1 : 20 bis 1 : 1000 oder automatisch, Maßstabsbalken, optional Stückliste. Zeichnung exakt in mm skaliert.
 * **VR / AR (WebXR):** Auf Geräten mit WebXR erscheinen in der 3D-Leiste 🥽 VR (Haus im Maßstab 1:1 begehen, Stick = laufen, mit Wandkollision) und 📱 AR (Modell auf dem Tisch, Stick = drehen). Ohne WebXR-Unterstützung bleiben die Knöpfe verborgen.
+* **Realistisch-Modus (✨):** Schalter in der 3D-Leiste (Editor) bzw. Seitenleiste der Karte (Option `realistic: true`) für Geräte mit mehr Rechenleistung. Physikalisch basierte Materialien mit prozeduralen Details (Putz, Dachziegel, Rasen, Holz, Stein), Himmel mit Sonnenstand und Wetter, Umgebungslicht, weiche Schatten, Umgebungsverdeckung (SSAO) und Glas mit Spiegelungen. Lädt die zusätzliche Bibliothek `vendor/three-real.js` (~700 kB) nur bei Bedarf; ohne den Schalter bleibt alles beim schlanken Standard.
 * **Plan prüfen:** Menü → „Plan prüfen (Überschneidungen)“ listet überlappende Möbel/Objekte je Etage, Tippen springt zum Objekt.
 * **DXF-Import:** Menü → „DXF importieren“ (ASCII-DXF: LINE, LWPOLYLINE, POLYLINE → Wände; Einheit und Layer wählbar).
 * **Grafischer Karten-Editor:** Alle Kartenoptionen lassen sich im Dashboard-Editor per Formular einstellen (kein YAML nötig).

@@ -871,5 +871,10 @@
  "Drucken / PDF im Maßstab": "Imprimer / PDF à l’échelle",
  "Drucken / PDF": "Imprimer / PDF",
  "Virtual Reality: Haus im Maßstab 1:1 begehen": "Réalité virtuelle : parcourir la maison à l’échelle 1:1",
- "Augmented Reality: Modell auf dem Tisch": "Réalité augmentée : maquette sur la table"
+ "Augmented Reality: Modell auf dem Tisch": "Réalité augmentée : maquette sur la table",
+ "Realistische Grafik (3D, rechenintensiv)": "Graphismes réalistes (3D, gourmand)",
+ "✨ Realistisch": "✨ Réaliste",
+ "Realistische Grafik (PBR-Materialien, Himmel, weiche Schatten, Umgebungsverdeckung) – für Geräte mit mehr Rechenleistung": "Graphismes réalistes (matériaux PBR, ciel, ombres douces, occlusion ambiante) – pour appareils puissants",
+ "Realistische Grafik (für Geräte mit mehr Rechenleistung)": "Graphismes réalistes (pour appareils puissants)",
+ "Realistisch-Bibliothek konnte nicht geladen werden": "La bibliothèque réaliste n’a pas pu être chargée"
 }

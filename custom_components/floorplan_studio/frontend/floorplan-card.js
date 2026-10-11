@@ -1724,6 +1724,110 @@ function ovlMount(host, o = {}) {
   bar.hidden = !(sc || wantT);
 }
 
+/* ---- real3d.js ---- */
+// Realistisch-Modus (3D): prozedurale PBR-Details (Putz, Ziegel, Rasen, Holz, Stein …), die per Shader
+// weltbezogen projiziert werden, sowie Himmel/Umgebungslicht, Nachbearbeitung (AO, Bloom). Benötigt vendor/three-real.js.
+const FPREAL = (() => {
+  // ---- tilebares Rauschen ----
+  const hash = (x, y, s) => { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; };
+  const sm = t => t * t * (3 - 2 * t);
+  function vn(x, y, p, s) { // Wertrauschen mit Periode p (tilebar)
+    const xi = Math.floor(x), yi = Math.floor(y), fx = sm(x - xi), fy = sm(y - yi);
+    const m = v => ((v % p) + p) % p, x0 = m(xi), x1 = m(xi + 1), y0 = m(yi), y1 = m(yi + 1);
+    const a = hash(x0, y0, s), b = hash(x1, y0, s), c = hash(x0, y1, s), d = hash(x1, y1, s);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  }
+  function fbm(u, v, per, oct, s) { // u,v in 0..1
+    let a = 0, amp = 0.5, tot = 0, p = per;
+    for (let i = 0; i < oct; i++) { a += amp * vn(u * p, v * p, p, s + i * 7); tot += amp; amp *= 0.5; p *= 2; }
+    return a / tot;
+  }
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  // Muster: liefert [Höhe, Albedo-Variation, Rauheits-Variation] je 0..1
+  const PAT = {
+    plaster: (u, v) => { const g = fbm(u, v, 24, 4, 1); return [0.45 + g * 0.5, 0.5 + (fbm(u, v, 4, 3, 9) - 0.5) * 0.7, 0.5 + (fbm(u, v, 16, 2, 5) - 0.5) * 0.8]; },
+    stone: (u, v) => { const g = fbm(u, v, 16, 5, 2), pit = hash((u * 256) | 0, (v * 256) | 0, 8) > 0.93 ? -0.25 : 0; return [clamp(g + pit), 0.5 + (fbm(u, v, 6, 3, 4) - 0.5) * 0.9, 0.5 + (fbm(u, v, 24, 2, 6) - 0.5)]; },
+    fine: (u, v) => [fbm(u, v, 48, 3, 11), 0.5 + (fbm(u, v, 8, 3, 12) - 0.5) * 0.4, 0.5 + (fbm(u, v, 32, 2, 13) - 0.5) * 0.6],
+    woodfine: (u, v) => { const gr = fbm(u * 0.25, v * 8, 8, 3, 21) * 0.7 + fbm(u, v * 2, 16, 3, 22) * 0.3; return [gr, 0.5 + (gr - 0.5) * 0.9, 0.5 + (fbm(u, v * 4, 16, 2, 23) - 0.5) * 0.6]; },
+    grass: (u, v) => { const bl = fbm(u * 2, v * 2, 48, 3, 31), st = vn(u * 96, v * 48, 96, 33); return [clamp(bl * 0.6 + st * 0.5), 0.5 + (fbm(u, v, 3, 3, 34) - 0.5) * 0.9 + (st - 0.5) * 0.5, 0.5 + (fbm(u, v, 24, 2, 35) - 0.5) * 0.6]; },
+    roofTiles: (u, v) => { // Biberschwanz-ähnliche Ziegel: 12 Spalten × 8 Reihen, versetzte Reihen
+      const rows = 8, cols = 12, ry = v * rows, row = Math.floor(ry), fy = ry - row, cx = u * cols + (row % 2 ? 0.5 : 0), col = Math.floor(cx), fx = cx - col;
+      const prof = Math.sin(Math.PI * clamp(fx)) ** 0.6, lip = Math.pow(fy, 1.6), seam = Math.min(fx, 1 - fx) < 0.06 ? 0.55 : 1;
+      const tone = hash(col % cols, row, 41), ev = hash(col % cols, row, 42) > 0.9 ? 0.25 : 0;
+      return [clamp((0.25 + 0.75 * prof * seam) * (0.55 + 0.45 * lip)), 0.5 + (tone - 0.5) * 0.55 - ev + (fbm(u, v, 8, 3, 43) - 0.5) * 0.3, 0.5 + (hash(col % cols, row, 44) - 0.5) * 0.5];
+    },
+    roofSeam: (u, v) => { const fx = (u * 6) % 1, tri = 1 - Math.abs(fx * 2 - 1), rib = fx < 0.07 || fx > 0.93 ? 1 : 0.35 + 0.1 * tri; return [rib, 0.5 + (fbm(u, v, 6, 3, 51) - 0.5) * 0.3, 0.35 + (fbm(u, v, 12, 2, 52) - 0.5) * 0.5]; },
+  };
+  function detailTex(T, kind) {
+    const N = 512, c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d'), im = g.createImageData(N, N), f = PAT[kind] || PAT.fine;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const p = f(x / N, y / N), i = (y * N + x) * 4;
+      im.data[i] = clamp(p[0]) * 255; im.data[i + 1] = clamp(p[1]) * 255; im.data[i + 2] = clamp(p[2]) * 255; im.data[i + 3] = 255;
+    }
+    g.putImageData(im, 0, 0);
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 8; t.colorSpace = ''; t.needsUpdate = true;
+    return t;
+  }
+  // Material-Parameter je Art: tex, cm pro Kachel, Bump, Albedo-Streuung, Rauheits-Streuung, Grundrauheit, Metall, planar(XZ)
+  const KIND = {
+    plaster: { p: 'plaster', cm: 90, bump: 1.4, alb: 0.45, rgh: 0.35, r0: 0.92, m0: 0 },
+    stone: { p: 'stone', cm: 140, bump: 2.0, alb: 0.5, rgh: 0.5, r0: 0.88, m0: 0 },
+    fine: { p: 'fine', cm: 60, bump: 1.0, alb: 0.18, rgh: 0.3, r0: 0.8, m0: 0 },
+    wood: { p: 'woodfine', cm: 120, bump: 1.2, alb: 0.35, rgh: 0.4, r0: 0.55, m0: 0 },
+    paint: { p: 'fine', cm: 80, bump: 0.3, alb: 0.06, rgh: 0.15, r0: 0.38, m0: 0 },
+    grass: { p: 'grass', cm: 160, bump: 2.5, alb: 0.6, rgh: 0.3, r0: 0.95, m0: 0, macro: 3200 },
+    roofTiles: { p: 'roofTiles', cm: 256, bump: 5.0, alb: 0.8, rgh: 0.35, r0: 0.6, m0: 0, planar: 1 },
+    roofSeam: { p: 'roofSeam', cm: 240, bump: 2.5, alb: 0.3, rgh: 0.3, r0: 0.42, m0: 0.5, planar: 1 },
+  };
+  // Shader-Patch: weltbezogene (Tri-)Planar-Projektion, Bump-Mapping aus Ableitungen, Albedo-/Rauheits-Variation
+  function patch(T, mat, kind, cache, opt) {
+    const K = KIND[kind]; if (!K) return mat; opt = opt || {};
+    let tex = cache.get('d|' + K.p); if (!tex) { tex = detailTex(T, K.p); cache.set('d|' + K.p, tex); }
+    mat.roughness = K.r0; mat.metalness = K.m0; mat.envMapIntensity = opt.env != null ? opt.env : 1;
+    const U = { dMap: { value: tex }, dScale: { value: 1 / K.cm }, dBump: { value: K.bump * (opt.bump || 1) }, dAlb: { value: K.alb }, dRgh: { value: K.rgh }, dPlanar: { value: K.planar || 0 }, dSwap: { value: opt.swap ? 1 : 0 }, dMacro: { value: K.macro ? 1 / K.macro : 0 } };
+    mat.userData.fpU = U;
+    mat.onBeforeCompile = sh => {
+      Object.assign(sh.uniforms, U);
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos; varying vec3 vWNor;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vWNor = normalize(mat3(modelMatrix) * objectNormal);');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vWPos; varying vec3 vWNor;
+uniform sampler2D dMap; uniform float dScale, dBump, dAlb, dRgh, dPlanar, dSwap, dMacro;
+vec3 fpPerturb(vec3 sp, vec3 sn, vec2 dh, float fd) {
+  vec3 sx = normalize(dFdx(sp)), sy = normalize(dFdy(sp));
+  vec3 r1 = cross(sy, sn), r2 = cross(sn, sx);
+  float det = dot(sx, r1) * fd;
+  vec3 gr = sign(det) * (dh.x * r1 + dh.y * r2);
+  return normalize(abs(det) * sn - gr);
+}`)
+        .replace('#include <map_fragment>', `#include <map_fragment>
+vec3 fpW = normalize(vWNor); vec3 fpB = pow(abs(fpW), vec3(4.0)); fpB /= (fpB.x + fpB.y + fpB.z);
+vec2 fpY = dSwap > 0.5 ? vWPos.zx : vWPos.xz;
+vec4 fpD = dPlanar > 0.5 ? texture2D(dMap, fpY * dScale)
+  : texture2D(dMap, vWPos.zy * dScale) * fpB.x + texture2D(dMap, fpY * dScale) * fpB.y + texture2D(dMap, vWPos.xy * dScale) * fpB.z;
+float fpMac = dMacro > 0.0 ? texture2D(dMap, vWPos.xz * dMacro).g : 0.5;
+float fpFade = 1.0 - smoothstep(500.0, 3200.0, length(vViewPosition));
+diffuseColor.rgb *= clamp(1.0 + ((fpD.g - 0.5) * mix(0.3, 1.0, fpFade) + (fpMac - 0.5) * 0.9) * dAlb, 0.25, 2.0);`)
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + (fpD.b - 0.5) * dRgh, 0.04, 1.0);')
+        .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\nnormal = fpPerturb(-vViewPosition, normal, vec2(dFdx(fpD.r), dFdy(fpD.r)) * dBump * 1.4 * fpFade, faceDirection);');
+    };
+    mat.customProgramCacheKey = () => 'fpd';
+    return mat;
+  }
+  // Himmel (Sky-Shader) + Boden-Bounce für die Umgebungsbeleuchtung
+  function makeSky(T, scale) { const s = new T.Sky(); s.scale.setScalar(scale); s.material.depthWrite = false; return s; }
+  function skyParams(sky, e, d, dir) {
+    const U = sky.material.uniforms;
+    U.sunPosition.value.set(dir[0], dir[1], dir[2]);
+    U.turbidity.value = 1.6 + e.cl * 13 + e.fog * 18 + e.rain * 6;
+    U.rayleigh.value = 0.9 + (1 - e.cl) * 1.3 + (1 - d) * 0.3;
+    U.mieCoefficient.value = 0.004 + e.cl * 0.03 + e.fog * 0.06;
+    U.mieDirectionalG.value = 0.8 - e.cl * 0.15;
+  }
+  return { KIND, patch, makeSky, skyParams };
+})();
+
 /* ---- popup.js ---- */
 // Popups: Sensor-Verlauf (History) und Kamera. Läuft im Editor und in der Karte.
 const FPPOP_CSS = `.fpp{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);font-family:inherit}
@@ -2553,7 +2657,21 @@ const FPM = (() => {
 // Einheiten: 1 Einheit = 1 cm. Plan-X → X, Plan-Y → Z, Höhe → Y.
 const FP3D = (() => {
   let loading = null;
-  function load(base) {
+  let loadingReal = null;
+  function loadReal(base) {
+    if (window.THREE_REAL) return Promise.resolve(window.THREE_REAL);
+    if (loadingReal) return loadingReal;
+    loadingReal = new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = base + 'three-real.js';
+      s.onload = () => (window.THREE_REAL ? res(window.THREE_REAL) : rej(new Error('three.js fehlt')));
+      s.onerror = () => { loadingReal = null; rej(new Error('Realistisch-Bibliothek konnte nicht geladen werden')); };
+      document.head.appendChild(s);
+    });
+    return loadingReal;
+  }
+  function load(base, real) {
+    if (real) return loadReal(base).catch(() => load(base, false));
     if (window.THREE_LITE) return Promise.resolve(window.THREE_LITE);
     if (loading) return loading;
     loading = new Promise((res, rej) => {
@@ -2623,7 +2741,8 @@ const FP3D = (() => {
   }
 
   function create(container, opts) {
-    const T = window.THREE_LITE;
+    const T = (opts && opts.real && window.THREE_REAL && typeof FPREAL !== 'undefined' && window.THREE_REAL) || window.THREE_LITE;
+    const RM = !!(opts && opts.real && T === window.THREE_REAL && T.PMREMGenerator);
     const o = Object.assign({ look: 'auto', walls: 'full', allFloors: false, dark: () => false, wheel: 'always', shadows: true }, opts);
     const root = document.createElement('div');
     root.style.cssText = 'position:absolute;inset:0;overflow:hidden;user-select:none;-webkit-user-select:none';
@@ -2637,7 +2756,7 @@ const FP3D = (() => {
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.shadowMap.enabled = !!o.shadows;
     renderer.shadowMap.type = T.PCFShadowMap;
-    renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
+    renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = RM ? 0.8 : 1.12;
     const cv = renderer.domElement;
     cv.style.cssText = 'width:100%;height:100%;display:block;cursor:grab';
     root.appendChild(cv);
@@ -2646,7 +2765,7 @@ const FP3D = (() => {
     const camera = new T.PerspectiveCamera(42, 1, 5, 40000);
     const amb = new T.AmbientLight(0xffffff, 1), hemi = new T.HemisphereLight(0xffffff, 0x8899aa, 1), sun = new T.DirectionalLight(0xffffff, 1);
     sun.castShadow = !!o.shadows;
-    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.mapSize.set(RM && !o.lowPower ? 4096 : 2048, RM && !o.lowPower ? 4096 : 2048);
     scene.add(amb, hemi, sun, sun.target);
     const world = new T.Group(); scene.add(world);
 
@@ -2655,9 +2774,42 @@ const FP3D = (() => {
     let items = [], pickables = [], fitted = false, fitKey = '';
     const texCache = new Map();
 
-    function lookKey() { return o.look && LOOKS[o.look] ? o.look : (o.dark() ? 'dark' : 'day'); }
+    function lookKey() { const k = o.look && LOOKS[o.look] ? o.look : (o.dark() ? 'dark' : 'day'); return RM && (k === 'day' || k === 'dark') ? 'live' : k; }
     function wallH() { return Math.max(180, Number(S().wallH3) || 250); }
 
+    // Realistisch-Modus: weltbezogene PBR-Details (siehe real3d.js)
+    const RMt = (m, kind, opt) => (RM && !look.bp && !look.neon && typeof FPREAL !== 'undefined' ? FPREAL.patch(T, m, kind, texCache, opt) : m);
+    let sky = null, envScene = null, envSky = null, envGround = null, pmrem = null, envRT = null, envSig = '', composer = null;
+    function realSkyInit(g) {
+      sky = FPREAL.makeSky(T, 30000); g.add(sky);
+      envSky = FPREAL.makeSky(T, 900); if (envSky.material.uniforms.showSunDisc) envSky.material.uniforms.showSunDisc.value = 0; envScene = new T.Scene(); envScene.add(envSky);
+      envGround = new T.Mesh(new T.CircleGeometry(4000, 24), new T.MeshBasicMaterial({ color: 0x777766, side: T.DoubleSide })); envGround.rotation.x = -Math.PI / 2; envGround.position.y = -3; envScene.add(envGround);
+      if (!pmrem) pmrem = new T.PMREMGenerator(renderer);
+      envSig = '';
+    }
+    function realSky(e, d, sv) {
+      if (!sky) return;
+      FPREAL.skyParams(sky, e, d, sv); FPREAL.skyParams(envSky, e, d, sv);
+      envGround.material.color.copy(colorOf(o.ground || S().ground3 || look.ground)).multiplyScalar(0.5 * d + 0.03);
+      const sg = Math.round(e.elev / 3) + '|' + Math.round(e.az / 20) + '|' + e.cl.toFixed(1) + '|' + (e.fog > 0.3 ? 1 : 0) + '|' + Math.round(d * 5);
+      if (sg !== envSig) { envSig = sg; if (envRT) envRT.dispose(); envRT = pmrem.fromScene(envScene, 0, 1, 6000); scene.environment = envRT.texture; }
+      scene.environmentIntensity = 0.05 + 0.3 * d * Math.max(0.15, 1 - 0.7 * e.cl - 0.3 * e.fog); scene.background = null;
+      renderer.toneMappingExposure = 0.45 + 0.2 * d;
+      dirty = true;
+    }
+    function ensureComposer() {
+      if (!RM || composer || o.lowPower === 'off') return;
+      const r = root.getBoundingClientRect(), w = Math.max(50, Math.round(r.width)), h = Math.max(50, Math.round(r.height));
+      const pr = renderer.getPixelRatio(), rt = new T.WebGLRenderTarget(w * pr, h * pr, { type: T.HalfFloatType, samples: o.lowPower ? 0 : 4 });
+      composer = new T.EffectComposer(renderer, rt); composer.setPixelRatio(pr); composer.setSize(w, h);
+      composer.addPass(new T.RenderPass(scene, camera));
+      if (!o.lowPower) {
+        const ao = new T.GTAOPass(scene, camera, w, h); ao.output = 0; ao.blendIntensity = 1;
+        try { ao.updateGtaoMaterial({ radius: 55, distanceExponent: 1.5, thickness: 8, scale: 1.1, samples: 16, distanceFallOff: 1, screenSpaceRadius: false }); ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 }); } catch (_) { /* egal */ }
+        composer.addPass(ao);
+      }
+      composer.addPass(new T.OutputPass());
+    }
     function colorOf(v, d) { try { return new T.Color(v || d); } catch (_) { return new T.Color(d); } }
 
     // ---------- Texturen ----------
@@ -2841,10 +2993,10 @@ const FP3D = (() => {
     function buildFloor(f, idx, y0, Hw, L3, isTop) {
       const g = new T.Group(); g.position.y = y0; world.add(g);
       const garden = f.kind === 'garden';
-      const wallMat = new T.MeshStandardMaterial({ color: colorOf(garden ? '#a97c50' : (o.wallColor || S().wallColor3 || L3.wall)), roughness: 0.9, metalness: 0 });
-      const glassMat = new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
-      const frameMat = new T.MeshStandardMaterial({ color: look.bp ? 0xe6f3ff : look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.bp ? 0x1a4a80 : look.neon ? 0x0a4a55 : 0x000000 });
-      const doorMat = new T.MeshStandardMaterial({ color: look.bp ? 0x1d5fae : look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 });
+      const wallMat = RMt(new T.MeshStandardMaterial({ color: colorOf(garden ? '#a97c50' : (o.wallColor || S().wallColor3 || L3.wall)), roughness: 0.9, metalness: 0 }), garden ? 'wood' : 'plaster');
+      const glassMat = RM ? new T.MeshPhysicalMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.2, roughness: 0.02, metalness: 0, ior: 1.5, reflectivity: 1, envMapIntensity: 2.4, depthWrite: false }) : new T.MeshStandardMaterial({ color: 0x9bd5ff, transparent: true, opacity: 0.32, roughness: 0.1, metalness: 0.1, depthWrite: false });
+      const frameMat = RMt(new T.MeshStandardMaterial({ color: look.bp ? 0xe6f3ff : look.neon ? 0x26e6ff : 0xf4f4f4, roughness: 0.6, emissive: look.bp ? 0x1a4a80 : look.neon ? 0x0a4a55 : 0x000000 }), 'paint');
+      const doorMat = RMt(new T.MeshStandardMaterial({ color: look.bp ? 0x1d5fae : look.neon ? 0x1c2a44 : 0xb98a5a, roughness: 0.7 }), 'wood');
       const edgeMat = L3.edge ? new T.LineBasicMaterial({ color: L3.edge, transparent: true, opacity: 0.85 }) : null;
       let wg = g; const fc = contentBounds(f); const cxm = fc.x + fc.w / 2, czm = fc.y + fc.h / 2;
       const addWallBox = (len, h, t, cx, cy, cz, ry) => {
@@ -2858,7 +3010,7 @@ const FP3D = (() => {
         if (!r.pts || r.pts.length < 3) return;
         const sh = new T.Shape(); r.pts.forEach((p, i) => (i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1])));
         const col = r.floor && FLOOR_COL[r.floor] ? FLOOR_COL[r.floor] : (r.color || '#90caf9');
-        const mat = new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide });
+        const mat = RMt(new T.MeshStandardMaterial({ color: colorOf(col), roughness: 0.95, side: T.DoubleSide }), /wood|deck/.test(r.floor || '') ? 'wood' : /grass|soil|sand/.test(r.floor || '') ? 'grass' : /tile|carpet/.test(r.floor || '') ? 'fine' : 'stone');
         if (!(r.floor && FLOOR_COL[r.floor])) mat.color.lerp(new T.Color(look.bp ? 0x0b3b75 : look.neon ? 0x0b1020 : 0xffffff), look.bp ? 0.7 : look.neon ? 0.55 : 0.45);
         if (r.area && !(r.floor && FLOOR_COL[r.floor])) heatRooms.push({ mat, area: r.area, base: mat.color.clone() });
         const geo = new T.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
@@ -3073,7 +3225,7 @@ const FP3D = (() => {
       const fill = Math.min(100, Math.max(10, Number(S().solarFill3) || 70)) / 100, side = (S().solarSide3 === 'B' ? -1 : 1) * (roofMode !== 'flat' && alongX ? -1 : 1), reqN = Math.max(0, Math.round(Number(S().solarCount3) || 0));
       const PW = 100, PH = 170, GAP = 3;
       const tex = canvasTex(128, 256, (g, w2, h2) => { g.fillStyle = '#12213d'; g.fillRect(0, 0, w2, h2); const gr = g.createLinearGradient(0, 0, w2, h2); gr.addColorStop(0, 'rgba(90,140,220,.35)'); gr.addColorStop(1, 'rgba(10,20,50,0)'); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); g.strokeStyle = 'rgba(190,210,240,.55)'; g.lineWidth = 2; for (let i = 0; i <= 6; i++) { g.beginPath(); g.moveTo(i * w2 / 6, 0); g.lineTo(i * w2 / 6, h2); g.stroke(); } for (let j = 0; j <= 10; j++) { g.beginPath(); g.moveTo(0, j * h2 / 10); g.lineTo(w2, j * h2 / 10); g.stroke(); } });
-      const topM = new T.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: 0.1 });
+      const topM = new T.MeshStandardMaterial({ map: tex, roughness: RM ? 0.12 : 0.2, metalness: 0.5, emissive: 0x2a5fb0, emissiveIntensity: RM ? 0.03 : 0.1, envMapIntensity: 1.6 });
       const frameM = new T.MeshStandardMaterial({ color: 0xcfd4d9, roughness: 0.4, metalness: 0.8 });
       const pivot = new T.Group(); pivot.position.set(cx2, by, cz2); if (roofMode !== 'flat') pivot.rotation.y = alongX ? Math.PI / 2 : 0; world.add(pivot);
       const mkPanel = (dx, dz) => { const g = new T.Group(); const f2 = new T.Mesh(new T.BoxGeometry(dx, 3.2, dz), frameM); f2.castShadow = true; const tp = new T.Mesh(new T.PlaneGeometry(dx - 4, dz - 4), topM); tp.rotation.x = -Math.PI / 2; tp.position.y = 1.7; g.add(f2, tp); return g; };
@@ -3202,8 +3354,9 @@ const FP3D = (() => {
       for (let i = 0; i < nS; i++) { sq[i * 3] = (Math.random() - 0.5) * W; sq[i * 3 + 1] = Math.random() * H; sq[i * 3 + 2] = (Math.random() - 0.5) * W; }
       const ng = new T.BufferGeometry(); ng.setAttribute('position', new T.Float32BufferAttribute(sn, 3));
       const snow = new T.LineSegments(ng, new T.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false, fog: false })); snow.frustumCulled = false; snow.renderOrder = 20; g.add(snow);
-      const gcol = colorOf(o.ground || S().ground3 || look.ground);
+      const gcol = colorOf(o.ground || S().ground3 || (RM ? '#6f9a38' : look.ground));
       envO = { g, sunS, moonS, cl, stars, rain, snow, rp, ra: rg.attributes.position.array, sq, sn: ng.attributes.position.array, fs, nR, nS, W, H, cx, cz, R, maxY, gm, gcol, snowAcc: 0, flash: 0, nextFlash: 3, sig: '', t0: 0, lastD: -1, skyCv: null, T0: performance.now(), wind: 0 };
+      if (RM) realSkyInit(g);
       applyEnv(true);
     }
     function applyEnv(force) {
@@ -3233,11 +3386,11 @@ const FP3D = (() => {
       const useSun = e.elev > -1.5, ex = useSun ? Math.max(e.elev, 5) : Math.min(-e.elev, 45) + 20, eaz = useSun ? e.az : (e.az + 180) % 360;
       const rad = Math.PI / 180, dist = E.R * 3, dirx = Math.sin(eaz * rad) * Math.cos(ex * rad), diry = Math.sin(ex * rad), dirz = -Math.cos(eaz * rad) * Math.cos(ex * rad);
       sun.position.set(E.cx + dirx * dist, diry * dist + 10, E.cz + dirz * dist); sun.target.position.set(E.cx, 0, E.cz);
-      const sunI = 3.6 * d * (1 - 0.78 * e.cl) + (useSun ? 0 : 0), moonI = 0.9 * (1 - d) * (1 - 0.6 * e.cl);
+      const sunI = 3.6 * d * (1 - 0.78 * e.cl) * (RM ? 0.42 : 1), moonI = 0.9 * (1 - d) * (1 - 0.6 * e.cl);
       sun.color.copy(useSun ? mix(C('#fff1d6'), C('#ff9a55'), tw * 1.1) : C('#9fb4e6'));
       E.baseSun = useSun ? Math.max(sunI, 0.05) : moonI;
       sun.intensity = E.baseSun;
-      E.baseAmb = (0.35 + 0.55 * d) * (1 - 0.1 * e.cl); E.baseHemi = (0.55 + 0.95 * d) * (1 - 0.5 * e.cl);
+      E.baseAmb = (0.35 + 0.55 * d) * (1 - 0.1 * e.cl) * (RM ? 0.12 : 1); E.baseHemi = (0.55 + 0.95 * d) * (1 - 0.5 * e.cl) * (RM ? 0.2 : 1);
       amb.intensity = E.baseAmb; hemi.intensity = E.baseHemi;
       hemi.color.copy(mix(C('#6f86b8'), C('#e8f2ff'), d)).lerp(C('#c9cfd6'), e.cl * 0.4 * d);
       hemi.groundColor.copy(mix(C('#1b2230'), C('#9a8a74'), d));
@@ -3248,6 +3401,7 @@ const FP3D = (() => {
       E.sunS.material.opacity = smooth(-5, 2, e.elev) * (1 - 0.92 * e.cl); E.sunS.material.color.copy(mix(C('#ffffff'), C('#ff9d5c'), tw));
       const mv = sdir(Math.max(-e.elev, -4) + 8, (e.az + 180) % 360); E.moonS.position.set(E.cx + mv[0] * sd, mv[1] * sd, E.cz + mv[2] * sd);
       E.moonS.material.opacity = (1 - d) * (1 - 0.95 * e.cl) * smooth(-4, 3, -e.elev);
+      if (RM) realSky(e, d, sdir(e.elev, e.az));
       E.stars.material.opacity = Math.pow(1 - d, 2) * (1 - e.cl) * 0.95;
       const ccol = mix(C('#ffffff'), C('#8d96a0'), e.cl * 0.8).multiplyScalar(0.22 + 0.78 * d).lerp(C('#ffb985'), tw * 0.45);
       E.cl.forEach(c => { c.m.visible = c.k < e.cl + 0.05; c.m.material.color.copy(ccol); c.m.material.opacity = Math.min(0.9, 0.3 + 0.55 * e.cl); });
@@ -3346,8 +3500,9 @@ const FP3D = (() => {
         const ov = Math.max(0, Number(S().roofOver3 != null ? S().roofOver3 : 40)), pitch = Math.min(60, Math.max(5, Number(S().roofPitch3) || 30)) * Math.PI / 180;
         const W = rx1 - rx0 + 2 * ov, D = rz1 - rz0 + 2 * ov, cx2 = (rx0 + rx1) / 2, cz2 = (rz0 + rz1) / 2, by = slabIdx * slab + wallH();
         const tiles = S().roofType3 === 'tiles' && roofMode !== 'flat';
-        const rmat = new T.MeshStandardMaterial({ color: tiles ? 0xffffff : colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
-        if (tiles) rmat.map = roofTileTex(S().roofColor3 || '#8a4b3a');
+        const rmat = new T.MeshStandardMaterial({ color: tiles && !RM ? 0xffffff : colorOf(S().roofColor3 || '#8a4b3a'), roughness: 0.85, metalness: 0.02, side: T.DoubleSide });
+        if (tiles && !RM) rmat.map = roofTileTex(S().roofColor3 || '#8a4b3a');
+        if (RM && roofMode !== 'flat') RMt(rmat, tiles ? 'roofTiles' : 'roofSeam', { swap: W >= D }); else RMt(rmat, 'stone');
         const alongX = W >= D, across = alongX ? D : W, len = alongX ? W : D;
         let rm = null, rh = 12;
         if (roofMode === 'flat') {
@@ -3357,7 +3512,7 @@ const FP3D = (() => {
           rm = new T.Mesh(roofGeo(roofMode, across, len, rh), rmat); rm.position.set(cx2, by, cz2); rm.rotation.y = alongX ? Math.PI / 2 : 0;
         }
         rm.castShadow = true; rm.receiveShadow = true; world.add(rm);
-        if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 })); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
+        if (roofMode !== 'flat') { /* Gesims */ const gm2 = new T.Mesh(new T.BoxGeometry(W, 4, D), RMt(new T.MeshStandardMaterial({ color: colorOf(o.wallColor || S().wallColor3 || L3.wall), roughness: 0.9 }), 'plaster')); gm2.position.set(cx2, by + 2, cz2); gm2.castShadow = true; world.add(gm2); }
         if (S().solar3 && gk === curG) buildSolar({ roofMode, W, D, cx2, cz2, by, rh, across, len, alongX, pitch });
         maxY = Math.max(maxY, by + rh);
       }
@@ -3366,7 +3521,7 @@ const FP3D = (() => {
       const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2, R = Math.max(maxX - minX, maxZ - minZ, 300) / 2;
       radius = Math.hypot(maxX - minX, maxZ - minZ, maxY) / 2;
       // Boden/Umgebung
-      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), new T.MeshStandardMaterial({ color: colorOf(o.ground || S().ground3 || L3.ground), roughness: 1 }));
+      const gm = new T.Mesh(new T.PlaneGeometry(R * 40, R * 40), RMt(new T.MeshStandardMaterial({ color: colorOf(o.ground || S().ground3 || (RM ? '#7a9f3c' : L3.ground)), roughness: 1 }), 'grass'));
       gm.rotation.x = -Math.PI / 2; gm.position.set(cx, -16, cz); gm.receiveShadow = true; world.add(gm);
       const bg = colorOf(L3.bg);
       if (L3.sky) { const sk = 'sky|' + lookKey(); let tx = texCache.get(sk); if (!tx) { tx = canvasTex(8, 256, (g, w2, h2) => { const gr = g.createLinearGradient(0, 0, 0, h2); gr.addColorStop(0, L3.sky[0]); gr.addColorStop(0.55, L3.sky[1]); gr.addColorStop(1, L3.sky[2]); g.fillStyle = gr; g.fillRect(0, 0, w2, h2); }); texCache.set(sk, tx); } scene.background = tx; } else scene.background = bg;
@@ -3614,7 +3769,7 @@ const FP3D = (() => {
     function resize() {
       const r = root.getBoundingClientRect(), w = Math.max(50, Math.round(r.width)), h = Math.max(50, Math.round(r.height));
       const sig = w + 'x' + h; if (sig === sizeSig) return; sizeSig = sig;
-      renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
+      renderer.setSize(w, h, false); if (composer) composer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
     }
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null; if (ro) ro.observe(root);
 
@@ -3629,11 +3784,12 @@ const FP3D = (() => {
       });
       return busy;
     }
+    function draw() { if (RM) ensureComposer(); if (composer && !xr) composer.render(); else renderer.render(scene, camera); }
     function frame() {
       raf = 0; if (destroyed) return;
       if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
       step();
-      if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
+      if (dirty) { dirty = false; limit(); placeCamera(); draw(); }
       raf = requestAnimationFrame(frame);
     }
     function step() {
@@ -3716,10 +3872,10 @@ const FP3D = (() => {
     }
     function resetView() { fitted = false; cam.az = 0.55; cam.pol = 0.95; build(true); }
     function set(k, v) { o[k] = v; if (k === 'touchTilt') { applyTouch(); return; } build(true); }
-    function destroy() { destroyed = true; wkeys.clear(); cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
+    function destroy() { destroyed = true; wkeys.clear(); cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); try { if (composer) composer.dispose(); if (envRT) envRT.dispose(); if (pmrem) pmrem.dispose(); } catch (_) { /* egal */ } renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { _walk: () => walk, _world: () => world, startXR, stopXR, xrSupported, inXR: () => !!xr, setWalk, isWalking: () => !!walk, setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { realOn: RM, _composer: () => composer, _renderer: () => renderer, _scene: () => scene, _walk: () => walk, _world: () => world, startXR, stopXR, xrSupported, inXR: () => !!xr, setWalk, isWalking: () => !!walk, setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };
@@ -3811,6 +3967,7 @@ class FloorplanStudioCard extends HTMLElement {
   getGridOptions() { return { columns: 12, rows: "auto", min_columns: 6, min_rows: 3 }; }
   getLayoutOptions() { return { grid_columns: 12, grid_rows: 'auto' }; }
   setConfig(c) { this._cfg = c || {}; if (this._cfg.weather3d) window.FP_WEATHER = this._cfg.weather3d; this._sig = ''; this._m3 = this._cfg.mode3d === true; this._w3 = null; this._a3 = null; this._bp = null; this._kill3(); this._pickFloor(); this._draw(); try { this._lang().catch(() => { }); } catch (_) { /* egal */ } }
+  _real3() { return this._r3 != null ? !!this._r3 : !!(this._cfg && this._cfg.realistic); }
   _kill3() { if (this._v3) { try { this._v3.destroy(); } catch (_) { /* egal */ } } this._v3 = null; this._k3 = ''; }
 
   set hass(h) {
@@ -3957,7 +4114,7 @@ class FloorplanStudioCard extends HTMLElement {
     let vb = '';
     if (is3) {
       const w = this._w3 || 'auto', wl = { auto: 'Wände: auto', full: 'Wände: voll', half: 'Wände: halb', flat: 'Wände: aus' }[w];
-      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button><button data-xr="vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button data-xr="ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
+      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button><button data-real="1" title="Realistische Grafik (für Geräte mit mehr Rechenleistung)" class="' + (this._real3() ? 'on' : '') + '">✨ Realistisch</button><button data-xr="vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button data-xr="ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
     } else if (c.view3d !== false && c.gestures !== false) vb = '<button data-v="3d" title="3D-Ansicht">3D</button>';
     if (vb || fb) vb += `<button data-bp="1" class="${this._bpOn() ? 'on' : ''}" title="Blueprint-Ansicht (Bauplan-Stil)">Blueprint</button>`;
     if (!fb && !vb) return '';
@@ -3973,6 +4130,7 @@ class FloorplanStudioCard extends HTMLElement {
         if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.bp) { this._bp = !this._bpOn(); b.classList.toggle('on', this._bp); const mn = root.querySelector('.main'); if (mn) mn.classList.toggle('bp', this._bp); if (this._v3) this._v3.set('look', this._look3()); return; }
         if (!this._v3) return;
+        if (b.dataset.real) { this._r3 = !this._real3(); this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.xr) { if (this._v3.inXR()) this._v3.stopXR(); else this._v3.startXR(b.dataset.xr); return; }
         if (b.dataset.walk) { const w = !this._v3.isWalking(); this._v3.setWalk(w); b.classList.toggle('on', w); b.textContent = w ? '🚶 Beenden' : '🚶 Begehen'; return; }
         if (b.dataset.w) {
@@ -4001,11 +4159,12 @@ class FloorplanStudioCard extends HTMLElement {
     root.innerHTML = `<style>${CARD_CSS}</style><ha-card>${head}<div class="body ${this._lay()}">${rail}<div class="main${this._bpOn() ? ' bp' : ''}"><div class="wrap"><div class="stage3${hgt ? ' fixed' : ''}"${hgt ? ` style="height:${hgt}px"` : ''}></div></div></div></div></ha-card>`;
     this._bindRail(true);
     const st = root.querySelector('.stage3'), myKey = key;
-    FP3D.load(this._base3()).then(() => {
+    FP3D.load(this._base3(), this._real3()).then(() => {
       if (this._k3 !== myKey || !this._m3 || !st.isConnected) return;
       this._ctx();
       const c = this._cfg, s = plan.settings;
       this._v3 = FP3D.create(st, {
+        real: this._real3(),
         getFloor: () => this._floor,
         look: this._look3(), building: this._cfg.building || '', walls: this._w3 || 'auto', allFloors: !!this._a3,
         roof: c.roof3d || '', sim: c.sim3 || null, wallColor: c.wall_color3d || '', dark: () => !!(this._hass && this._hass.themes && this._hass.themes.darkMode), wheel: 'ctrl', touchScroll: true, touchTilt: () => c.tilt3d !== false, canCover: () => true, onCover: (it, v) => { this._ctx(); coverCommand(it, v); }, lowPower: window.matchMedia && matchMedia('(pointer: coarse)').matches, shadows: !(window.matchMedia && matchMedia('(max-width: 520px)').matches),
@@ -4176,7 +4335,7 @@ function normalizeSafe(p) { try { return normalize(p); } catch (_) { return null
 const ED_DEF = { overlay: true, tilt3d: true, gestures: true, view3d: true };
 const ED_LABELS = {
   title: 'Titel', floor: 'Etage (leer = alle mit Reitern)', layout: 'Layout', mode3d: 'Direkt in 3D starten', view3d: '3D-Umschalter anzeigen', look3d: 'Look (3D)', walls3d: 'Wände (3D)',
-  all3d: 'Alle Etagen (3D)', roof3d: 'Dach (3D)', heat: 'Raum-Heatmap', blueprint: 'Blueprint-Look', tilt3d: 'Kippen per Touch (3D)', overlay: 'Live-Übersicht (Alarme, Energie, Szenen)',
+  all3d: 'Alle Etagen (3D)', roof3d: 'Dach (3D)', heat: 'Raum-Heatmap', blueprint: 'Blueprint-Look', tilt3d: 'Kippen per Touch (3D)', realistic: 'Realistische Grafik (3D, rechenintensiv)', overlay: 'Live-Übersicht (Alarme, Energie, Szenen)',
   kiosk: 'Kiosk-Modus', kiosk_idle: 'Kiosk: Rückkehr nach (Sekunden)', height3d: 'Höhe 3D (px, 0 = automatisch)', weather3d: 'Wetter-Entität', language: 'Sprache (z. B. de, en; leer = automatisch)', rotate: 'Drehung (°)', gestures: 'Gesten (Drehen/Zoomen)', building: 'Gebäude',
 };
 class FloorplanStudioCardEditor extends HTMLElement {
@@ -4203,7 +4362,7 @@ class FloorplanStudioCardEditor extends HTMLElement {
       bool('all3d'),
       sel('roof3d', [['', 'Automatisch'], ['none', 'Kein Dach'], ['flat', 'Flachdach'], ['gable', 'Satteldach'], ['hip', 'Walmdach'], ['shed', 'Pultdach']]),
       sel('heat', [['none', 'Aus'], ['temp', 'Temperatur'], ['hum', 'Luftfeuchte'], ['co2', 'CO₂']]),
-      bool('blueprint'), bool('tilt3d'), bool('overlay'), bool('gestures'), bool('kiosk'),
+      bool('blueprint'), bool('realistic'), bool('tilt3d'), bool('overlay'), bool('gestures'), bool('kiosk'),
       { name: 'kiosk_idle', selector: { number: { min: 10, max: 3600, mode: 'box' } } },
       { name: 'height3d', selector: { number: { min: 0, max: 2000, mode: 'box' } } },
       { name: 'weather3d', selector: { entity: { domain: 'weather' } } },
