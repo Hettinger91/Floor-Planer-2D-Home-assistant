@@ -856,5 +856,20 @@
  "Wetter-Entität": "Väderentitet",
  "Sprache (z. B. de, en; leer = automatisch)": "Språk (t.ex. de, en; tom = automatiskt)",
  "Gesten (Drehen/Zoomen)": "Gester (rotera/zooma)",
- "Gebäude": "Byggnad"
+ "Gebäude": "Byggnad",
+ "Keine Verlaufsdaten": "Inga historikdata",
+ "Lade …": "Läser in …",
+ "Foto": "Foto",
+ "Details": "Detaljer",
+ "Kein Bild verfügbar": "Ingen bild tillgänglig",
+ "7 T": "7 d",
+ "Leistung": "Effekt",
+ "Papierformat": "Pappersformat",
+ "Maßstab": "Skala",
+ "Automatisch (passend)": "Automatisk (anpassad)",
+ "Stückliste anhängen": "Bifoga materiallista",
+ "Drucken / PDF im Maßstab": "Skriv ut / PDF i skala",
+ "Drucken / PDF": "Skriv ut / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtuell verklighet: gå genom huset i skala 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Förstärkt verklighet: modell på bordet"
 }

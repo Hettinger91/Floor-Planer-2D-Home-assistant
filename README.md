@@ -64,7 +64,11 @@ Im Live-Modus des Editors und in der Dashboard-Karte erscheint oben links eine �
 * **Stückliste & Druck:** Editor-Menü → „Stückliste & Flächen“ (Räume, Flächen, Wandlängen, Objekte; CSV-Export) und „Drucken / als PDF“ (Pläne mit Maßstabsangabe, optional mit Stückliste).
 * **Pultdach** als weitere Dachform (inkl. Solarmodulen).
 * **Mehrere Gebäude:** Etagen-Feld „Gebäude“ bzw. Knopf **🏠+** in der Etagenleiste. Jedes Gebäude stapelt eigene Etagen und bekommt ein eigenes Dach; Karte: `building: Garage` zeigt nur dieses Gebäude.
-* **Begehen (🚶):** Ego-Perspektive durchs Haus (3D-Leiste bzw. Karten-Seitenleiste): Ziehen = umsehen (Touch: seitlich drehen, senkrecht laufen), WASD/Pfeile, Mausrad = vor/zurück, Esc beendet. Ohne Wand-Kollision („Geistermodus“).
+* **Begehen (🚶):** Ego-Perspektive durchs Haus (3D-Leiste bzw. Karten-Seitenleiste): Ziehen = umsehen (Touch: seitlich drehen, senkrecht laufen), WASD/Pfeile, Mausrad = vor/zurück, Esc beendet. Wände sind fest, Türen gehbar.
+* **Sensor-Verlauf:** Tippen auf einen Sensor (Temperatur, Luftfeuchte, CO₂, Leistung …) öffnet ein Diagramm (6 h / 24 h / 7 Tage) aus der HA-Historie. Räume mit Bereich und ohne Licht öffnen den Verlauf ihrer Sensoren.
+* **Kamera-Popup:** Objekte mit `camera.*`-Entität zeigen Foto (automatisch aktualisiert) oder Live-Stream im Popup.
+* **Druck / PDF im Maßstab:** Menü → „Drucken / als PDF“: Format A4–A2, Maßstab 1 : 20 bis 1 : 1000 oder automatisch, Maßstabsbalken, optional Stückliste. Zeichnung exakt in mm skaliert.
+* **VR / AR (WebXR):** Auf Geräten mit WebXR erscheinen in der 3D-Leiste 🥽 VR (Haus im Maßstab 1:1 begehen, Stick = laufen, mit Wandkollision) und 📱 AR (Modell auf dem Tisch, Stick = drehen). Ohne WebXR-Unterstützung bleiben die Knöpfe verborgen.
 * **Plan prüfen:** Menü → „Plan prüfen (Überschneidungen)“ listet überlappende Möbel/Objekte je Etage, Tippen springt zum Objekt.
 * **DXF-Import:** Menü → „DXF importieren“ (ASCII-DXF: LINE, LWPOLYLINE, POLYLINE → Wände; Einheit und Layer wählbar).
 * **Grafischer Karten-Editor:** Alle Kartenoptionen lassen sich im Dashboard-Editor per Formular einstellen (kein YAML nötig).

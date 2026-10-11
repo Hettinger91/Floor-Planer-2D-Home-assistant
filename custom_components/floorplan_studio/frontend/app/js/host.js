@@ -14,6 +14,7 @@ function makeDemoHost() {
     entities: () => [],
     callService: async () => { },
     moreInfo: () => { },
+    history: async () => ({}),
     upload: file => new Promise(res => { const fr = new FileReader(); fr.onload = () => res({ url: fr.result }); fr.readAsDataURL(file); }),
     backups: async () => [],
     restore: async () => { throw new Error('Nur in Home Assistant verfügbar'); },

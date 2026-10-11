@@ -16,6 +16,12 @@ const HOST = {
     });
   },
   callService: (d, s, data) => ACTIVE._hass.callService(d, s, data),
+  history: async (ids, hours) => {
+    const h = ACTIVE && ACTIVE._hass; if (!h) return {};
+    const end = new Date(), start = new Date(end - hours * 3600e3);
+    return (await h.callWS({ type: 'history/history_during_period', start_time: start.toISOString(), end_time: end.toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false })) || {};
+  },
+  popupRoot: () => (ACTIVE && ACTIVE.shadowRoot && ACTIVE.shadowRoot.querySelector('ha-card')) || null,
   moreInfo: entityId => ACTIVE && ACTIVE.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
 };
 function toast(msg) { console.warn('[floorplan-studio-card]', msg); }
@@ -223,7 +229,7 @@ class FloorplanStudioCard extends HTMLElement {
     let vb = '';
     if (is3) {
       const w = this._w3 || 'auto', wl = { auto: 'Wände: auto', full: 'Wände: voll', half: 'Wände: halb', flat: 'Wände: aus' }[w];
-      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
+      vb = '<button data-v="2d" title="2D-Ansicht">2D</button><button data-w="1" title="Wandansicht umschalten">' + wl + '</button><button data-walk="1" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück">🚶 Begehen</button><button data-xr="vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button data-xr="ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>' + (fl.length > 1 ? `<button data-a="1" class="${this._a3 ? 'on' : ''}" title="Alle Etagen anzeigen">Alle Etagen</button>` : '');
     } else if (c.view3d !== false && c.gestures !== false) vb = '<button data-v="3d" title="3D-Ansicht">3D</button>';
     if (vb || fb) vb += `<button data-bp="1" class="${this._bpOn() ? 'on' : ''}" title="Blueprint-Ansicht (Bauplan-Stil)">Blueprint</button>`;
     if (!fb && !vb) return '';
@@ -239,6 +245,7 @@ class FloorplanStudioCard extends HTMLElement {
         if (k === '2d') { this._m3 = false; this._kill3(); this._sig = ''; this._draw(); return; }
         if (b.dataset.bp) { this._bp = !this._bpOn(); b.classList.toggle('on', this._bp); const mn = root.querySelector('.main'); if (mn) mn.classList.toggle('bp', this._bp); if (this._v3) this._v3.set('look', this._look3()); return; }
         if (!this._v3) return;
+        if (b.dataset.xr) { if (this._v3.inXR()) this._v3.stopXR(); else this._v3.startXR(b.dataset.xr); return; }
         if (b.dataset.walk) { const w = !this._v3.isWalking(); this._v3.setWalk(w); b.classList.toggle('on', w); b.textContent = w ? '🚶 Beenden' : '🚶 Begehen'; return; }
         if (b.dataset.w) {
           const o = ['auto', 'full', 'half', 'flat']; this._w3 = o[(o.indexOf(this._w3 || 'auto') + 1) % 4];
@@ -277,6 +284,7 @@ class FloorplanStudioCard extends HTMLElement {
         onTap: (id, long) => { this._ctx(); const it = findItem(id) || plan.floors.flatMap(f => f.items).find(i => i.id === id); if (it && (it.entity || it.tap === 'service')) onItemTap(it, long); },
       });
       this._v3.update(); this._ovl();
+      const v3x = this._v3; [['vr', 'immersive-vr'], ['ar', 'immersive-ar']].forEach(([k, m]) => v3x.xrSupported(m).then(ok => { const xb = this.shadowRoot.querySelector('[data-xr="' + k + '"]'); if (xb) xb.hidden = !ok; }));
     }).catch(e => { st.innerHTML = `<div class="msg">3D nicht möglich: ${esc(e.message)}</div>`; });
     return true;
   }

@@ -30,17 +30,39 @@ function bomCsv(d) {
   });
   return '﻿' + L.join('\n');
 }
+const PAPER = { A4: [297, 210], A3: [420, 297], A2: [594, 420] };
+const SCALES = [20, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 750, 1000];
+function printOptions(withBom) {
+  const body = document.createElement('div');
+  body.innerHTML = '<label style="display:block;margin:6px 0">Papierformat <select data-p>' + Object.keys(PAPER).map(k => '<option>' + k + '</option>').join('') + '</select></label>' +
+    '<label style="display:block;margin:6px 0">Maßstab <select data-s><option value="0">Automatisch (passend)</option>' + SCALES.map(n => '<option value="' + n + '">1 : ' + n + '</option>').join('') + '</select></label>' +
+    '<label style="display:block;margin:6px 0"><input type="checkbox" data-b' + (withBom ? ' checked' : '') + '> Stückliste anhängen</label>';
+  return modal({ title: 'Drucken / PDF im Maßstab', body, actions: [{ label: 'Abbrechen', value: null }, { label: 'Drucken / PDF', value: 'ok', primary: true }] })
+    .then(v => v === 'ok' ? { paper: body.querySelector('[data-p]').value, scale: +body.querySelector('[data-s]').value, bom: body.querySelector('[data-b]').checked } : null);
+}
 async function printPlan(withBom) {
-  const d = bomData(), parts = [];
-  for (const f of plan.floors) {
-    const b = contentBounds(f), svg = await exportSvgString(f), n = Math.max(1, Math.round((b.w + 160) * 10 / 277 / 10) * 10);
-    parts.push(`<section><h3>${esc(f.name)}</h3><div class="pl">${svg}</div><p class="sc">Maßstab ca. 1 : ${n} bei A4 quer (Planbreite ${fmtN((b.w) / 100, 1)} m)</p></section>`);
+  const opt = await printOptions(!!withBom); if (!opt) return;
+  const d = bomData(), parts = [], M = 12, HEAD = 26, FOOT = 14;
+  let [pw, ph] = PAPER[opt.paper], landscape = true;
+  const bs = plan.floors.map(contentBounds);
+  const mw = Math.max(...bs.map(b => b.w + 160)), mh = Math.max(...bs.map(b => b.h + 160));
+  if (mh > mw * 1.15 && pw > ph) { landscape = false; [pw, ph] = [ph, pw]; }
+  const aw = pw - 2 * M, ah = ph - 2 * M - HEAD - FOOT;
+  const fit = Math.max(aw ? mw * 10 / aw : 1, mh * 10 / ah);
+  const N = opt.scale || SCALES.find(n => n >= fit) || Math.ceil(fit / 100) * 100;
+  const ok = mw * 10 / N <= aw + 0.5 && mh * 10 / ah >= 0 && mh * 10 / N <= ah + 0.5;
+  const bar = N <= 100 ? 1 : N <= 300 ? 2 : 5, barMm = bar * 1000 / N;
+  for (let i = 0; i < plan.floors.length; i++) {
+    const f = plan.floors[i], b = bs[i], svg = (await exportSvgString(f)).replace(/ width="[\d.]+" height="[\d.]+"/, ` width="${((b.w + 160) * 10 / N).toFixed(2)}mm" height="${((b.h + 160) * 10 / N).toFixed(2)}mm"`);
+    parts.push(`<section><div class="hd"><b>${esc(S().projectName || 'Grundriss')}</b> – ${esc(f.name)}</div><div class="pl">${svg}</div><div class="ft"><span class="bar" style="width:${barMm.toFixed(2)}mm"></span> ${bar} m &nbsp;·&nbsp; Maßstab 1 : ${N} (${opt.paper}${landscape ? ' quer' : ' hoch'})${ok ? '' : ' – Plan größer als Blatt, bitte größeren Maßstab wählen'}</div></section>`);
   }
   const html = `<!doctype html><meta charset="utf-8"><title>${esc((S().projectName) || 'Grundriss')}</title><style>
-@page { size: A4 landscape; margin: 12mm; } body { font: 12px system-ui, sans-serif; color: #111; }
-section { page-break-after: always; } .pl svg { width: 100%; max-height: 165mm; height: auto; } .sc { color: #555; }
+@page { size: ${opt.paper} ${landscape ? 'landscape' : 'portrait'}; margin: ${M}mm; } body { font: 12px system-ui, sans-serif; color: #111; margin: 0; }
+section { page-break-after: always; height: ${ph - 2 * M - 1}mm; position: relative; } .hd { height: ${HEAD - 8}mm; font-size: 15px; border-bottom: 0.4mm solid #111; margin-bottom: 4mm; }
+.pl { height: ${ah}mm; overflow: hidden; } .pl svg { display: block; margin: 0 auto; } .ft { position: absolute; bottom: 0; left: 0; right: 0; height: ${FOOT - 4}mm; font-size: 11px; color: #333; display: flex; align-items: center; gap: 6px; }
+.bar { display: inline-block; height: 1.6mm; border: 0.3mm solid #111; border-top: none; box-sizing: border-box; }
 table { border-collapse: collapse; margin: 6px 0 10px; min-width: 50%; } th, td { border: 1px solid #bbb; padding: 3px 8px; text-align: left; } td.r { text-align: right; } h3, h4 { margin: 8px 0 4px; }
-</style>${parts.join('')}${withBom ? `<section><h3>Stückliste</h3>${bomHtml(d)}</section>` : ''}`;
+</style>${parts.join('')}${opt.bom ? `<section><h3>Stückliste</h3>${bomHtml(d)}</section>` : ''}`;
   const fr = document.createElement('iframe'); fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
   document.body.append(fr); fr.contentDocument.open(); fr.contentDocument.write(html); fr.contentDocument.close();
   setTimeout(() => { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { toast('Drucken nicht möglich: ' + e.message); } setTimeout(() => fr.remove(), 60000); }, 400);

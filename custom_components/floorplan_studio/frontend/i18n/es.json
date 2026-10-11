@@ -856,5 +856,20 @@
  "Wetter-Entität": "Entidad meteorológica",
  "Sprache (z. B. de, en; leer = automatisch)": "Idioma (p. ej. de, en; vacío = automático)",
  "Gesten (Drehen/Zoomen)": "Gestos (girar/zoom)",
- "Gebäude": "Edificio"
+ "Gebäude": "Edificio",
+ "Keine Verlaufsdaten": "Sin datos de historial",
+ "Lade …": "Cargando …",
+ "Foto": "Foto",
+ "Details": "Detalles",
+ "Kein Bild verfügbar": "Imagen no disponible",
+ "7 T": "7 d",
+ "Leistung": "Potencia",
+ "Papierformat": "Tamaño de papel",
+ "Maßstab": "Escala",
+ "Automatisch (passend)": "Automática (ajustada)",
+ "Stückliste anhängen": "Añadir lista de materiales",
+ "Drucken / PDF im Maßstab": "Imprimir / PDF a escala",
+ "Drucken / PDF": "Imprimir / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Realidad virtual: recorrer la casa a escala 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Realidad aumentada: maqueta sobre la mesa"
 }

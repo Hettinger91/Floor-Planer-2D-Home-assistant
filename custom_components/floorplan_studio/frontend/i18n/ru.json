@@ -856,5 +856,20 @@
  "Wetter-Entität": "Сущность погоды",
  "Sprache (z. B. de, en; leer = automatisch)": "Язык (напр. de, en; пусто = авто)",
  "Gesten (Drehen/Zoomen)": "Жесты (поворот/масштаб)",
- "Gebäude": "Здание"
+ "Gebäude": "Здание",
+ "Keine Verlaufsdaten": "Нет данных истории",
+ "Lade …": "Загрузка …",
+ "Foto": "Фото",
+ "Details": "Подробнее",
+ "Kein Bild verfügbar": "Изображение недоступно",
+ "7 T": "7 дн.",
+ "Leistung": "Мощность",
+ "Papierformat": "Формат бумаги",
+ "Maßstab": "Масштаб",
+ "Automatisch (passend)": "Автоматически (по размеру)",
+ "Stückliste anhängen": "Добавить спецификацию",
+ "Drucken / PDF im Maßstab": "Печать / PDF в масштабе",
+ "Drucken / PDF": "Печать / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Виртуальная реальность: прогулка по дому в масштабе 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Дополненная реальность: модель на столе"
 }

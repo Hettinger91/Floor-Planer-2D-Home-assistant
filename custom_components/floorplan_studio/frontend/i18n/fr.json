@@ -856,5 +856,20 @@
  "Wetter-Entität": "Entité météo",
  "Sprache (z. B. de, en; leer = automatisch)": "Langue (p. ex. de, en ; vide = automatique)",
  "Gesten (Drehen/Zoomen)": "Gestes (rotation/zoom)",
- "Gebäude": "Bâtiment"
+ "Gebäude": "Bâtiment",
+ "Keine Verlaufsdaten": "Aucune donnée d’historique",
+ "Lade …": "Chargement …",
+ "Foto": "Photo",
+ "Details": "Détails",
+ "Kein Bild verfügbar": "Aucune image disponible",
+ "7 T": "7 j",
+ "Leistung": "Puissance",
+ "Papierformat": "Format du papier",
+ "Maßstab": "Échelle",
+ "Automatisch (passend)": "Automatique (ajustée)",
+ "Stückliste anhängen": "Joindre la nomenclature",
+ "Drucken / PDF im Maßstab": "Imprimer / PDF à l’échelle",
+ "Drucken / PDF": "Imprimer / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Réalité virtuelle : parcourir la maison à l’échelle 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Réalité augmentée : maquette sur la table"
 }

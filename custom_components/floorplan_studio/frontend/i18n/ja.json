@@ -856,5 +856,20 @@
  "Wetter-Entität": "天気エンティティ",
  "Sprache (z. B. de, en; leer = automatisch)": "言語（例：de, en、空 = 自動）",
  "Gesten (Drehen/Zoomen)": "ジェスチャー（回転/ズーム）",
- "Gebäude": "建物"
+ "Gebäude": "建物",
+ "Keine Verlaufsdaten": "履歴データなし",
+ "Lade …": "読み込み中 …",
+ "Foto": "写真",
+ "Details": "詳細",
+ "Kein Bild verfügbar": "画像がありません",
+ "7 T": "7日",
+ "Leistung": "電力",
+ "Papierformat": "用紙サイズ",
+ "Maßstab": "縮尺",
+ "Automatisch (passend)": "自動（フィット）",
+ "Stückliste anhängen": "部材一覧を添付",
+ "Drucken / PDF im Maßstab": "縮尺指定で印刷 / PDF",
+ "Drucken / PDF": "印刷 / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "VR：1:1の縮尺で家を歩く",
+ "Augmented Reality: Modell auf dem Tisch": "AR：テーブルの上にモデルを表示"
 }

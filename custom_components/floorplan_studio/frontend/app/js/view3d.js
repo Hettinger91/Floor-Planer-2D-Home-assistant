@@ -913,7 +913,20 @@ const FP3D = (() => {
       } else { walk = null; walkMode = false; camera.fov = 42; camera.updateProjectionMatrix(); fitted = false; wkeys.clear(); build(true); }
       dirty = true; if (o.onWalk) o.onWalk(!!walk);
     }
-    function walkMove(fw, st) { const s2 = Math.sin(walk.yaw), c2 = Math.cos(walk.yaw); walk.x += s2 * fw + c2 * st; walk.z += -c2 * fw + s2 * st; }
+    function walkBlock(x, z) {
+      const f = plan.floors.find(q => q.id === o.getFloor()) || plan.floors[0], R = 22;
+      let px = x, pz = z;
+      for (let it2 = 0; it2 < 2; it2++) (f.walls || []).forEach(wl => {
+        const dx = wl.x2 - wl.x1, dy = wl.y2 - wl.y1, L = Math.hypot(dx, dy); if (L < 1) return;
+        const ux = dx / L, uy = dy / L, qx = px - wl.x1, qz = pz - wl.y1, s0 = qx * ux + qz * uy, sc = Math.max(0, Math.min(L, s0));
+        const cx = wl.x1 + ux * sc, cz = wl.y1 + uy * sc, ex = px - cx, ez = pz - cz, d = Math.hypot(ex, ez), rr = R + (wl.t || 10) / 2;
+        if (d >= rr) return;
+        if (openingsFor(wl, f).some(op => op.it.shape === 'door' && s0 > op.a - R * 0.5 && s0 < op.b + R * 0.5)) return;
+        const nx = d > 0.01 ? ex / d : -uy, nz = d > 0.01 ? ez / d : ux; px = cx + nx * rr; pz = cz + nz * rr;
+      });
+      return [px, pz];
+    }
+    function walkMove(fw, st) { const s2 = Math.sin(walk.yaw), c2 = Math.cos(walk.yaw); const q = walkBlock(walk.x + s2 * fw + c2 * st, walk.z - c2 * fw + s2 * st); walk.x = q[0]; walk.z = q[1]; }
     function walkKeys(dt) {
       if (!walk || !wkeys.size) return false;
       const sp = (wkeys.has('shift') ? 320 : 160) * dt, k = n => wkeys.has(n);
@@ -1069,13 +1082,68 @@ const FP3D = (() => {
     function frame() {
       raf = 0; if (destroyed) return;
       if (!visible || document.hidden) { raf = requestAnimationFrame(frame); return; }
+      step();
+      if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
+      raf = requestAnimationFrame(frame);
+    }
+    function step() {
       if (animateWalls()) dirty = true;
       if (walk) { const nW = performance.now(), dW = Math.min(0.1, (nW - (lastW || nW)) / 1000); lastW = nW; if (walkKeys(dW)) dirty = true; } else lastW = 0;
       const othersA = solar || opens.length || items.some(r => r.robot || r.anim);
       if (othersA || envO) { const nowT = performance.now(), dtA = (nowT - (lastAnim || nowT)) / 1000, minDt = othersA ? 0.028 : (envO && (wx.rain || wx.snow || wx.light) ? (o.lowPower ? 0.05 : 0.03) : 0.1); if (!lastAnim || dtA > minDt) { lastAnim = nowT; if (animateAll(Math.min(dtA, 0.1), nowT)) dirty = true; } }
-      if (dirty) { dirty = false; limit(); placeCamera(); renderer.render(scene, camera); }
-      raf = requestAnimationFrame(frame);
     }
+
+    // ---------- WebXR (VR: Haus im Maßstab 1:1 begehen, AR: Modell auf dem Tisch) ----------
+    let xr = null;
+    function xrSupported(mode) { return !!(navigator.xr && navigator.xr.isSessionSupported) ? navigator.xr.isSessionSupported(mode).catch(() => false) : Promise.resolve(false); }
+    async function startXR(mode) {
+      if (xr || !navigator.xr) return false;
+      const ar = mode === 'ar';
+      let sess; try { sess = await navigator.xr.requestSession(ar ? 'immersive-ar' : 'immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] }); } catch (e) { return false; }
+      const wasWalk = !!walk, bg = scene.background, fog = scene.fog;
+      if (!ar && !wasWalk) { walkMode = true; build(true); }
+      if (ar) { scene.background = null; scene.fog = null; renderer.setClearColor(0x000000, 0); }
+      const f = plan.floors.find(q => q.id === o.getFloor()) || plan.floors[0], bb = contentBounds(f);
+      const k = ar ? 1 / 3000 : 0.01, st = walkStartPos(), cx = bb.x + bb.w / 2, cz = bb.y + bb.h / 2;
+      const w0 = { p: world.position.clone(), s: world.scale.clone(), r: world.rotation.y };
+      world.scale.setScalar(k);
+      if (ar) world.position.set(-cx * k, 0.8 - groundY * k, -cz * k - 0.9); else world.position.set(-st.x * k, -groundY * k, -st.z * k);
+      renderer.xr.enabled = true;
+      try { renderer.xr.setReferenceSpaceType('local-floor'); } catch (_) { /* egal */ }
+      xr = { sess, ar, k, last: 0 };
+      cancelAnimationFrame(raf); raf = 0;
+      const head = new T.Vector3();
+      renderer.setAnimationLoop((tm) => {
+        const dt = Math.min(0.1, (tm - (xr.last || tm)) / 1000); xr.last = tm;
+        if (!ar) { // Stick-Bewegung mit Wandkollision
+          sess.inputSources.forEach(src => {
+            const ax = src.gamepad && src.gamepad.axes; if (!ax) return;
+            const sx = Math.abs(ax[2]) > 0.15 ? ax[2] : (Math.abs(ax[0]) > 0.15 ? ax[0] : 0), sy = Math.abs(ax[3]) > 0.15 ? ax[3] : (Math.abs(ax[1]) > 0.15 ? ax[1] : 0);
+            if (!sx && !sy) return;
+            const xc = renderer.xr.getCamera(camera); head.setFromMatrixPosition(xc.matrixWorld);
+            const q = new T.Vector3(); xc.getWorldDirection(q); const yaw = Math.atan2(q.x, -q.z), sp = 160 * dt;
+            const hx = (head.x - world.position.x) / k, hz = (head.z - world.position.z) / k;
+            const nx = hx + (Math.sin(yaw) * -sy + Math.cos(yaw) * sx) * sp, nz = hz + (-Math.cos(yaw) * -sy + Math.sin(yaw) * sx) * sp;
+            const bl = walkBlock(nx, nz); world.position.x -= (bl[0] - hx) * k; world.position.z -= (bl[1] - hz) * k;
+          });
+        } else sess.inputSources.forEach(src => { const ax = src.gamepad && src.gamepad.axes; if (ax && Math.abs(ax[2] || ax[0] || 0) > 0.15) world.rotation.y += (ax[2] || ax[0]) * dt; });
+        step(); renderer.render(scene, camera);
+      });
+      sess.addEventListener('end', () => {
+        renderer.setAnimationLoop(null); renderer.xr.enabled = false;
+        world.position.copy(w0.p); world.scale.copy(w0.s); world.rotation.y = w0.r;
+        if (ar) { scene.background = bg; scene.fog = fog; renderer.setClearColor(0x000000, 1); }
+        camera.fov = walk ? 72 : 42; camera.updateProjectionMatrix();
+        if (!ar && !wasWalk) { walkMode = false; build(true); }
+        xr = null; dirty = true; fitted = false; if (!destroyed) raf = requestAnimationFrame(frame);
+        if (o.onXR) o.onXR(null);
+      });
+      try { await renderer.xr.setSession(sess); } catch (e) { try { sess.end(); } catch (_) { /* egal */ } return false; }
+      if (o.onXR) o.onXR(mode);
+      return true;
+    }
+    function stopXR() { if (xr) try { xr.sess.end(); } catch (_) { /* egal */ } }
+
 
     function structSig() {
       return JSON.stringify([plan.floors, S().wallColor, S().wallColor3, S().roof3, S().roofColor3, S().roofPitch3, S().roofOver3, S().solar3, S().solarFill3, S().solarCount3, S().roofType3, S().solarSide3, S().ground3, o.roof, o.wallColor, o.ground, S().wallH3, S().symStyle, S().labelSize, S().wallThickness, o.look, o.walls, o.allFloors, walkMode ? 1 : 0, o.building || '', o.getFloor(), o.dark() ? 1 : 0, o.lowPower ? 1 : 0, typeof heatMetric === 'function' ? heatMetric() : '']);
@@ -1101,7 +1169,7 @@ const FP3D = (() => {
     function destroy() { destroyed = true; wkeys.clear(); cancelAnimationFrame(raf); if (ro) ro.disconnect(); if (io) io.disconnect(); clearWorld(); renderer.dispose(); root.remove(); }
 
     resize(); build(true); frame();
-    return { setWalk, isWalking: () => !!walk, setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
+    return { _walk: () => walk, _world: () => world, startXR, stopXR, xrSupported, inXR: () => !!xr, setWalk, isWalking: () => !!walk, setSim: (sm) => { o.sim = sm; if (envO) applyEnv(true); }, hasEnv: () => !!envO, _env: () => envO, _wx: wx, screenOf: id => { const r = items.find(x => x.it.id === id) || opens.find(x => x.it.id === id); if (!r) return null; const v = new T.Vector3(); if (r.group) r.group.getWorldPosition(v), v.y += (r.h || 50) / 2; else { r.anchor.getWorldPosition(v); v.y -= (r.hh || 100) / 2; } v.project(camera); const b = cv.getBoundingClientRect(); return [b.left + (v.x + 1) / 2 * b.width, b.top + (1 - v.y) / 2 * b.height]; }, robotPos: () => items.filter(r => r.robot).map(r => [r.it.type, r.robot.x, r.robot.z]), update, resetView, applyTouch, set, destroy, resize, el: root, rotate: (da) => { cam.az += da; dirty = true; }, zoom: (f) => { cam.dist *= f; limit(); dirty = true; }, cam, get opts() { return o; } };
   }
 
   return { load, create, dims3, ROBOTS };

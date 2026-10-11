@@ -856,5 +856,20 @@
  "Wetter-Entität": "Weerentiteit",
  "Sprache (z. B. de, en; leer = automatisch)": "Taal (bijv. de, en; leeg = automatisch)",
  "Gesten (Drehen/Zoomen)": "Gebaren (draaien/zoomen)",
- "Gebäude": "Gebouw"
+ "Gebäude": "Gebouw",
+ "Keine Verlaufsdaten": "Geen geschiedenisgegevens",
+ "Lade …": "Laden …",
+ "Foto": "Foto",
+ "Details": "Details",
+ "Kein Bild verfügbar": "Geen beeld beschikbaar",
+ "7 T": "7 d",
+ "Leistung": "Vermogen",
+ "Papierformat": "Papierformaat",
+ "Maßstab": "Schaal",
+ "Automatisch (passend)": "Automatisch (passend)",
+ "Stückliste anhängen": "Stuklijst toevoegen",
+ "Drucken / PDF im Maßstab": "Afdrukken / PDF op schaal",
+ "Drucken / PDF": "Afdrukken / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: loop door het huis op schaal 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model op tafel"
 }

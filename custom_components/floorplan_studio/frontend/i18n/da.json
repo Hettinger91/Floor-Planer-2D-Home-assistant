@@ -856,5 +856,20 @@
  "Wetter-Entität": "Vejrentitet",
  "Sprache (z. B. de, en; leer = automatisch)": "Sprog (f.eks. de, en; tom = automatisk)",
  "Gesten (Drehen/Zoomen)": "Bevægelser (dreje/zoome)",
- "Gebäude": "Bygning"
+ "Gebäude": "Bygning",
+ "Keine Verlaufsdaten": "Ingen historikdata",
+ "Lade …": "Indlæser …",
+ "Foto": "Foto",
+ "Details": "Detaljer",
+ "Kein Bild verfügbar": "Intet billede tilgængeligt",
+ "7 T": "7 d",
+ "Leistung": "Effekt",
+ "Papierformat": "Papirformat",
+ "Maßstab": "Målestok",
+ "Automatisch (passend)": "Automatisk (tilpasset)",
+ "Stückliste anhängen": "Vedhæft materialeliste",
+ "Drucken / PDF im Maßstab": "Udskriv / PDF i målestok",
+ "Drucken / PDF": "Udskriv / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: gå gennem huset i skala 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model på bordet"
 }

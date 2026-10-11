@@ -856,5 +856,20 @@
  "Wetter-Entität": "Encja pogody",
  "Sprache (z. B. de, en; leer = automatisch)": "Język (np. de, en; puste = automatycznie)",
  "Gesten (Drehen/Zoomen)": "Gesty (obrót/zoom)",
- "Gebäude": "Budynek"
+ "Gebäude": "Budynek",
+ "Keine Verlaufsdaten": "Brak danych historii",
+ "Lade …": "Ładowanie …",
+ "Foto": "Zdjęcie",
+ "Details": "Szczegóły",
+ "Kein Bild verfügbar": "Brak obrazu",
+ "7 T": "7 d",
+ "Leistung": "Moc",
+ "Papierformat": "Format papieru",
+ "Maßstab": "Skala",
+ "Automatisch (passend)": "Automatycznie (dopasowana)",
+ "Stückliste anhängen": "Dołącz zestawienie materiałów",
+ "Drucken / PDF im Maßstab": "Drukuj / PDF w skali",
+ "Drucken / PDF": "Drukuj / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Rzeczywistość wirtualna: spacer po domu w skali 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Rzeczywistość rozszerzona: model na stole"
 }

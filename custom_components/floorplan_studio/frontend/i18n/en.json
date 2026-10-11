@@ -856,5 +856,20 @@
  "Wetter-Entität": "Weather entity",
  "Sprache (z. B. de, en; leer = automatisch)": "Language (e.g. de, en; empty = automatic)",
  "Gesten (Drehen/Zoomen)": "Gestures (rotate/zoom)",
- "Gebäude": "Building"
+ "Gebäude": "Building",
+ "Keine Verlaufsdaten": "No history data",
+ "Lade …": "Loading …",
+ "Foto": "Photo",
+ "Details": "Details",
+ "Kein Bild verfügbar": "No image available",
+ "7 T": "7 d",
+ "Leistung": "Power",
+ "Papierformat": "Paper size",
+ "Maßstab": "Scale",
+ "Automatisch (passend)": "Automatic (fit)",
+ "Stückliste anhängen": "Append bill of materials",
+ "Drucken / PDF im Maßstab": "Print / PDF to scale",
+ "Drucken / PDF": "Print / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtual reality: walk through the house at 1:1 scale",
+ "Augmented Reality: Modell auf dem Tisch": "Augmented reality: model on your table"
 }

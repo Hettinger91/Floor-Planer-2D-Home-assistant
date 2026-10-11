@@ -856,5 +856,20 @@
  "Wetter-Entität": "Sääentiteetti",
  "Sprache (z. B. de, en; leer = automatisch)": "Kieli (esim. de, en; tyhjä = automaattinen)",
  "Gesten (Drehen/Zoomen)": "Eleet (kierto/zoomaus)",
- "Gebäude": "Rakennus"
+ "Gebäude": "Rakennus",
+ "Keine Verlaufsdaten": "Ei historiatietoja",
+ "Lade …": "Ladataan …",
+ "Foto": "Kuva",
+ "Details": "Tiedot",
+ "Kein Bild verfügbar": "Kuvaa ei saatavilla",
+ "7 T": "7 pv",
+ "Leistung": "Teho",
+ "Papierformat": "Paperikoko",
+ "Maßstab": "Mittakaava",
+ "Automatisch (passend)": "Automaattinen (sovitettu)",
+ "Stückliste anhängen": "Liitä materiaaliluettelo",
+ "Drucken / PDF im Maßstab": "Tulosta / PDF mittakaavassa",
+ "Drucken / PDF": "Tulosta / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "Virtuaalitodellisuus: kävele talossa mittakaavassa 1:1",
+ "Augmented Reality: Modell auf dem Tisch": "Lisätty todellisuus: malli pöydällä"
 }

@@ -77,6 +77,11 @@ class FloorplanStudioPanel extends HTMLElement {
       },
       areas: () => Object.values(self._hass.areas || {}).map(a => ({ id: a.area_id, name: a.name })).sort((a, b) => a.name.localeCompare(b.name)),
       callService: (d, s, data) => self._hass.callService(d, s, data),
+      history: async (ids, hours) => {
+        const end = new Date(), start = new Date(end - hours * 3600e3);
+        const r = await ws({ type: 'history/history_during_period', start_time: start.toISOString(), end_time: end.toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false });
+        return r || {};
+      },
       moreInfo: entityId => self.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId }, bubbles: true, composed: true })),
       upload: async file => {
         const r = await self._hass.fetchWithAuth('/api/floorplan_studio/upload', { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });

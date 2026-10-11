@@ -856,5 +856,20 @@
  "Wetter-Entität": "天气实体",
  "Sprache (z. B. de, en; leer = automatisch)": "语言（如 de、en；空 = 自动）",
  "Gesten (Drehen/Zoomen)": "手势（旋转/缩放）",
- "Gebäude": "建筑"
+ "Gebäude": "建筑",
+ "Keine Verlaufsdaten": "无历史数据",
+ "Lade …": "加载中 …",
+ "Foto": "照片",
+ "Details": "详情",
+ "Kein Bild verfügbar": "无可用图像",
+ "7 T": "7 天",
+ "Leistung": "功率",
+ "Papierformat": "纸张大小",
+ "Maßstab": "比例",
+ "Automatisch (passend)": "自动（适应）",
+ "Stückliste anhängen": "附上材料清单",
+ "Drucken / PDF im Maßstab": "按比例打印 / PDF",
+ "Drucken / PDF": "打印 / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "虚拟现实：以 1:1 比例漫游房屋",
+ "Augmented Reality: Modell auf dem Tisch": "增强现实：桌面上的模型"
 }

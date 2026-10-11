@@ -856,5 +856,20 @@
  "Wetter-Entität": "मौसम एंटिटी",
  "Sprache (z. B. de, en; leer = automatisch)": "भाषा (जैसे de, en; खाली = स्वचालित)",
  "Gesten (Drehen/Zoomen)": "इशारे (घुमाना/ज़ूम)",
- "Gebäude": "इमारत"
+ "Gebäude": "इमारत",
+ "Keine Verlaufsdaten": "इतिहास डेटा नहीं",
+ "Lade …": "लोड हो रहा है …",
+ "Foto": "फ़ोटो",
+ "Details": "विवरण",
+ "Kein Bild verfügbar": "छवि उपलब्ध नहीं",
+ "7 T": "7 दिन",
+ "Leistung": "शक्ति",
+ "Papierformat": "कागज़ का आकार",
+ "Maßstab": "स्केल",
+ "Automatisch (passend)": "स्वचालित (फ़िट)",
+ "Stückliste anhängen": "सामग्री सूची जोड़ें",
+ "Drucken / PDF im Maßstab": "स्केल के अनुसार प्रिंट / PDF",
+ "Drucken / PDF": "प्रिंट / PDF",
+ "Virtual Reality: Haus im Maßstab 1:1 begehen": "वर्चुअल रियलिटी: घर में 1:1 स्केल पर घूमें",
+ "Augmented Reality: Modell auf dem Tisch": "ऑगमेंटेड रियलिटी: मेज़ पर मॉडल"
 }

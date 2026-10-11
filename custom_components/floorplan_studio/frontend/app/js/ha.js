@@ -48,6 +48,7 @@ function areaSummaryText(areaId) {
 }
 function onRoomTap(room, wantDetails) {
   if (room.entity) { openDetails(room.entity); return; }
+  if (room.area && (wantDetails || !areaSummary(room.area).lights)) { if (roomHistory(room)) return; }
   if (room.area && !wantDetails) callService('light', 'toggle', { area_id: room.area });
 }
 
@@ -197,7 +198,13 @@ function coverCommand(it, v) {
   if (a.current_position != null || ((a.supported_features | 0) & 4)) return callService('cover', 'set_cover_position', { entity_id: it.entity, position: pos });
   return callService('cover', v > 0.5 ? 'open_cover' : 'close_cover', { entity_id: it.entity });
 }
-function openDetails(entity) { if (entity) HOST.moreInfo(entity); }
+function openDetails(entity) {
+  if (!entity) return;
+  const d = domainOf(entity), s = states[entity];
+  if (d === 'camera' && s && s.attributes && s.attributes.entity_picture) return cameraPopup(entity);
+  if (d === 'sensor' && s && isFinite(parseFloat(s.state)) && s.attributes && s.attributes.unit_of_measurement) { const h = histEntry(entity); if (h) return historyPopup(h.label, [h]); }
+  HOST.moreInfo(entity);
+}
 
 function tapPlan(it) {
   if (it.tap === 'none') return null;

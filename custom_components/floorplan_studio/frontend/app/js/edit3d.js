@@ -24,8 +24,10 @@ function v3Hud() {
     `<label class="chk"><input type="checkbox" id="v3all"${S().all3d ? ' checked' : ''}> alle Etagen</label>` +
     `<button class="ibtn" id="v3rl" title="Drehen">⟲</button><button class="ibtn" id="v3rr" title="Drehen">⟳</button>` +
     `<button class="ibtn" id="v3reset" title="Ansicht zurücksetzen">⤢</button>` +
-    `<button class="ibtn txt" id="v3walk" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück, Esc = beenden">🚶 Begehen</button>`;
+    `<button class="ibtn txt" id="v3walk" title="Durchs Haus gehen: Ziehen = umsehen/laufen, WASD/Pfeile, Mausrad = vor/zurück, Esc = beenden">🚶 Begehen</button>` +
+    `<button class="ibtn txt" id="v3vr" hidden title="Virtual Reality: Haus im Maßstab 1:1 begehen">🥽 VR</button><button class="ibtn txt" id="v3ar" hidden title="Augmented Reality: Modell auf dem Tisch">📱 AR</button>`;
   st.appendChild(hud);
+  [['vr', 'immersive-vr'], ['ar', 'immersive-ar']].forEach(([k, m]) => v3.xrSupported(m).then(ok => { const b = $('#v3' + k); if (!b) return; b.hidden = !ok; b.onclick = () => { if (v3.inXR()) v3.stopXR(); else v3.startXR(k); }; }));
   const setOpt = (k, v) => { S()[k] = v; if (k === 'look3d') S().blueprint = v === 'blueprint';  v3.set(k === 'look3d' ? 'look' : k === 'walls3d' ? 'walls' : 'allFloors', v); commit(); };
   $('#v3look').onchange = e => setOpt('look3d', e.target.value);
   $('#v3walls').onchange = e => setOpt('walls3d', e.target.value);
